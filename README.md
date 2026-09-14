@@ -15,9 +15,3 @@ See [product requirements](docs/product.md), [architecture](docs/architecture.md
 ## Planned setup
 
 The Android Gradle project has not been initialized yet. The planned modules are `app`, `core`, `data`, and `feature/*`. Before the first runnable build, add the Android project, create a Supabase project, configure Maps and Firebase credentials locally, and follow the first incomplete roadmap item.
-
-## Start a coding task
-
-Tell Codex:
-
-> Read `AGENTS.md`, `docs/product.md`, `docs/architecture.md`, and `docs/roadmap.md`. Implement the next incomplete milestone, verify it, and update the roadmap.

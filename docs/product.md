@@ -8,12 +8,13 @@ ShuttleSpot is a role-based Android app that makes shuttle operations visible: d
 
 ## Evidence from the prototype research
 
-- Interviews with two active student riders and one intern found recurring uncertainty about actual bus schedules, bus position, and arrival time.
+- Interviews with two active student riders and one intern found recurring uncertainty about actual bus schedules, bus position, and arrival time. The source itself notes that this small interview group is not fully representative.
 - Riders may arrive early and wait for a long time, or miss a bus that has already passed their stop.
 - The prototype research identified manual driver-dependent updates and repeated operational questions to admins as core operational pain points.
+- User testing with six respondents produced an overall usability average of 3.78/4. The journey progress bar scored 4.00/4, so it remains a must-have visual alongside the live map.
 - The original prototype was designed using User-Centered Design, interviews, observation, and usability testing. Treat its claims as project research; do not invent statistics not present in the source report.
 
-Source: `Laporan V2 — ShuttleSpot` (Google Doc supplied by the project team).
+Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's IF450 ShuttleSpot report.
 
 ## Users and roles
 
@@ -60,7 +61,7 @@ Source: `Laporan V2 — ShuttleSpot` (Google Doc supplied by the project team).
 
 - Payments, ticketing, turn-by-turn navigation, and public-transport integrations.
 - Automatic passenger detection, facial recognition, NFC check-in, or exact occupancy sensing.
-- Full real-time chat/chatbot, multilingual content management, and advanced schedule optimisation.
+- Free-form driver chat/chatbot, multilingual content management, and advanced schedule optimisation. If messaging is later added, use predefined passenger responses and block driver interaction while a trip is active.
 - Replacing UMN's actual operational systems; demo data is acceptable unless approved access is available.
 
 ## Acceptance criteria

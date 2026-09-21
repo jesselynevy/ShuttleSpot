@@ -5,6 +5,7 @@ Status key: `[ ]` not started, `[-]` in progress, `[x]` completed.
 ## 0. Proposal and context — complete
 
 - [x] Convert the ShuttleSpot prototype report into product, architecture, design, and proposal context.
+- [x] Curate the final IF450 PDF into `docs/source-of-truth.md` without adding its personal data to the repository.
 - [ ] Create the presentation slides from `docs/proposal-slides.md` and add the 12 required mockups.
 
 ## 1. Android foundation

@@ -7,6 +7,8 @@
 - Use maps as supporting context, not the only way to understand a trip. Always provide a readable route/stop list.
 - Keep driver controls large, low-distraction, and confirmation-based; do not require complex typing during a trip.
 - Provide loading, empty, permission-denied, offline, and error states for every data-dependent screen.
+- The first actionable onboarding button must be visible without scrolling on common phone sizes.
+- Notifications are personal/activity-based; announcements are general operational information. Make their icon, title, destination, and content visibly different.
 
 ## Navigation
 
@@ -35,11 +37,14 @@ Optional after MVP: route management, fleet dashboard, admin announcement compos
 
 ## Component rules
 
+- Use a 4dp spacing grid. Start phone layouts at 32dp horizontal margins and 16dp content gutters, then adapt at smaller widths.
 - Use Material 3 tokens; define semantic colors for `active`, `delayed`, `inactive`, `success`, and `warning` rather than scattering raw colors.
 - Use one reusable `TripStatusCard`, `RouteChip`, `AnnouncementCard`, `OfflineBanner`, and `LastUpdatedLabel`.
 - Use accessible labels for map controls and icon-only buttons. Aim for 48dp touch targets.
 - Never express state through color alone; pair it with text and an icon.
 - Confirm consequential actions: start trip, finish trip, cancel boarding intent, and publish announcement.
+- Keep the route-progress indicator prominent and readable; it was the clearest validated element in the source usability test.
+- Do not provide free-form passenger-to-driver chat when a driver is in an active trip. Use a short predefined response only if this interaction becomes necessary.
 
 ## Content language
 

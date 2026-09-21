@@ -13,7 +13,7 @@ Use a single Android app with role-gated navigation. Build a vertical slice for 
 | Local storage | Room database; DataStore for small preferences |
 | Background sync | WorkManager with network constraint |
 | Cloud | Supabase Auth, Postgres, Realtime, Edge Functions as needed |
-| Maps/location | Google Maps Compose; Fused Location Provider; foreground service for active driver trip |
+| Maps/location | MapLibre Android + OpenStreetMap tiles; Fused Location Provider; foreground service for active driver trip |
 | Notifications | Firebase Cloud Messaging |
 | Dependency injection | Hilt |
 | Tests | JUnit, Turbine/Coroutines tests, Compose UI tests |

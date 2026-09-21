@@ -12,13 +12,14 @@ Build **ShuttleSpot**, an Android app for UMN campus-shuttle passengers, drivers
 
 ## Important files
 - Product requirements and flows: `docs/product.md`
+- Research and prototype source of truth: `docs/source-of-truth.md`
 - Architecture and data model: `docs/architecture.md`
 - UI rules and required screens: `docs/design.md`
 - Current milestones: `docs/roadmap.md`
 - Proposal-slide outline: `docs/proposal-slides.md`
 
 ## Working rules
-- Read the relevant product, architecture, design, and roadmap docs before changing behaviour.
+- Read `docs/source-of-truth.md` and the relevant product, architecture, design, and roadmap docs before changing behaviour.
 - Make the smallest change that fully solves the task; do not build speculative features.
 - Keep the passenger flow working before expanding driver or admin functionality.
 - Use Compose state holders/ViewModels; UI composables must not call Supabase, Room, or location APIs directly.

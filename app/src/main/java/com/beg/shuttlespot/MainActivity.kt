@@ -4,15 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.beg.shuttlespot.navigation.ShuttleSpotNavGraph
-import com.beg.shuttlespot.ui.theme.ShuttleSpotTheme
+import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
+import org.maplibre.android.MapLibre
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MapLibre.getInstance(applicationContext)
         enableEdgeToEdge()
         setContent {
             ShuttleSpotTheme {

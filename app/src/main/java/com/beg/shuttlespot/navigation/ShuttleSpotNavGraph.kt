@@ -4,7 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.beg.shuttlespot.ui.components.PlaceholderScreen
+import com.beg.shuttlespot.core.ui.components.PlaceholderScreen
+import com.beg.shuttlespot.feature.passenger.livetrip.LiveTripDemoScreen
 
 @Composable
 fun ShuttleSpotNavGraph(navController: NavHostController) {
@@ -79,16 +80,12 @@ fun ShuttleSpotNavGraph(navController: NavHostController) {
         }
 
         composable(AppDestination.LiveTrip.route) {
-            PlaceholderScreen(
-                title = "Live Trip",
-                description = "Map, bus position, next stop, and route progress.",
-                buttonText = "I Want to Board",
-                onButtonClick = {
+            LiveTripDemoScreen(
+                onBoardingIntentClick = {
                     navController.navigate(AppDestination.BoardingIntent.route)
                 }
             )
         }
-
         composable(AppDestination.BoardingIntent.route) {
             PlaceholderScreen(
                 title = "Boarding Intent",

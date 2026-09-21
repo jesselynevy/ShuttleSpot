@@ -1,4 +1,4 @@
-package com.beg.shuttlespot.ui.theme
+package com.beg.shuttlespot.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

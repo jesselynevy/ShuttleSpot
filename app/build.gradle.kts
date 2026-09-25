@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("androidx.navigation:navigation-compose:2.8.5")
+    implementation(libs.androidx.ui.graphics)
     implementation("org.maplibre.gl:android-sdk:11.11.0")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

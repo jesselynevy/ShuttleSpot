@@ -1,4 +1,4 @@
-# Proposal slide outline
+ # Proposal slide outline
 
 Use this as the content source for the lecturer-required presentation. Keep slide copy brief; cite the project research report for interview/observation findings and label external claims with their sources.
 

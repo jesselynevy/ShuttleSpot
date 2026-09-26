@@ -38,19 +38,14 @@ fun PlaceholderScreen(
             style = MaterialTheme.typography.bodyLarge
         )
 
+        StatusBadge(text = "test", color = LabelColor.Success)
+
         if(buttonText != null && onButtonClick != null){
             AppButton(
                 text = buttonText,
                 onClick = onButtonClick,
                 variant = ButtonVariant.Primary
             )
-
-//            Button(
-//                onClick = onButtonClick,
-//                modifier = Modifier.padding(top = 24.dp)
-//            ){
-//                Text(buttonText)
-//            }
         }
     }
 }

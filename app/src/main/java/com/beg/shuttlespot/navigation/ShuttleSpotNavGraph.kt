@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.beg.shuttlespot.core.ui.components.PlaceholderScreen
+import com.beg.shuttlespot.core.ui.pages.HomeTemp
 import com.beg.shuttlespot.feature.passenger.livetrip.LiveTripDemoScreen
 
 @Composable
@@ -58,7 +59,7 @@ fun ShuttleSpotNavGraph(navController: NavHostController) {
         }
 
         composable(AppDestination.PassengerHomeInactive.route) {
-            PlaceholderScreen(
+            HomeTemp(
                 title = "No Active Bus",
                 description = "The next shuttle schedule will appear here.",
                 buttonText = "Show Demo Active Bus",

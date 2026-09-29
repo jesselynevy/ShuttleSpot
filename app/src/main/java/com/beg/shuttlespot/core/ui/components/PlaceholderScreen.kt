@@ -1,5 +1,6 @@
 package com.beg.shuttlespot.core.ui.components
 
+import android.widget.Button
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,13 +38,14 @@ fun PlaceholderScreen(
             style = MaterialTheme.typography.bodyLarge
         )
 
+        StatusBadge(text = "test", color = LabelColor.Success)
+
         if(buttonText != null && onButtonClick != null){
-            Button(
+            AppButton(
+                text = buttonText,
                 onClick = onButtonClick,
-                modifier = Modifier.padding(top = 24.dp)
-            ){
-                Text(buttonText)
-            }
+                variant = ButtonVariant.Primary
+            )
         }
     }
 }

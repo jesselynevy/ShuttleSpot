@@ -168,6 +168,6 @@ fun ButtonsToShow(busStatus : BusStatusType){
 fun BusStatusCardPreview(){
     ShuttleSpotTheme()
     {
-        BusStatusCard(busStatus = BusStatusType.PassedStops)
+        BusStatusCard(busStatus = BusStatusType.EnRoute)
     }
 }

@@ -26,23 +26,23 @@ Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's
 
 ## Core flow: passenger MVP
 
-1. A passenger signs in and grants location permission only if they use nearby-stop assistance.
-2. They select a primary route, pickup stop, and destination.
+1. A passenger enters a valid UMN student email in the form `name@student.umn.ac.id`; the app grants passenger access only when the email domain is exactly `student.umn.ac.id`. They grant location permission only if they use nearby-stop assistance.
+2. They select a primary route, pickup stop, and destination, then can inspect the route stops and departure schedule.
 3. Home displays the next active bus, its route, live position/ETA, and service status.
 4. The passenger can signal that they intend to board at the selected stop.
 5. The app notifies them when the bus is near or has arrived; they can read service announcements.
 
 ## Core flow: driver MVP
 
-1. The driver signs in and opens their assigned trip.
+1. The driver signs in with their registered phone number and OTP, then opens their assigned trip.
 2. They start the trip; while actively driving, the app publishes location and trip status with a visible foreground-service notification.
 3. At each stop they confirm progress and can see the count of passenger boarding intents.
 4. They end the trip and location sharing stops.
 
 ## Must-have (final-exam MVP)
 
-- Role-aware sign-in and a demo role switch for development/demo accounts.
-- Route and stop browsing; a passenger can save one primary route and pickup stop.
+- Role-aware sign-in: passenger access uses a valid `name@student.umn.ac.id` email-domain gate; driver access uses registered-phone OTP. The email-domain gate is a demo eligibility check, not UMN SSO or proof that the user owns the address.
+- Route, stop, and departure-schedule browsing; a passenger can save one primary route, pickup stop, and destination.
 - Live map/status card for an active bus; show an honest `last updated` timestamp and unavailable state when no live data exists.
 - Driver trip controls: start, stop progress, finish trip, and publish location when a trip is active.
 - Passenger boarding-intent record for a selected active trip and stop.

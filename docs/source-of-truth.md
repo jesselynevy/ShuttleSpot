@@ -20,6 +20,19 @@ The implementation plan may deliberately limit the original prototype's scope fo
 
 The PDF is the authoritative source for existing ShuttleSpot research and prototype design. It is intentionally not copied into this repository because it contains team personal information and should not be pushed to GitHub. This curated record preserves the implementation-relevant facts without that information.
 
+## Supplementary proposal artifact
+
+**Current proposal deck:** `C:\Users\User\Downloads\ShuttleSpotProposal.pptx` (2026).
+
+Use the deck to preserve the scope presented to the lecturer. It confirms the research-backed passenger and driver journeys and makes these proposal commitments explicit:
+
+- The proposal visual shows UMN SSO for passengers and registered-phone OTP for drivers. The current MVP decision replaces passenger SSO with a student-email domain gate: accept only a valid address in the form `name@student.umn.ac.id`.
+- Passengers select pickup and destination stops, inspect route stops and departure schedules, then track the bus and confirm boarding intent.
+- Drivers view waiting-passenger demand, follow their route, update trip status, move to the next stop, and finish the trip.
+- Operations-staff features, including fleet monitoring, schedule management, and central announcements, are good-to-have rather than part of the first passenger-and-driver MVP.
+
+The deck also contains personal information, so it must remain outside the repository. Where the deck and the research report differ, preserve the research findings and treat the deck as the current presentation-level scope unless the user or lecturer specifies otherwise.
+
 ## Validated problem and users
 
 - ShuttleSpot serves UMN campus-shuttle passengers, drivers, and operational administrators.

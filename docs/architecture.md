@@ -67,4 +67,4 @@ Live location is best effort, not a guarantee. UI must expose stale/offline stat
 
 - Choose whether ETA is calculated client-side from simplified route progress for the demo, or by an Edge Function. Start with a transparent heuristic and document it.
 - Confirm UMN route/stops and access approval; otherwise ship explicit demo data.
-- Choose Supabase auth method after lecturer constraints are known; email/password is an acceptable demo fallback to SSO/OTP.
+- Passenger demo sign-in validates a syntactically valid email whose domain is exactly `student.umn.ac.id`, then assigns the passenger role. This is an eligibility gate only, not UMN SSO or proof of email ownership. Driver access remains registered-phone OTP; isolate both flows behind a role-aware auth adapter so a real identity provider can replace the demo later.

@@ -6,13 +6,14 @@ Status key: `[ ]` not started, `[-]` in progress, `[x]` completed.
 
 - [x] Convert the ShuttleSpot prototype report into product, architecture, design, and proposal context.
 - [x] Curate the final IF450 PDF into `docs/source-of-truth.md` without adding its personal data to the repository.
-- [ ] Create the presentation slides from `docs/proposal-slides.md` and add the 12 required mockups.
+- [x] Create the proposal deck and its passenger/driver mockups outside the repository; keep the deck out of Git because it contains personal information.
 
 ## 1. Android foundation
 
-- [ ] Initialize a Kotlin/Compose Android project and package structure.
-- [ ] Configure Material theme, navigation, Hilt, test baseline, and local untracked configuration template.
-- [ ] Create all 12 screen shells with fake state and navigation.
+- [x] Initialize a Kotlin/Compose Android project and package structure.
+- [-] Configure Material theme, navigation, Hilt, test baseline, and local untracked configuration template. The Material theme, single-activity Navigation Compose host, and baseline tests exist; Hilt and a local configuration template do not.
+- [-] Create all 12 screen shells with fake state and navigation. All 12 destinations exist in the navigation graph, but most are still generic placeholders and only the live-trip screen has a map demo.
+- [x] Restore a clean single-activity navigation host and local JDK 17 build configuration.
 
 ## 2. Data and authentication
 

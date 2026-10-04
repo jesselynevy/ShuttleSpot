@@ -1,0 +1,3 @@
+# Copy this file to local.properties and provide values only on your machine.
+SUPABASE_URL=
+SUPABASE_ANON_KEY=

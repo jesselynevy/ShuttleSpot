@@ -1,0 +1,11 @@
+package com.beg.shuttlespot.data.repository
+
+import com.beg.shuttlespot.core.model.DriverTripSnapshot
+import kotlinx.coroutines.flow.Flow
+
+interface DriverTripRepository {
+    fun observeAssignedTrip(driverProfileId: String): Flow<DriverTripSnapshot?>
+    suspend fun startTrip(tripId: String)
+    suspend fun confirmCurrentStop(tripId: String)
+    suspend fun finishTrip(tripId: String)
+}

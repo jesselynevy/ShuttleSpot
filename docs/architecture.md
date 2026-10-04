@@ -27,6 +27,14 @@ Use a single Android app with role-gated navigation. Build a vertical slice for 
 - Repositories expose local-first flows, refresh cloud data, and enqueue retryable mutations.
 - The sync worker processes the outbox only with a network connection, using idempotency keys.
 
+## Implemented foundation
+
+- The current app remains a single Gradle module, organized into `core`, `data`, `feature`, and `navigation` packages.
+- `SessionRepository`, `RouteRepository`, `PassengerTripRepository`, and `DriverTripRepository` are the public seams used by ViewModels. Hilt binds deterministic in-memory adapters by default so UI work does not depend on Supabase credentials.
+- `LocationPublisher` is an isolated seam; its current no-op adapter is intentionally replaced later by the driver foreground-service implementation.
+- Room contains cache/outbox scaffolding for routes, stops, selections, trip snapshots, announcements, and retryable passenger mutations. WorkManager is available for the future network-constrained sync worker, but no worker is scheduled until a Supabase adapter is configured.
+- Supabase schema is versioned under `supabase/migrations/`; URL and anonymous-key values stay in untracked `local.properties` and are validated through `SupabaseConfig`.
+
 ## Data model (initial)
 
 | Table/entity | Important fields |
@@ -52,7 +60,7 @@ Use UUIDs. Model route assignments through `trips`; do not put mutable live-trip
 4. The app writes a Room cache after successful reads/realtime events.
 5. Offline actions go to the Room outbox. WorkManager retries when connected, and the server treats each idempotency key once.
 
-Live location is best effort, not a guarantee. UI must expose stale/offline states instead of pretending data is live.
+Live location is the best effort, not a guarantee. UI must expose stale/offline states instead of pretending data is live.
 
 ## Security and privacy
 
@@ -67,4 +75,4 @@ Live location is best effort, not a guarantee. UI must expose stale/offline stat
 
 - Choose whether ETA is calculated client-side from simplified route progress for the demo, or by an Edge Function. Start with a transparent heuristic and document it.
 - Confirm UMN route/stops and access approval; otherwise ship explicit demo data.
-- Passenger demo sign-in validates a syntactically valid email whose domain is exactly `student.umn.ac.id`, then assigns the passenger role. This is an eligibility gate only, not UMN SSO or proof of email ownership. Driver access remains registered-phone OTP; isolate both flows behind a role-aware auth adapter so a real identity provider can replace the demo later.
+- Passenger demo sign-in validates a syntactically valid email whose domain is exactly `student.umn.ac.id`, then assigns the passenger role. Driver demo access checks that a normalized phone number matches a pre-registered driver profile before assigning the driver role. Neither flow verifies ownership of the submitted contact detail. Isolate both behind a role-aware auth adapter so a real identity provider can replace the demo later.

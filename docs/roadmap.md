@@ -1,4 +1,10 @@
-# ShuttleSpot flow with mandatory Supabase data storage
+# ShuttleSpot planned Supabase data storage
+
+## Current MVP authority
+
+The approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing), summarized in `docs/source-of-truth.md`, is the authoritative passenger MVP flow. The current milestone delivers that journey as a deterministic in-memory UI prototype.
+
+The Supabase/Room/Realtime/FCM content below is the **planned online-storage roadmap and proposal explanation**. It is not evidence that those backend capabilities are implemented in the current app. Use `Planned Supabase` and a dashed planned-integration connector in flowcharts until a remote adapter has been implemented and tested.
 
 ## Proposal requirement
 

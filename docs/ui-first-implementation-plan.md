@@ -2,6 +2,12 @@
 
 ## Decision and scope
 
+## Approved-flow addendum (2026-10-06)
+
+The approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing) document is the authority for passenger-screen order and behavior. Its summary is maintained in `docs/source-of-truth.md`.
+
+Accordingly, P0 must include student email **and password input**, notification permission before location permission, route origin/destination/time selection and map review, student-information review, registration success, active-route change from the Route tab, and arrived/missed-bus states. The inputs and permissions may be implemented as deterministic prototype interactions, but the UI must not claim that real SSO, FCM delivery, or live GPS publishing is already connected.
+
 This is the revised implementation order after the team decision to **defer Supabase implementation**. The immediate goal is a convincing, runnable Android UI prototype for the passenger journey, powered by deterministic in-memory demo data. It must not claim that GPS tracking, online storage, Realtime, notifications, Room sync, or authentication are already production-ready.
 
 Do not delete the existing Supabase migration, configuration seam, Room scaffolding, or repository interfaces. They are useful future seams. Do not add a Supabase client, call the configured project, run migrations, or place credentials in tracked files during this UI-first phase.

@@ -73,8 +73,9 @@ The project already has onboarding shells, `LocationAssistanceScreen`, `RouteSel
 ### Required work
 
 - Preserve the email-domain gate: accept only valid `name@student.umn.ac.id` addresses. Do not implement password login or real SSO.
+- Add the password input required by the approved MVP flow, but treat it as prototype-only input: do not persist it or claim real SSO/account authentication.
 - Keep only `Mahasiswa` and `Driver` in the role selector; Staff is outside this prototype.
-- Show an optional location explanation with `Izinkan lokasi` and `Pilih halte manual`.
+- Add notification permission before the location step. Then show an optional location explanation with `Izinkan lokasi` and `Pilih halte manual`.
 - On denied/skipped permission, continue to manual stop selection. Never require background location.
 - Let the passenger choose a route, pickup stop, and destination stop.
 - Reject missing selections, equal stops, and a destination that comes before the pickup stop.

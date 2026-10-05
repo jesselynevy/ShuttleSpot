@@ -12,26 +12,29 @@
 
 ## Navigation
 
-- Passenger: Home, Routes, Announcements, Notifications, Profile.
+- Passenger onboarding: Welcome, role selection, student sign-in, notification permission, location permission, route setup/map review, information review, registration success.
+- Passenger app: Home, Routes, Announcements, Notifications, Profile. The Route tab must show the saved active route and provide `Pilih Rute` to replace it.
 - Driver: Home/Trip, Route, Announcements, Profile.
 - Admin is a later role-gated dashboard, not part of the first passenger vertical slice.
 
-## Required screen inventory (12)
+## Required screen inventory (12+)
 
 These screens meet the lecturer's minimum of 10 mockups and give the implementation an inspectable core flow.
 
 1. Splash/welcome and role selection
 2. Sign-in
-3. Passenger permission/nearby-stop explanation
-4. Route and stop selection
+3. Notification and passenger location-permission explanations
+4. Route/origin/destination/time selection and map review
 5. Passenger home — no active bus
 6. Passenger home — active bus/ETA
 7. Live trip map and stop progress
 8. Boarding-intent confirmation/status
-9. Announcements feed and detail
-10. Notifications inbox/preferences
-11. Driver dashboard — before trip
-12. Driver active trip — map, next stop, and finish-trip confirmation
+9. Student-information review and registration-success confirmation
+10. Announcements feed and detail
+11. Notifications inbox/preferences
+12. Route tab with active-route replacement
+
+The approved Flow ShuttleSpot MVP also requires the active/arrived/missed variations of Home and Tracker for capture. Driver screens remain optional after passenger P0.
 
 Optional after MVP: route management, fleet dashboard, admin announcement composer, chat/help, language setting.
 

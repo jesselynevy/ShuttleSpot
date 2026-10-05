@@ -26,11 +26,14 @@ Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's
 
 ## Core flow: passenger MVP
 
-1. A passenger enters a valid UMN student email in the form `name@student.umn.ac.id`; the app grants passenger access only when the email domain is exactly `student.umn.ac.id`. They grant location permission only if they use nearby-stop assistance.
-2. They select a primary route, pickup stop, and destination, then can inspect the route stops and departure schedule.
-3. Home displays the next active bus, its route, live position/ETA, and service status.
-4. The passenger can signal that they intend to board at the selected stop.
-5. The app notifies them when the bus is near or has arrived; they can read service announcements.
+The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing) journey, summarized in `docs/source-of-truth.md`.
+
+1. A passenger chooses `Mahasiswa`, enters a UMN student email and password input, and continues only if the email domain is exactly `student.umn.ac.id`. This is a demo account-setup/eligibility interaction until real authentication is implemented.
+2. They proceed through notification permission and optional location permission, with a manual route/stop fallback.
+3. They select a route, pickup stop, destination, and desired time; inspect the route map; review the chosen details; and see registration success.
+4. Home displays the primary route, pickup stop, boarding status, announcements, and either no-bus or active-bus status.
+5. The passenger can open a tracker, confirm boarding once, see the confirmed state on Home and Tracker, and handle arrived/missed-bus states.
+6. The Route tab supports viewing and replacing the saved route selection.
 
 ## Core flow: driver MVP
 
@@ -41,15 +44,15 @@ Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's
 
 ## Must-have (final-exam MVP)
 
-- Role-aware sign-in: passenger access uses a valid `name@student.umn.ac.id` email-domain gate; driver access uses a registered-phone lookup against pre-registered driver profiles. Both are demo eligibility checks, not identity verification or proof that the user owns the supplied contact detail.
-- Route, stop, and departure-schedule browsing; a passenger can save one primary route, pickup stop, and destination.
-- Live map/status card for an active bus; show an honest `last updated` timestamp and unavailable state when no live data exists.
-- Driver trip controls: start, stop progress, finish trip, and publish location when a trip is active.
-- Passenger boarding-intent record for a selected active trip and stop.
-- Announcements targeted to all users or a route.
-- Push notifications for nearby/arrived bus and operational announcements.
-- Supabase as the cloud system of record.
-- Offline-first cache for routes, stops, latest trip state, announcements, and queued user actions; sync automatically on reconnect.
+- Passenger onboarding as specified by the approved Flow ShuttleSpot document: role selection, student email/password inputs, notification/location permission steps, route setup, review, and success.
+- Route, origin, destination, time, and schedule browsing; a passenger can save and later replace one primary route selection.
+- Home and Tracker states for no active bus, active/en-route bus, arrived/waiting, confirmed boarding, and missed bus.
+- Map route/stops/vehicle presentation with ETA, progress, and honest `last updated` information.
+- One idempotent passenger boarding intent for the selected active trip and pickup stop.
+- A distinct general-announcement preview and personal notification surface.
+- Passenger P0 screens sufficient for the capture-ready MVP flow; driver UI is P1 after passenger P0.
+
+Current implementation uses deterministic in-memory data. Supabase, FCM, Room/WorkManager sync, real driver GPS publishing, and real authentication remain planned integrations, not completed MVP claims.
 
 ## Native-device requirements
 

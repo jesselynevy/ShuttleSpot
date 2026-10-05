@@ -4,6 +4,8 @@
 
 Use a single Android app with role-gated navigation. Build a vertical slice for the passenger journey first, then the driver location publisher. The cloud is authoritative, while Room provides a usable local cache and an outbox for offline writes.
 
+For the current UI-first milestone, the approved Flow ShuttleSpot document defines the passenger journey. Student email/password fields, notification permission, location permission, route/time selection, map review, profile review, route replacement, and tracker states are UI requirements. Repository adapters remain deterministic in-memory implementations until the corresponding real integration is deliberately scheduled.
+
 ## Planned Android stack
 
 | Concern | Choice |

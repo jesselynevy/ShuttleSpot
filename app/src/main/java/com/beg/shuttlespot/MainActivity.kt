@@ -10,7 +10,9 @@ import androidx.navigation.compose.rememberNavController
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 import com.beg.shuttlespot.navigation.ShuttleSpotNavGraph
 import org.maplibre.android.MapLibre
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

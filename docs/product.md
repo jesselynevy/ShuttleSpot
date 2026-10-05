@@ -34,14 +34,14 @@ Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's
 
 ## Core flow: driver MVP
 
-1. The driver signs in with their registered phone number and OTP, then opens their assigned trip.
+1. The driver enters their registered phone number. The app grants demo driver access only when its normalized value matches a pre-registered driver profile, then opens the assigned trip. This lookup is not phone-number ownership verification.
 2. They start the trip; while actively driving, the app publishes location and trip status with a visible foreground-service notification.
 3. At each stop they confirm progress and can see the count of passenger boarding intents.
 4. They end the trip and location sharing stops.
 
 ## Must-have (final-exam MVP)
 
-- Role-aware sign-in: passenger access uses a valid `name@student.umn.ac.id` email-domain gate; driver access uses registered-phone OTP. The email-domain gate is a demo eligibility check, not UMN SSO or proof that the user owns the address.
+- Role-aware sign-in: passenger access uses a valid `name@student.umn.ac.id` email-domain gate; driver access uses a registered-phone lookup against pre-registered driver profiles. Both are demo eligibility checks, not identity verification or proof that the user owns the supplied contact detail.
 - Route, stop, and departure-schedule browsing; a passenger can save one primary route, pickup stop, and destination.
 - Live map/status card for an active bus; show an honest `last updated` timestamp and unavailable state when no live data exists.
 - Driver trip controls: start, stop progress, finish trip, and publish location when a trip is active.

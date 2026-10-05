@@ -11,14 +11,16 @@ import androidx.navigation.compose.composable
 import com.beg.shuttlespot.core.ui.components.PlaceholderScreen
 import com.beg.shuttlespot.feature.foundation.DriverActiveTripScreen
 import com.beg.shuttlespot.feature.foundation.DriverHomeScreen
-import com.beg.shuttlespot.feature.foundation.PassengerHomeScreen
 import com.beg.shuttlespot.feature.foundation.RoleSelectionScreen
-import com.beg.shuttlespot.feature.foundation.RouteSetupScreen
+import com.beg.shuttlespot.feature.passenger.route.RouteSelectionScreen
 import com.beg.shuttlespot.feature.foundation.SignInScreen
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.feature.passenger.livetrip.LiveTripDemoScreen
+import com.beg.shuttlespot.feature.passenger.boarding.BoardingIntentScreen
+import com.beg.shuttlespot.feature.passenger.home.PassengerHomeScreen
+import com.beg.shuttlespot.feature.passenger.location.LocationAssistanceScreen
 
 @Composable
 fun ShuttleSpotNavGraph(navController: NavHostController) {
@@ -27,12 +29,30 @@ fun ShuttleSpotNavGraph(navController: NavHostController) {
         composable(AppDestination.RoleSelection.route) { RoleSelectionScreen({ navController.navigate(AppDestination.PassengerSignIn.route) }, { navController.navigate(AppDestination.DriverSignIn.route) }) }
         composable(AppDestination.PassengerSignIn.route) { SignInScreen(isDriver = false, onSuccess = { navController.navigate(AppDestination.LocationPermission.route) }) }
         composable(AppDestination.DriverSignIn.route) { SignInScreen(isDriver = true, onSuccess = { navController.navigate(AppDestination.DriverHome.route) }) }
-        composable(AppDestination.LocationPermission.route) { RequireRole(UserRole.PASSENGER, navController) { PlaceholderScreen("Cari halte terdekat", "Lokasi bersifat opsional. Anda tetap dapat memilih halte secara manual.", "Pilih rute") { navController.navigate(AppDestination.RouteSelection.route) } } }
-        composable(AppDestination.RouteSelection.route) { RequireRole(UserRole.PASSENGER, navController) { RouteSetupScreen(onSaved = { navController.navigate(AppDestination.PassengerHomeActive.route) }) } }
+        composable(AppDestination.LocationPermission.route) { RequireRole(UserRole.PASSENGER, navController) {
+            LocationAssistanceScreen(
+                onLocationGranted = { navController.navigate(AppDestination.RouteSelection.route) },
+                onChooseManually = { navController.navigate(AppDestination.RouteSelection.route) }
+            )
+        } }
+        composable(AppDestination.RouteSelection.route) { RequireRole(UserRole.PASSENGER, navController) { RouteSelectionScreen(onFinished = { navController.navigate(AppDestination.PassengerHomeActive.route) }) } }
         composable(AppDestination.PassengerHomeInactive.route) { PlaceholderScreen("Tidak ada bus aktif", "Jadwal berikutnya tetap tersedia dari cache.", "Atur rute") { navController.navigate(AppDestination.RouteSelection.route) } }
-        composable(AppDestination.PassengerHomeActive.route) { RequireRole(UserRole.PASSENGER, navController) { PassengerHomeScreen({ navController.navigate(AppDestination.LiveTrip.route) }, { navController.navigate(AppDestination.BoardingIntent.route) }) } }
-        composable(AppDestination.LiveTrip.route) { RequireRole(UserRole.PASSENGER, navController) { LiveTripDemoScreen { navController.navigate(AppDestination.BoardingIntent.route) } } }
-        composable(AppDestination.BoardingIntent.route) { RequireRole(UserRole.PASSENGER, navController) { PlaceholderScreen("Konfirmasi minat naik", "Minat naik disimpan sekali untuk trip dan halte pilihan Anda.", "Kembali ke beranda") { navController.navigate(AppDestination.PassengerHomeActive.route) } } }
+        composable(AppDestination.PassengerHomeActive.route) { RequireRole(UserRole.PASSENGER, navController) {
+            PassengerHomeScreen(
+                onLiveTrip = { navController.navigate(AppDestination.LiveTrip.route) },
+                onBoardingIntent = { navController.navigate(AppDestination.BoardingIntent.route) },
+                onRoutes = { navController.navigate(AppDestination.RouteSelection.route) },
+                onAnnouncements = { navController.navigate(AppDestination.Announcements.route) },
+                onNotifications = { navController.navigate(AppDestination.Notifications.route) },
+                onProfile = {}
+            )
+        } }
+        composable(AppDestination.LiveTrip.route) { RequireRole(UserRole.PASSENGER, navController) {
+            LiveTripDemoScreen(onBoardingIntentClick = { navController.navigate(AppDestination.BoardingIntent.route) })
+        } }
+        composable(AppDestination.BoardingIntent.route) { RequireRole(UserRole.PASSENGER, navController) {
+            BoardingIntentScreen(onDone = { navController.popBackStack() })
+        } }
         composable(AppDestination.Announcements.route) { PlaceholderScreen("Pengumuman", "Pengumuman rute akan menggunakan cache dan Supabase Realtime.") }
         composable(AppDestination.Notifications.route) { PlaceholderScreen("Notifikasi", "Alert personal akan membuka detail perjalanan terkait.") }
         composable(AppDestination.DriverHome.route) { RequireRole(UserRole.DRIVER, navController) { DriverHomeScreen(onActiveTrip = { navController.navigate(AppDestination.DriverTrip.route) }) } }

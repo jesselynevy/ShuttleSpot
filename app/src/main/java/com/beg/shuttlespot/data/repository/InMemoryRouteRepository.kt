@@ -4,6 +4,7 @@ import com.beg.shuttlespot.core.model.Route
 import com.beg.shuttlespot.core.model.RouteDetails
 import com.beg.shuttlespot.core.model.RouteSelection
 import com.beg.shuttlespot.core.model.Stop
+import com.beg.shuttlespot.core.model.TimetableEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,37 +14,57 @@ import javax.inject.Singleton
 @Singleton //object u create once and use it everywhere
 class InMemoryRouteRepository @Inject constructor(): RouteRepository{
     private val routes = listOf(
-        Route(id = "bsd_umn", name = "BSD ke UMN"),
-        Route(id = "umn_bsd", name = "UMN ke BSD")
+        Route(id = "bsd_umn", name = "Pasar Modern BSD ke UMN"),
+        Route(id = "gading_serpong_loop", name = "Rute Keliling Gading Serpong"),
+        Route(id = "grogol_umn", name = "Grogol ke UMN"),
+        Route(id = "umn_grogol", name = "UMN ke Grogol"),
+        Route(id = "tangerang_city_umn_mnp", name = "Tangerang City ke UMN/MNP"),
+        Route(id = "umn_tangerang_city", name = "UMN ke Tangerang City"),
+        Route(id = "cisauk_umn", name = "Intermoda Cisauk ke UMN"),
+        Route(id = "umn_cisauk", name = "UMN ke Intermoda Cisauk")
     )
 
     private val routeDetails = listOf(
-        RouteDetails(
-            route = routes[0],
-            stops = listOf(
-                Stop("bsd_stop", "bsd_umn", "Halte BSD", 1, -6.3000, 106.6500),
-                Stop("summarecon_stop", "bsd_umn", "Summarecon Mall Serpong", 2, -6.2400, 106.6300),
-                Stop(
-                    "umn_stop",
-                    "bsd_umn",
-                    "Universitas Multimedia Nusantara",
-                    3,
-                    -6.2561,
-                    106.6186
-                )
-            ),
-            departureTimes = listOf("07:00", "09:00", "11:00", "13:00", "15:00")
-        ),
-        RouteDetails(
-            route = routes[1],
-            stops = listOf(
-                Stop("umn_stop_return", "umn_bsd", "Universitas Multimedia Nusantara", 1, -6.2561, 106.6186),
-                Stop("summarecon_stop_return", "umn_bsd", "Summarecon Mall Serpong", 2, -6.2400, 106.6300),
-                Stop("bsd_stop_return", "umn_bsd", "Halte BSD", 3, -6.3000, 106.6500)
-            ),
-            departureTimes = listOf("08:00", "10:00", "12:00", "14:00", "16:00")
-        )
+        detail(routes[0], listOf("Halte Pasar Modern BSD", "Taman Kota BSD", "ITC BSD", "Halte Seberang Telkom", "Halte Bundaran Alam Sutera", "Gerbang Gading Serpong", "Dormitory", "UMN"), listOf(
+            entry("Pagi", "06.15", "Halte Pasar Modern BSD – Taman Kota BSD – ITC BSD – Halte Seberang Telkom – Halte Bundaran Alam Sutera"),
+            entry("Pagi", "07.00", "Gerbang Gading Serpong"), entry("Pagi", "07.10", "Dormitory – UMN"),
+            entry("Pagi", "07.20", "Dormitory"), entry("Pagi", "07.30", "Tiba UMN")
+        )),
+        detail(routes[1], listOf("Kampus UMN", "SMS – Bundaran", "McDonald GS", "Ruko Boulevard", "Dormitory UMN", "Assobirin", "Bundaran Alam Sutera", "Villa Melati Mas", "BSD Plaza", "Halte Pasar Modern BSD"), listOf(
+            entry("Rute keliling", "09.15", "Kampus UMN"), entry("Rute keliling", "10.40", "SMS – Bundaran"),
+            entry("Rute keliling", "12.15", "McDonald GS"), entry("Rute keliling", "14.15", "Ruko Boulevard – Dormitory UMN – Kampus UMN"),
+            entry("Rute keliling", "17.30", "UMN – Dormitory – Assobirin – Bundaran Alam Sutera – Villa Melati Mas – BSD Plaza – Halte Pasar Modern BSD")
+        ), trafficNotice),
+        detail(routes[2], listOf("Grogol", "Green Garden Pesing", "Halte Pasar Pisang/Bojong Cengkareng", "Gerbang Tol Puri Kembangan", "Apartemen Metro Garden", "Rest Area KM 13,5", "UMN"), listOf(
+            entry("Pagi", "05.25–05.47", "Grogol – Green Garden Pesing"), entry("Pagi", "05.47–05.54", "Green Garden Pesing – Halte Pasar Pisang/Bojong Cengkareng"),
+            entry("Pagi", "05.54–06.07", "Halte Pasar Pisang/Bojong Cengkareng – Gerbang Tol Puri Kembangan"), entry("Pagi", "06.07–06.17", "Gerbang Tol Puri Kembangan – Apartemen Metro Garden"),
+            entry("Pagi", "06.17–06.27", "Apartemen Metro Garden – Rest Area KM 13,5"), entry("Pagi", "06.27–07.00", "Rest Area KM 13,5 – UMN")
+        )),
+        detail(routes[3], listOf("UMN", "Rest Area Karang Tengah KM 14", "Apartemen Metro Garden", "Gerbang Tol Puri Kembangan", "Halte Pasar Pisang/Bojong Cengkareng", "Green Garden Pesing", "Grogol"), listOf(
+            entry("Sore", "17.15–18.15", "UMN – Rest Area Karang Tengah KM 14 – Apartemen Metro Garden – Gerbang Tol Puri Kembangan"),
+            entry("Sore", "18.15–18.35", "Gerbang Tol Puri Kembangan – Halte Pasar Pisang/Bojong Cengkareng"), entry("Sore", "18.35–18.55", "Halte Pasar Pisang/Bojong Cengkareng – Green Garden Pesing"),
+            entry("Sore", "18.55–19.15", "Green Garden Pesing – Grogol")
+        ), trafficNotice),
+        detail(routes[4], listOf("Halte Total Depan Tang City", "Depan Transmart Cikokol", "Setos Kebon Nanas", "PT Tiffico", "Gerbang Gading Serpong", "Dormitory", "UMN", "MNP"), listOf(
+            entry("Pagi", "06.40", "Halte Total Depan Tang City – Depan Transmart Cikokol – Setos Kebon Nanas – PT Tiffico – Gerbang Gading Serpong"),
+            entry("Pagi", "07.15", "Dormitory – UMN – MNP"), entry("Pagi", "07.25", "Dormitory – UMN – MNP"), entry("Pagi", "07.35", "Tiba UMN"), entry("Pagi", "07.40", "Tiba MNP")
+        )),
+        detail(routes[5], listOf("UMN", "Dormitory", "Gerbang Gading Serpong", "Halte Seberang Transmart Cikokol", "Halte Total Depan Tang City"), listOf(
+            entry("Siang", "13.00", "UMN"), entry("Siang", "13.15", "Dormitory – Gerbang Gading Serpong – Halte Seberang Transmart Cikokol – Halte Total Depan Tang City"),
+            entry("Sore", "16.00", "Dormitory"), entry("Sore", "16.30", "Tiba UMN"), entry("Sore", "17.30", "UMN – Dormitory – Gerbang Gading Serpong – Halte Seberang Transmart Cikokol – Halte Total Depan Tang City")
+        ), trafficNotice),
+        detail(routes[6], listOf("Intermoda Cisauk", "UMN"), listOf(entry("Pagi", "07.00", "Intermoda Cisauk – UMN"))),
+        detail(routes[7], listOf("UMN", "Intermoda Cisauk"), listOf(entry("Sore", "17.45", "UMN – Intermoda Cisauk")), trafficNotice)
     )
+
+    private fun detail(route: Route, stopNames: List<String>, timetableEntries: List<TimetableEntry>, serviceNotice: String? = null) =
+        RouteDetails(route, stopNames.mapIndexed { index, name -> Stop("${route.id}_${index + 1}", route.id, name, index + 1) }, timetableEntries, serviceNotice)
+
+    private fun entry(period: String, time: String, description: String) = TimetableEntry(period, time, description)
+
+    private companion object {
+        const val trafficNotice = "Waktu tiba di titik drop-off dapat berubah sesuai kondisi kepadatan lalu lintas."
+    }
 
     private val routeState = MutableStateFlow(routes)
     private val selectionState = MutableStateFlow<RouteSelection?>(null)

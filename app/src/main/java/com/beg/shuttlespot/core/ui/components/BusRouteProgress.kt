@@ -125,7 +125,7 @@ fun BusRouteProgress(
         ){
             Icon(
                 imageVector = Icons.Default.DirectionsBus,
-                contentDescription = null,
+                contentDescription = "Posisi bus pada rute",
                 tint = Color.White,
                 modifier = Modifier.size(14.dp)
             )

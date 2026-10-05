@@ -3,6 +3,7 @@ package com.beg.shuttlespot.core.ui.components
 import android.view.RoundedCorner
 import android.widget.Button
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
@@ -30,7 +31,7 @@ fun AppButton(
     when(variant){
         ButtonVariant.Primary -> {
             Button(
-                modifier = modifier,
+                modifier = modifier.defaultMinSize(minHeight = 48.dp),
                 onClick = onClick,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -43,7 +44,7 @@ fun AppButton(
         }
         ButtonVariant.Secondary ->{
             OutlinedButton(
-                modifier = modifier,
+                modifier = modifier.defaultMinSize(minHeight = 48.dp),
                 onClick = onClick,
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = Color.Transparent,

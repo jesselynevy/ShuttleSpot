@@ -1,10 +1,13 @@
 package com.beg.shuttlespot.core.ui.components
 
-import android.widget.Button
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +26,10 @@ fun PlaceholderScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(horizontal = 16.dp, vertical = 24.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
@@ -37,8 +43,6 @@ fun PlaceholderScreen(
             modifier = Modifier.padding(top = 12.dp),
             style = MaterialTheme.typography.bodyLarge
         )
-
-        StatusBadge(text = "test", color = LabelColor.Success)
 
         if(buttonText != null && onButtonClick != null){
             AppButton(

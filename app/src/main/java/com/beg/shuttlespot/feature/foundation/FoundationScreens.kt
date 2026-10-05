@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -23,8 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.beg.shuttlespot.feature.auth.AuthViewModel
 import com.beg.shuttlespot.feature.driver.trip.DriverTripViewModel
-import com.beg.shuttlespot.feature.passenger.home.PassengerHomeViewModel
-import com.beg.shuttlespot.feature.passenger.route.RouteSelectionViewModel
 
 @Composable
 fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) = BaseColumn("Pilih tipe pengguna") {
@@ -43,30 +45,6 @@ fun SignInScreen(isDriver: Boolean, onSuccess: () -> Unit, viewModel: AuthViewMo
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = { if (isDriver) viewModel.signInDriver(value) else viewModel.signInPassenger(value) }, enabled = !state.loading, modifier = Modifier.fillMaxWidth()) {
             Text(if (state.loading) "Memeriksa…" else "Lanjut")
-        }
-    }
-}
-
-@Composable
-fun RouteSetupScreen(onSaved: () -> Unit, viewModel: RouteSelectionViewModel = hiltViewModel()) {
-    val routes by viewModel.routes.collectAsState()
-    BaseColumn("Pilih rute dan halte") {
-        Text("Fondasi demo memilih rute pertama. Fitur rute akan menambahkan pencarian, peta, dan validasi pilihan.")
-        routes.forEach { Text(it.name) }
-        Button(onClick = { viewModel.saveDemoSelection(onSaved) }, enabled = routes.isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("Simpan rute utama") }
-    }
-}
-
-@Composable
-fun PassengerHomeScreen(onLiveTrip: () -> Unit, onBoardingIntent: () -> Unit, viewModel: PassengerHomeViewModel = hiltViewModel()) {
-    val trip by viewModel.trip.collectAsState()
-    BaseColumn("Beranda") {
-        if (trip == null) Text("Tidak ada perjalanan aktif. Lihat jadwal berikutnya.") else {
-            Text("${trip!!.vehicleLabel} · ${trip!!.status}")
-            Text("${trip!!.nextStopName ?: "Tidak ada halte berikutnya"} · ETA ${trip!!.eta.minutes ?: "-"} menit")
-            Text("Data demo; pembaruan lokasi akan ditambahkan oleh fitur realtime.")
-            Button(onClick = onBoardingIntent, modifier = Modifier.fillMaxWidth()) { Text("Konfirmasi akan naik") }
-            OutlinedButton(onClick = onLiveTrip, modifier = Modifier.fillMaxWidth()) { Text("Lihat Posisi Bus Realtime") }
         }
     }
 }
@@ -95,8 +73,12 @@ fun DriverActiveTripScreen(onFinished: () -> Unit, viewModel: DriverTripViewMode
 }
 
 @Composable
-private fun BaseColumn(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+fun BaseColumn(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().navigationBarsPadding().imePadding()
+            .padding(horizontal = 16.dp, vertical = 24.dp).verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         Text(title, style = MaterialTheme.typography.headlineMedium)
         content()
     }

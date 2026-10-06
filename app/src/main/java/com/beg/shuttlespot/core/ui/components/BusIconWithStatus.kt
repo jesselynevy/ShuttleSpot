@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun BusIconWithStatus(
@@ -37,4 +38,10 @@ fun BusIconWithStatus(
 
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BusIconWithStatusPreview(){
+    BusIconWithStatus();
 }

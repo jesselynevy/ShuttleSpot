@@ -60,31 +60,32 @@ fun BusStatusRow(
                 modifier = Modifier.size(16.dp)
             )
 
+            val emphasisColor = MaterialTheme.colorScheme.onSurface
             val text = buildAnnotatedString {
                 when (type) {
                     BusStatusType.PassedStops -> {
                         append("Melewati ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) { append("$haltCount halte") }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("$haltCount halte") }
                         append(" lagi \u00B7 estimasi tiba ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) { append(eta) }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append(eta) }
                     }
                     BusStatusType.WaitingAtStop -> {
                         append("Segera naik, bus sedang menunggu di ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) { append("haltemu") }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("haltemu") }
                         append("!")
                     }
                     BusStatusType.EnRoute -> {
                         append("Bus dalam perjalanan ke ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) { append("haltemu") }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("haltemu") }
                         append(" \u00B7 estimasi tiba ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) { append(eta) }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append(eta) }
                     }
                     BusStatusType.Passed -> {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFF912A43))) { append("Bus sudah melewati haltemu!") }
                     }
                     BusStatusType.NoBusOperating -> {
                         append("Jadwal berikutnya ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) { append("TIME HERE") }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("TIME HERE") }
                     }
                     BusStatusType.Riding -> {
 

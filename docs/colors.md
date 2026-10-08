@@ -88,15 +88,23 @@ Same values in light and dark theme.
 
 ### Light (`LightColorScheme`)
 
-| Slot               | Value              | Use for                                                        |
-| ------------------ | ------------------ | -------------------------------------------------------------- |
-| `primary`          | `SpringSky`        | Primary buttons, active/progress elements, icon tint           |
-| `onPrimary`        | `#FFFFFF`          | Text/icons on `primary`                                        |
-| `primaryContainer` | `UMNBlue`          | Strong brand fills (bus marker)                                |
-| `errorContainer`   | `ErrorContainer`   | Failed/error background (for example the failed `StatusBadge`) |
-| `onErrorContainer` | `OnErrorContainer` | Text/icons on `errorContainer`                                 |
+Built from the same palette and designed to work with `extendedLight`: `background` and `surface` use the same values as `backgroundColor` and `groupingColor`, so Material components (dialogs, sheets, text fields) match custom ones.
 
-Every other slot (`background`, `surface`, `error`, `secondary`, and so on) is still the **Material 3 default**. Prefer `LocalExtendedColors` for backgrounds and cards until those slots are customized, so screens stay consistent.
+| Slot                 | Value              | Use for                                                                                |
+| -------------------- | ------------------ | -------------------------------------------------------------------------------------- |
+| `primary`            | `SpringSky`        | Primary buttons, active/progress elements, icon tint                                   |
+| `onPrimary`          | `DarkestColor`     | Text/icons on `primary` (dark on light blue, which has far better contrast than white) |
+| `primaryContainer`   | `UMNBlue`          | Strong brand fills (bus marker)                                                        |
+| `onPrimaryContainer` | `FullWhite`        | Text/icons on `primaryContainer`                                                       |
+| `background`         | `BackgroundWhite`  | Screen background (same as `extendedLight.backgroundColor`)                            |
+| `onBackground`       | `DarkestColor`     | Text on `background`                                                                   |
+| `surface`            | `FullWhite`        | Cards, sheets, dialogs (same as `extendedLight.groupingColor`)                         |
+| `onSurface`          | `DarkestColor`     | Text on `surface`                                                                      |
+| `onSurfaceVariant`   | `ArabicGrey`       | Secondary text and icons from Material components                                      |
+| `outline`            | `SuperGrey`        | Outlines, such as outlined buttons and text fields                                     |
+| `outlineVariant`     | `KawaiiSilver`     | Subtle dividers                                                                        |
+| `errorContainer`     | `ErrorContainer`   | Failed/error background                                                                |
+| `onErrorContainer`   | `OnErrorContainer` | Text/icons on `errorContainer`                                                         |
 
 ### Dark (`DarkColorScheme`)
 
@@ -120,9 +128,7 @@ Built from the same palette and designed to work with `extendedDark`: `backgroun
 
 Slots not listed (`secondary`, `tertiary`, `error`, and so on) are still Material defaults in both themes. Do not use them yet.
 
-`ShuttleSpotTheme` also sets `LocalContentColor` to `onBackground`, so any `Text` without an explicit color is white in dark mode.
-
-The light theme does not set `onPrimaryContainer`, `background`, `surface` and the others in the dark table. If you want both themes to match exactly, add them to `LightColorScheme` (`background = BackgroundWhite`, `surface = FullWhite`, and so on). Until then, in light mode use `LocalExtendedColors` for backgrounds and cards.
+`ShuttleSpotTheme` also sets `LocalContentColor` to `onBackground`, so any `Text` without an explicit color is `FullWhite` in dark mode and `DarkestColor` in light mode. `darkTheme` follows the system setting (`isSystemInDarkTheme()`).
 
 ### Using both together
 
@@ -236,8 +242,7 @@ Combine with a color token, never a raw color: `Text(..., style = MaterialTheme.
 
 ## Accessibility
 
-- **`onPrimary` on `SpringSky`:** in light mode, white on `#30AFF4` is about 2.4:1, below the WCAG AA minimum (4.5:1 for normal text). `UMNBlue` with white is about 7.5:1 and passes. The dark scheme avoids this by using `DarkestColor` as `onPrimary`. For small text on a primary button in light mode, consider `UMNBlue` as the fill, or dark text on `SpringSky`.
-- **Light theme `onPrimaryContainer` is not set.** `primaryContainer` is the dark `UMNBlue`, but the light default `onPrimaryContainer` is a dark Material tone, so text or icons on it will be hard to read. Set `onPrimaryContainer = FullWhite` in `LightColorScheme` (the dark scheme already does).
+- **`onPrimary` on `SpringSky`:** both themes use `DarkestColor` as `onPrimary`. White on `#30AFF4` is only about 2.4:1, below the WCAG AA minimum (4.5:1 for normal text), so don't put white text on `SpringSky`.
 - Don't rely on color alone for state. Pair with text and an icon.
 - Aim for 48dp touch targets (`design.md`).
 

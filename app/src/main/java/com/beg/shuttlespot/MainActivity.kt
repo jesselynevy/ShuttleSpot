@@ -4,7 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
@@ -27,8 +31,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun ShuttleSpotApp() {
     ShuttleSpotTheme {
-        val navController = rememberNavController()
-        ShuttleSpotNavGraph(navController = navController)
+        // Cat latar dari tema; tanpa ini layar memakai warna window dari themes.xml (terang) walau teks mengikuti mode gelap.
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            val navController = rememberNavController()
+            ShuttleSpotNavGraph(navController = navController)
+        }
     }
 }
 

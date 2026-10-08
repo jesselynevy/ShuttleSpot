@@ -31,25 +31,23 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = SpringSky,
+    onPrimary = DarkestColor,
     primaryContainer = UMNBlue,
-    onPrimary = Color(0xFFFFFFFF),
+    onPrimaryContainer = FullWhite,
+    background = BackgroundWhite,
+    onBackground = DarkestColor,
+    surface = FullWhite,
+    onSurface = DarkestColor,
+    onSurfaceVariant = ArabicGrey,
+    outline = SuperGrey,
+    outlineVariant = KawaiiSilver,
     errorContainer = ErrorContainer,
     onErrorContainer = OnErrorContainer,
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable
 fun ShuttleSpotTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
@@ -71,7 +69,7 @@ fun ShuttleSpotTheme(
             typography = Typography
         ) {
             // Default text color for any Text without an explicit color
-            // (white in dark mode, dark in light mode).
+            // (FullWhite in dark mode, DarkestColor in light mode).
             CompositionLocalProvider(
                 LocalContentColor provides MaterialTheme.colorScheme.onBackground,
                 content = content

@@ -1,4 +1,4 @@
-package com.beg.shuttlespot.feature.passenger.boarding
+ package com.beg.shuttlespot.feature.passenger.boarding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -150,10 +151,12 @@ fun ButtonsToShow(busStatus : BusStatusType){
             ) {}
         }
         else -> {
+            Spacer(modifier = Modifier.height(6.dp))
             AppButton(
                 text = "Konfirmasi naik Bus",
                 modifier = Modifier.fillMaxWidth()
             ) {}
+            Spacer(modifier = Modifier.height(6.dp))
             AppButton(
                 text = "Lihat Posisi Bus Realtime",
                 modifier = Modifier.fillMaxWidth(),

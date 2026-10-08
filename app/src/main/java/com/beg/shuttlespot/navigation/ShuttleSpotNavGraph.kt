@@ -8,69 +8,46 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.beg.shuttlespot.core.ui.components.PlaceholderScreen
-import com.beg.shuttlespot.feature.foundation.DriverActiveTripScreen
-import com.beg.shuttlespot.feature.foundation.DriverHomeScreen
-import com.beg.shuttlespot.feature.foundation.RoleSelectionScreen
-import com.beg.shuttlespot.feature.passenger.route.RouteSelectionScreen
-import com.beg.shuttlespot.feature.foundation.SignInScreen
+import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
-import com.beg.shuttlespot.core.model.UserRole
-import com.beg.shuttlespot.feature.passenger.livetrip.LiveTripDemoScreen
-import com.beg.shuttlespot.feature.passenger.boarding.BoardingIntentScreen
-import com.beg.shuttlespot.feature.passenger.home.PassengerHomeScreen
-import com.beg.shuttlespot.feature.passenger.location.LocationAssistanceScreen
 
+object RootRoute {
+    const val GATE = "gate"   // titik awal: memutuskan auth atau shell berdasarkan session
+}
+
+/** NavHost root. Setiap graph didefinisikan di file sendiri; di sini hanya dirangkai. */
 @Composable
 fun ShuttleSpotNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = AppDestination.Welcome.route) {
-        composable(AppDestination.Welcome.route) { PlaceholderScreen("ShuttleSpot", "Pelacak shuttle kampus UMN.", "Masuk") { navController.navigate(AppDestination.RoleSelection.route) } }
-        composable(AppDestination.RoleSelection.route) { RoleSelectionScreen({ navController.navigate(AppDestination.PassengerSignIn.route) }, { navController.navigate(AppDestination.DriverSignIn.route) }) }
-        composable(AppDestination.PassengerSignIn.route) { SignInScreen(isDriver = false, onSuccess = { navController.navigate(AppDestination.LocationPermission.route) }) }
-        composable(AppDestination.DriverSignIn.route) { SignInScreen(isDriver = true, onSuccess = { navController.navigate(AppDestination.DriverHome.route) }) }
-        composable(AppDestination.LocationPermission.route) { RequireRole(UserRole.PASSENGER, navController) {
-            LocationAssistanceScreen(
-                onLocationGranted = { navController.navigate(AppDestination.RouteSelection.route) },
-                onChooseManually = { navController.navigate(AppDestination.RouteSelection.route) }
-            )
-        } }
-        composable(AppDestination.RouteSelection.route) { RequireRole(UserRole.PASSENGER, navController) { RouteSelectionScreen(onFinished = { navController.navigate(AppDestination.PassengerHomeActive.route) }) } }
-        composable(AppDestination.PassengerHomeInactive.route) { PlaceholderScreen("Tidak ada bus aktif", "Jadwal berikutnya tetap tersedia dari cache.", "Atur rute") { navController.navigate(AppDestination.RouteSelection.route) } }
-        composable(AppDestination.PassengerHomeActive.route) { RequireRole(UserRole.PASSENGER, navController) {
-            PassengerHomeScreen(
-                onLiveTrip = { navController.navigate(AppDestination.LiveTrip.route) },
-                onBoardingIntent = { navController.navigate(AppDestination.BoardingIntent.route) },
-                onRoutes = { navController.navigate(AppDestination.RouteSelection.route) },
-                onAnnouncements = { navController.navigate(AppDestination.Announcements.route) },
-                onNotifications = { navController.navigate(AppDestination.Notifications.route) },
-                onProfile = {}
-            )
-        } }
-        composable(AppDestination.LiveTrip.route) { RequireRole(UserRole.PASSENGER, navController) {
-            LiveTripDemoScreen(onBoardingIntentClick = { navController.navigate(AppDestination.BoardingIntent.route) })
-        } }
-        composable(AppDestination.BoardingIntent.route) { RequireRole(UserRole.PASSENGER, navController) {
-            BoardingIntentScreen(onDone = { navController.popBackStack() })
-        } }
-        composable(AppDestination.Announcements.route) { PlaceholderScreen("Pengumuman", "Pengumuman rute akan menggunakan cache dan Supabase Realtime.") }
-        composable(AppDestination.Notifications.route) { PlaceholderScreen("Notifikasi", "Alert personal akan membuka detail perjalanan terkait.") }
-        composable(AppDestination.DriverHome.route) { RequireRole(UserRole.DRIVER, navController) { DriverHomeScreen(onActiveTrip = { navController.navigate(AppDestination.DriverTrip.route) }) } }
-        composable(AppDestination.DriverTrip.route) { RequireRole(UserRole.DRIVER, navController) { DriverActiveTripScreen(onFinished = { navController.navigate(AppDestination.DriverHome.route) }) } }
+    NavHost(navController = navController, startDestination = RootRoute.GATE) {
+        composable(RootRoute.GATE) { SessionGate(navController) }
+
+        authNavGraph(navController) { role ->
+            val next = when (role) {
+                UserRole.PASSENGER -> OnboardingRoute.GRAPH   // pilih rute dulu (plan.md layar 4-10)
+                UserRole.DRIVER -> MainRoute.SHELL            // driver langsung ke Driver Home (layar 19-20)
+            }
+            navController.navigate(next) { popUpTo(AuthRoute.GRAPH) { inclusive = true } }
+        }
+
+        passengerOnboardingNavGraph(navController) {
+            navController.navigate(MainRoute.SHELL) { popUpTo(OnboardingRoute.GRAPH) { inclusive = true } }
+        }
+
+        mainNavGraph(navController)
+        passengerFlowNavGraph(navController)
+        driverFlowNavGraph(navController)
     }
 }
 
 @Composable
-private fun RequireRole(role: UserRole, navController: NavHostController, viewModel: SessionViewModel = hiltViewModel(), content: @Composable () -> Unit) {
+private fun SessionGate(navController: NavHostController, viewModel: SessionViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
-    when (state) {
+    when (val s = state) {
         SessionUiState.Loading -> Unit
-        is SessionUiState.Ready -> {
-            val session = (state as SessionUiState.Ready).session
-            LaunchedEffect(session?.role) {
-                if (session?.role != role) navController.navigate(AppDestination.Welcome.route) { popUpTo(0) }
-            }
-            if (session?.role == role) content()
+        is SessionUiState.Ready -> LaunchedEffect(Unit) {
+            val target = if (s.session != null) MainRoute.SHELL else AuthRoute.GRAPH
+            navController.navigate(target) { popUpTo(RootRoute.GATE) { inclusive = true } }
         }
     }
 }

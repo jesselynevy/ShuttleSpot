@@ -62,8 +62,11 @@ class RouteSelectionViewModel @Inject constructor(
     fun selectRoute(routeId: String, pickupStopId: String? = null, destinationStopId: String? = null) {
         viewModelScope.launch {
             val details = routeRepository.observeRouteDetails(routeId).first() ?: return@launch
+            // Tanpa pilihan tersimpan, pilih halte pertama (jemput) dan terakhir (tujuan) supaya pilihan awal selalu valid.
+            val pickup = pickupStopId ?: details.stops.firstOrNull()?.id
+            val destination = destinationStopId ?: details.stops.lastOrNull()?.takeIf { it.id != pickup }?.id
             _uiState.update {
-                it.copy(selectedRoute = details, pickupStopId = pickupStopId, destinationStopId = destinationStopId, showReview = false, selectionSaved = false, errorMessage = null)
+                it.copy(selectedRoute = details, pickupStopId = pickup, destinationStopId = destination, showReview = false, selectionSaved = false, errorMessage = null)
             }
         }
     }

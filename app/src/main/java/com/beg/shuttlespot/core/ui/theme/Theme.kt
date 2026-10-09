@@ -2,6 +2,7 @@ package com.beg.shuttlespot.core.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -13,25 +14,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-//    primary = Purple80,
-//    secondary = PurpleGrey80,
-//    tertiary = Pink80
+    primary = SpringSky,
+    onPrimary = DarkestColor,
+    primaryContainer = UMNBlue,
+    onPrimaryContainer = FullWhite,
+    background = DarkestColor,
+    onBackground = FullWhite,
+    surface = LighterDark,
+    onSurface = FullWhite,
+    onSurfaceVariant = LightestGray,
+    outline = MidGray,
+    outlineVariant = DarkestGray,
+    errorContainer = ErrorContainer,
+    onErrorContainer = OnErrorContainer,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = SpringSky,
+    onPrimary = DarkestColor,
     primaryContainer = UMNBlue,
-    onPrimary = Color(0xFFFFFFFF),
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onPrimaryContainer = FullWhite,
+    background = BackgroundWhite,
+    onBackground = DarkestColor,
+    surface = FullWhite,
+    onSurface = DarkestColor,
+    onSurfaceVariant = ArabicGrey,
+    outline = SuperGrey,
+    outlineVariant = KawaiiSilver,
+    errorContainer = ErrorContainer,
+    onErrorContainer = OnErrorContainer,
 )
 
 @Composable
@@ -55,9 +66,15 @@ fun ShuttleSpotTheme(
     CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography,
-            content = content
-        )
+            typography = Typography
+        ) {
+            // Default text color for any Text without an explicit color
+            // (FullWhite in dark mode, DarkestColor in light mode).
+            CompositionLocalProvider(
+                LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+                content = content
+            )
+        }
     }
 
 }

@@ -15,6 +15,8 @@ Build **ShuttleSpot**, an Android app for UMN campus-shuttle passengers, drivers
 - Research and prototype source of truth: `docs/source-of-truth.md`
 - Architecture and data model: `docs/architecture.md`
 - UI rules and required screens: `docs/design.md`
+- Color, theme, and typography usage: `docs/colors.md`
+- Navigation skeleton and how to extend it: `docs/skeleton-guide.md`
 - Current milestones: `docs/roadmap.md`
 - Proposal-slide outline: `docs/proposal-slides.md`
 

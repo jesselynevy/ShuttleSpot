@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 enum class LabelColor{
     Success, Pending, Failed, Blue, Purple, Grey
@@ -39,14 +40,17 @@ fun StatusBadge(text: String, color : LabelColor, style : LabelStyle = LabelStyl
     }
 }
 
+@Composable
 private fun getLabelColors(color : LabelColor, style : LabelStyle) : Pair<Color, Color> {
+    val extended = LocalExtendedColors.current
+    val scheme = MaterialTheme.colorScheme
     val (soft, content)  = when(color) {
-        LabelColor.Success -> Color(0xFFC8F7D4) to Color(0xFF1B7A3D)
-        LabelColor.Pending -> Color(0xFFFCE7A6) to Color(0xFF8A5A00)
-        LabelColor.Failed -> Color(0xFFFAD2D2) to Color(0xFFB3261E)
-        LabelColor.Blue -> Color(0xFFDEF4FF) to Color(0xFF1484C0)
-        LabelColor.Purple -> Color(0xFFEBE0FF) to Color(0xFF7A40B8)
-        LabelColor.Grey -> Color(0xFFDEDEDE) to Color(0xFF868686)
+        LabelColor.Success -> extended.successContainer to extended.onSuccessContainer
+        LabelColor.Pending -> extended.pendingContainer to extended.onPendingContainer
+        LabelColor.Failed -> scheme.errorContainer to scheme.onErrorContainer
+        LabelColor.Blue -> extended.blueContainer to extended.onBlueContainer
+        LabelColor.Purple -> extended.purpleContainer to extended.onPurpleContainer
+        LabelColor.Grey -> extended.greyContainer to extended.onGreyContainer
     }
 
     return if(style == LabelStyle.Soft) soft to content else content to soft;

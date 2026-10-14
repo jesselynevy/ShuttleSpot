@@ -25,11 +25,26 @@ class InMemoryRouteRepository @Inject constructor(): RouteRepository{
     )
 
     private val routeDetails = listOf(
-        detail(routes[0], listOf("Halte Pasar Modern BSD", "Taman Kota BSD", "ITC BSD", "Halte Seberang Telkom", "Halte Bundaran Alam Sutera", "Gerbang Gading Serpong", "Dormitory", "UMN"), listOf(
-            entry("Pagi", "06.15", "Halte Pasar Modern BSD – Taman Kota BSD – ITC BSD – Halte Seberang Telkom – Halte Bundaran Alam Sutera"),
-            entry("Pagi", "07.00", "Gerbang Gading Serpong"), entry("Pagi", "07.10", "Dormitory – UMN"),
-            entry("Pagi", "07.20", "Dormitory"), entry("Pagi", "07.30", "Tiba UMN")
-        )),
+        RouteDetails(
+            route = routes[0],
+            stops = listOf(
+                Stop("bsd_umn_1", "bsd_umn", "Halte Pasar Modern BSD", 1, -6.3045281, 106.6848223, scheduledTime = "06.15"),
+                Stop("bsd_umn_2", "bsd_umn", "Halte Seberang Telkom", 2, -6.277908133873632, 106.66122527545618),
+                Stop("bsd_umn_3", "bsd_umn", "Halte depan Mall WTC Villa Melati Mas", 3, -6.271424137283743, 106.6554922228125),
+                Stop("bsd_umn_4", "bsd_umn", "Halte Assobirin", 4, -6.258629712030424, 106.65182741364757),
+                Stop("bsd_umn_5", "bsd_umn", "Halte Bundaran Alam Sutera", 5, -6.24412, 106.64886),
+                Stop("bsd_umn_6", "bsd_umn", "Gerbang Gading Serpong", 6, -6.23077, 106.64136, scheduledTime = "07.00"),
+                Stop("bsd_umn_7", "bsd_umn", "Paramount", 7, -6.2307640413527325, 106.64040084798098),
+                Stop("bsd_umn_8", "bsd_umn", "Dormitory", 8, -6.251652290980524, 106.62814256878931),
+                Stop("bsd_umn_9", "bsd_umn", "UMN", 9, -6.2567379, 106.6183029, scheduledTime = "07.30"),
+            ),
+            timetableEntries = listOf(
+                entry("Pagi", "06.15", "Halte Pasar Modern BSD – Halte Seberang Telkom – Halte depan Mall WTC Villa Melati Mas – Halte Assobirin – Halte Bundaran Alam Sutera"),
+                entry("Pagi", "07.00", "Gerbang Gading Serpong – Paramount"), entry("Pagi", "07.10", "Dormitory – UMN"),
+                entry("Pagi", "07.20", "Dormitory"), entry("Pagi", "07.30", "Tiba UMN")
+            ),
+            path = RoutePaths.BSD_UMN,
+        ),
         detail(routes[1], listOf("Kampus UMN", "SMS – Bundaran", "McDonald GS", "Ruko Boulevard", "Dormitory UMN", "Assobirin", "Bundaran Alam Sutera", "Villa Melati Mas", "BSD Plaza", "Halte Pasar Modern BSD"), listOf(
             entry("Rute keliling", "09.15", "Kampus UMN"), entry("Rute keliling", "10.40", "SMS – Bundaran"),
             entry("Rute keliling", "12.15", "McDonald GS"), entry("Rute keliling", "14.15", "Ruko Boulevard – Dormitory UMN – Kampus UMN"),

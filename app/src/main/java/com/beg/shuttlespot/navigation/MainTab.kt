@@ -1,9 +1,9 @@
 package com.beg.shuttlespot.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
@@ -13,7 +13,7 @@ import com.beg.shuttlespot.core.model.UserRole
 enum class MainTab(val route: String) {
     Home(MainRoute.HOME),
     Routes(MainRoute.ROUTES),
-    Announcements(MainRoute.ANNOUNCEMENTS),
+    Notifications(MainRoute.NOTIFICATIONS),
     Profile(MainRoute.PROFILE),
 }
 
@@ -22,7 +22,7 @@ data class TabSpec(val tab: MainTab, val label: String, val icon: ImageVector)
 private val defaultTabs = listOf(
     TabSpec(MainTab.Home, "Beranda", Icons.Default.Home),
     TabSpec(MainTab.Routes, "Rute", Icons.Default.Map),
-    TabSpec(MainTab.Announcements, "Pengumuman", Icons.Default.Campaign),
+    TabSpec(MainTab.Notifications, "Notifikasi", Icons.Default.Notifications),
     TabSpec(MainTab.Profile, "Profil", Icons.Default.Person),
 )
 

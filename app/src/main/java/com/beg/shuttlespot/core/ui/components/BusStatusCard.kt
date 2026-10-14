@@ -35,7 +35,10 @@ import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 enum class BusStatusType { PassedStops, WaitingAtStop, EnRoute, Passed, NoBusOperating, Riding }
 @Composable
 fun BusStatusCard(
-    busStatus : BusStatusType
+    busStatus : BusStatusType,
+    onBoardingIntent: () -> Unit = {},
+    onLiveTrip: () -> Unit = {},
+    showLiveTrip : Boolean = true,
 ){
     val (labelText, labelColor, labelStyle) = when (busStatus) {
         BusStatusType.PassedStops -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
@@ -61,6 +64,15 @@ fun BusStatusCard(
             .fillMaxWidth()
             .padding(12.dp),
     ){
+        if(!showLiveTrip){
+            AppButton(
+                text = "Konfirmasi naik Bus",
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onBoardingIntent
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
         Column(
             modifier = Modifier
                 .background(LocalExtendedColors.current.groupingColor)
@@ -126,19 +138,27 @@ fun BusStatusCard(
 
         }
 
-        ButtonsToShow(busStatus)
+        if (showLiveTrip) {
+            ButtonsToShow(busStatus, onBoardingIntent, onLiveTrip)
+        }
     }
 }
 
 @Composable
-fun ButtonsToShow(busStatus : BusStatusType){
+fun ButtonsToShow(
+    busStatus : BusStatusType,
+    onBoardingIntent: () -> Unit = {},
+    onLiveTrip: () -> Unit = {},
+){
+
     when(busStatus){
         BusStatusType.Passed -> {
             AppButton(
                 text = "Lihat Posisi Bus Realtime",
                 modifier = Modifier.fillMaxWidth(),
-                variant = ButtonVariant.Secondary
-            ) {}
+                variant = ButtonVariant.Secondary,
+                onClick = onLiveTrip
+            )
         }
         BusStatusType.NoBusOperating -> {
             // no buttons at all
@@ -147,21 +167,24 @@ fun ButtonsToShow(busStatus : BusStatusType){
             AppButton(
                 text = "Lihat Posisi Bus Realtime",
                 modifier = Modifier.fillMaxWidth(),
-                variant = ButtonVariant.Secondary
-            ) {}
+                variant = ButtonVariant.Secondary,
+                onClick = onLiveTrip
+            )
         }
         else -> {
             Spacer(modifier = Modifier.height(6.dp))
             AppButton(
                 text = "Konfirmasi naik Bus",
-                modifier = Modifier.fillMaxWidth()
-            ) {}
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onBoardingIntent
+            )
             Spacer(modifier = Modifier.height(6.dp))
             AppButton(
                 text = "Lihat Posisi Bus Realtime",
                 modifier = Modifier.fillMaxWidth(),
-                variant = ButtonVariant.Secondary
-            ) {}
+                variant = ButtonVariant.Secondary,
+                onClick = onLiveTrip
+            )
         }
     }
 }

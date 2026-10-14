@@ -16,9 +16,8 @@ fun HomeTab(role: UserRole, tabNav: NavController, rootNav: NavController) {
     when (role) {
         UserRole.PASSENGER -> PassengerHomeScreen(
             onLiveTrip = { rootNav.navigate(PassengerFlowRoute.LIVE_TRIP) },
-            onBoardingIntent = { rootNav.navigate(PassengerFlowRoute.BOARDING_INTENT) },
             onRoutes = { tabNav.navigateToTab(MainRoute.ROUTES) },
-            onAnnouncements = { tabNav.navigateToTab(MainRoute.ANNOUNCEMENTS) },
+            onAnnouncements = { rootNav.navigate(PassengerFlowRoute.ANNOUNCEMENTS) },
             onNotifications = { rootNav.navigate(PassengerFlowRoute.NOTIFICATIONS) },
             onProfile = { tabNav.navigateToTab(MainRoute.PROFILE) },
         )

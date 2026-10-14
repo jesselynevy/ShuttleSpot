@@ -6,6 +6,6 @@ object MainRoute {
 
     const val HOME = "home"
     const val ROUTES = "routes"
-    const val ANNOUNCEMENTS = "announcements"
+    const val NOTIFICATIONS = "notifications"
     const val PROFILE = "profile"
 }

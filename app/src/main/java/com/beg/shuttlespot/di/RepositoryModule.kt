@@ -1,5 +1,7 @@
 package com.beg.shuttlespot.di
 
+import com.beg.shuttlespot.data.repository.AnnouncementRepository
+import com.beg.shuttlespot.data.repository.InMemoryAnnouncementRepository
 import com.beg.shuttlespot.data.repository.InMemoryRouteRepository
 import com.beg.shuttlespot.data.repository.InMemorySessionRepository
 import com.beg.shuttlespot.data.repository.InMemoryPassengerTripRepository
@@ -34,6 +36,9 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindDriverTripRepository(implementation: InMemoryDriverTripRepository): DriverTripRepository
+
+    @Binds @Singleton
+    abstract fun bindAnnouncementRepository(implementation: InMemoryAnnouncementRepository): AnnouncementRepository
 
     @Binds @Singleton
     abstract fun bindLocationPublisher(implementation: NoOpLocationPublisher): LocationPublisher

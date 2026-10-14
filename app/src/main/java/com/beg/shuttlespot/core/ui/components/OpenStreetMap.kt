@@ -150,6 +150,8 @@ fun OpenStreetMap(
     /** Jalur jalan (lat to lng); kosong -> garis lurus antar halte. */
     routePath: List<Pair<Double, Double>> = emptyList(),
     selectedMarkerId: String? = null,
+    /** Naikkan nilainya (mis. +1 tiap klik tombol) untuk memindahkan kamera ke bus. */
+    focusBusTrigger: Int = 0,
     onMarkerClick: (String?) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -206,6 +208,14 @@ fun OpenStreetMap(
                 hit != null
             }
         }
+    }
+
+    // Pindahkan kamera ke bus setiap kali focusBusTrigger naik (0 = belum pernah diminta).
+    LaunchedEffect(focusBusTrigger) {
+        if (focusBusTrigger == 0) return@LaunchedEffect
+        val m = map ?: return@LaunchedEffect
+        val b = bus ?: return@LaunchedEffect
+        m.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(b.latitude, b.longitude), maxOf(m.cameraPosition.zoom, 16.0)))
     }
 
     // Gambar ulang garis rute + halte hanya ketika daftar halte berubah (bukan saat bus bergerak).

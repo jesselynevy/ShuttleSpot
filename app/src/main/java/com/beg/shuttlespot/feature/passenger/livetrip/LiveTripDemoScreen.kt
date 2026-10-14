@@ -1,6 +1,11 @@
 package com.beg.shuttlespot.feature.passenger.livetrip
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -108,6 +113,7 @@ private fun LiveTripContent(
         },
     ) { _ ->
         // Padding dari scaffold sengaja diabaikan: peta menutupi satu layar penuh.
+        var focusBusTrigger by remember { mutableIntStateOf(0) }
         val routePath = remember(mapState.path) { mapState.path.map { it.latitude to it.longitude } }
         Box(Modifier.fillMaxSize()) {
             OpenStreetMap(
@@ -119,17 +125,39 @@ private fun LiveTripContent(
                 markers = mapState.markers,
                 routePath = routePath,
                 selectedMarkerId = mapState.selectedStopId,
+                focusBusTrigger = focusBusTrigger,
                 onMarkerClick = onSelectStop,
             )
 
-            FloatingRouteBar(
-                title = mapState.routeName.ifBlank { "Rute" },
-                onBack = onBack,
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                FloatingRouteBar(
+                    title = mapState.routeName.ifBlank { "Rute" },
+                    onBack = onBack,
+                )
+                if (location != null) {
+                    Surface(
+                        onClick = { focusBusTrigger++ },
+                        modifier = Modifier.align(Alignment.End).size(48.dp),
+                        shape = CircleShape,
+                        color = LocalExtendedColors.current.groupingColor,
+                        shadowElevation = 4.dp,
+                    ) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            Icon(
+                                Icons.Outlined.MyLocation,
+                                contentDescription = "Pindah ke posisi bus",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+            }
 
             // Sheet sudah ditarik habis ke bawah: beri jalan untuk memunculkannya lagi.
             if (sheetState.currentValue == SheetValue.Hidden) {

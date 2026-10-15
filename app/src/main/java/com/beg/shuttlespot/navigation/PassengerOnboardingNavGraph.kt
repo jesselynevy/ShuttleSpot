@@ -19,8 +19,8 @@ object OnboardingRoute {
 }
 
 /**
- * Onboarding penumpang: Location Assistance (plan.md layar 4) -> izin notifikasi -> pilih rute/halte -> review -> selesai (layar 5-10).
- * Izin notifikasi ditambahkan di luar plan.md; layar itu dilewati di Android < 13 karena izinnya tidak ada.
+ * Onboarding penumpang: izin notifikasi -> Location Assistance -> pilih rute/halte -> review -> selesai.
+ * Izin notifikasi dilewati di Android < 13 karena POST_NOTIFICATIONS tidak tersedia.
  * RouteSelectionScreen saat ini sudah memuat pilih rute, halte, review, dan layar "tersimpan".
  * Kalau nanti dipecah (Nearby Stops, Manual, Route Results, Route Detail), tambahkan destinasi di sini.
  */
@@ -29,14 +29,14 @@ fun NavGraphBuilder.passengerOnboardingNavGraph(
     onCompleted: () -> Unit,
 ) {
     navigation(
-        startDestination = OnboardingRoute.LOCATION,
+        startDestination = firstOnboardingDestination(),
         route = OnboardingRoute.GRAPH,
     ) {
         composable(OnboardingRoute.LOCATION) {
             RequireRole(UserRole.PASSENGER, navController) {
                 LocationAssistanceScreen(
-                    onLocationGranted = { navController.navigate(nextAfterLocation()) },
-                    onChooseManually = { navController.navigate(nextAfterLocation()) },
+                    onLocationGranted = { navController.navigate(OnboardingRoute.ROUTE_SELECTION) },
+                    onChooseManually = { navController.navigate(OnboardingRoute.ROUTE_SELECTION) },
                 )
             }
         }
@@ -44,7 +44,7 @@ fun NavGraphBuilder.passengerOnboardingNavGraph(
         composable(OnboardingRoute.NOTIFICATION) {
             RequireRole(UserRole.PASSENGER, navController) {
                 NotificationPermissionScreen(
-                    onContinue = { navController.navigate(OnboardingRoute.ROUTE_SELECTION) },
+                    onContinue = { navController.navigate(OnboardingRoute.LOCATION) },
                 )
             }
         }
@@ -57,7 +57,7 @@ fun NavGraphBuilder.passengerOnboardingNavGraph(
     }
 }
 
-/** POST_NOTIFICATIONS baru ada di Android 13 (TIRAMISU); di bawah itu langsung ke pemilihan rute. */
-private fun nextAfterLocation(): String =
+/** POST_NOTIFICATIONS baru ada di Android 13 (TIRAMISU); di bawah itu mulai dari izin lokasi. */
+private fun firstOnboardingDestination(): String =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) OnboardingRoute.NOTIFICATION
-    else OnboardingRoute.ROUTE_SELECTION
+    else OnboardingRoute.LOCATION

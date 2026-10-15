@@ -44,6 +44,7 @@ Optional after MVP: route management, fleet dashboard, admin announcement compos
 - Use Material 3 tokens; define semantic colors for `active`, `delayed`, `inactive`, `success`, and `warning` rather than scattering raw colors.
 - Use one reusable `TripStatusCard`, `RouteChip`, `AnnouncementCard`, `OfflineBanner`, and `LastUpdatedLabel`.
 - Use accessible labels for map controls and icon-only buttons. Aim for 48dp touch targets.
+- Full-screen onboarding content must apply top system-bar and bottom navigation-bar insets; add IME insets when a text field can be focused so primary actions remain reachable.
 - Never express state through color alone; pair it with text and an icon.
 - Confirm consequential actions: start trip, finish trip, cancel boarding intent, and publish announcement.
 - Keep the route-progress indicator prominent and readable; it was the clearest validated element in the source usability test.

@@ -61,9 +61,9 @@ val extendedLight = ExtendedColors(
 )
 
 val extendedDark = ExtendedColors(
-    secondary1 = DarkestGray,
+    secondary1 = LightestGray,
     secondary2 = MidGray,
-    secondary3 = LightestGray,
+    secondary3 = DarkestGray,
     backgroundColor = DarkestColor,
     groupingColor = LighterDark,
     successContainer = SuccessContainer,

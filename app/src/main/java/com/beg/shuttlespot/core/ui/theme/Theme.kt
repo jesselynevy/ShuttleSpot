@@ -31,7 +31,7 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = SpringSky,
-    onPrimary = DarkestColor,
+    onPrimary = FullWhite,
     primaryContainer = UMNBlue,
     onPrimaryContainer = FullWhite,
     background = BackgroundWhite,

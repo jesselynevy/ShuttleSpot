@@ -21,7 +21,7 @@ class InMemoryPassengerTripRepository @Inject constructor() : PassengerTripRepos
             tripId = "trip-bsd-1", routeId = "bsd_umn", vehicleLabel = "D 8801 VBN",
             status = TripStatus.EN_ROUTE, progress = 0.45f, nextStopName = "Halte Jababeka II",
             eta = EtaEstimate(minutes = 5), lastUpdatedEpochMillis = demoUpdatedAtEpochMillis,
-            location = LiveLocation(-6.267, 106.628, demoUpdatedAtEpochMillis)
+            location = LiveLocation(-6.264968, 106.654605, demoUpdatedAtEpochMillis)
         )
     )
     private val intent = MutableStateFlow<BoardingIntent?>(null)

@@ -10,7 +10,7 @@ Ada **dua level NavHost**:
 | NavHost | Dibuat di | Isi |
 |---|---|---|
 | Root (`navController`) | `ShuttleSpotNavGraph` | Gate, auth, onboarding, shell, flow layar penuh |
-| Tab (`tabNav`) | `MainShell` | Empat tab dashboard (Beranda, Rute, Pengumuman, Profil) |
+| Tab (`tabNav`) | `MainShell` | Empat tab dashboard (Beranda, Rute, Notifikasi, Profil) |
 
 ```
 RootRoute.GATE ──(cek sesi)──┬─ tidak ada sesi ─▶ AuthRoute.GRAPH
@@ -23,7 +23,7 @@ AuthRoute.GRAPH: Welcome ▶ RoleSelection ▶ SignIn/{role}
 OnboardingRoute.GRAPH (passenger): Location ▶ Notification* ▶ RouteSelection
    * hanya Android 13+ (API 33); di bawahnya dilewati
 
-MainRoute.SHELL (tab): Beranda | Rute | Pengumuman | Profil
+MainRoute.SHELL (tab): Beranda | Rute | Notifikasi | Profil
    ├─ PassengerFlowRoute: LiveTrip, BoardingIntent, Notifications
    └─ DriverFlowRoute: ActiveTrip ▶ TripComplete ▶ kembali ke SHELL
 ```
@@ -37,7 +37,7 @@ Tidak ada lagi `AppDestination`. Setiap graph punya objek sendiri:
 | `RootRoute` | `ShuttleSpotNavGraph.kt` | `GATE` |
 | `AuthRoute` | `AuthNavGraph.kt` | `GRAPH`, `WELCOME`, `ROLE_SELECTION`, `SIGN_IN`, `ARG_ROLE`, `signIn(role)` |
 | `OnboardingRoute` | `PassengerOnboardingNavGraph.kt` | `GRAPH`, `LOCATION`, `NOTIFICATION`, `ROUTE_SELECTION` |
-| `MainRoute` | `MainRoute.kt` | `SHELL`, `HOME`, `ROUTES`, `ANNOUNCEMENTS`, `PROFILE` |
+| `MainRoute` | `MainRoute.kt` | `SHELL`, `HOME`, `ROUTES`, `NOTIFICATIONS`, `PROFILE` |
 | `PassengerFlowRoute` | `PassengerFlowNavGraph.kt` | `LIVE_TRIP`, `BOARDING_INTENT`, `NOTIFICATIONS` |
 | `DriverFlowRoute` | `DriverFlowNavGraph.kt` | `ACTIVE_TRIP`, `TRIP_COMPLETE` |
 

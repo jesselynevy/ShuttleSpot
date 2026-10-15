@@ -27,8 +27,16 @@ fun WaveBackground(style: WaveStyle, modifier: Modifier = Modifier, content: @Co
         if (res != null) {
             Image(
                 painterResource(res), null,
-                Modifier.fillMaxWidth().align(Alignment.TopCenter),
-                contentScale = ContentScale.FillWidth,
+                modifier = if (style == WaveStyle.Auth) {
+                    Modifier.fillMaxSize()
+                } else {
+                    Modifier.fillMaxWidth().align(Alignment.TopCenter)
+                },
+                contentScale = if (style == WaveStyle.Auth) {
+                    ContentScale.FillBounds
+                } else {
+                    ContentScale.FillWidth
+                },
             )
         }
         content()

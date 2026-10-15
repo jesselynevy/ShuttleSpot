@@ -7,9 +7,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.beg.shuttlespot.core.model.UserRole
-import com.beg.shuttlespot.core.ui.components.PlaceholderScreen
 import com.beg.shuttlespot.feature.foundation.RoleSelectionScreen
 import com.beg.shuttlespot.feature.foundation.SignInScreen
+import com.beg.shuttlespot.feature.foundation.WelcomeScreen
 
 object AuthRoute {
     const val GRAPH = "auth"                         // route induk (pintu masuk)
@@ -36,7 +36,7 @@ fun NavGraphBuilder.authNavGraph(
         route = AuthRoute.GRAPH,
     ) {
         composable(AuthRoute.WELCOME) {
-            PlaceholderScreen("ShuttleSpot", "Pelacak shuttle kampus UMN.", "Masuk") {
+            WelcomeScreen {
                 navController.navigate(AuthRoute.ROLE_SELECTION)
             }
         }
@@ -60,6 +60,7 @@ fun NavGraphBuilder.authNavGraph(
             SignInScreen(
                 isDriver = role == UserRole.DRIVER,
                 onSuccess = { onSignedIn(role) },
+                showPassengerOnboardingProgress = role == UserRole.PASSENGER,
             )
         }
     }

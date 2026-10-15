@@ -35,6 +35,8 @@ The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.co
 5. The passenger can open a tracker, confirm boarding once, see the confirmed state on Home and Tracker, and handle arrived/missed-bus states.
 6. The Route tab supports viewing and replacing the saved route selection.
 
+The first welcome screen introduces ShuttleSpot with the UMN shuttle visual and sends users to role selection through `Masuk`. It explains that university accounts are for students, while driver access is provisioned by an administrator.
+
 ## Core flow: driver MVP
 
 1. The driver enters their registered phone number. The app grants demo driver access only when its normalized value matches a pre-registered driver profile, then opens the assigned trip. This lookup is not phone-number ownership verification.

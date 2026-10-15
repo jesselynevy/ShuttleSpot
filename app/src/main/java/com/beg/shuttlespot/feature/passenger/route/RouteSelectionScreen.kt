@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -45,7 +48,14 @@ fun RouteSelectionScreen(onFinished: () -> Unit, viewModel: RouteSelectionViewMo
 
 @Composable
 private fun RoutePickerScreen(state: RouteSelectionUiState, onRouteSelected: (String) -> Unit, onPickupSelected: (String) -> Unit, onDestinationSelected: (String) -> Unit, onReview: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 20.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(horizontal = 16.dp, vertical = 20.dp),
+    ) {
         Text("Pilih rute dan halte", style = MaterialTheme.typography.headlineMedium)
         Text("Tentukan halte jemput dan tujuan untuk melihat jadwal perjalanan.", modifier = Modifier.padding(top = 4.dp))
         Spacer(Modifier.height(16.dp))
@@ -103,7 +113,15 @@ private fun TimetableCard(entries: List<TimetableEntry>, serviceNotice: String?)
 @Composable
 private fun RouteReviewScreen(state: RouteSelectionUiState, onBack: () -> Unit, onConfirm: () -> Unit) {
     val route = state.selectedRoute ?: return
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         Text("Tinjau pilihan rute", style = MaterialTheme.typography.headlineMedium)
         Text("Pastikan rute utama Anda sudah benar sebelum disimpan.")
         ReviewRow("Rute", route.route.name); ReviewRow("Halte jemput", state.pickupStop?.name.orEmpty()); ReviewRow("Tujuan", state.destinationStop?.name.orEmpty())
@@ -120,7 +138,16 @@ private fun ReviewRow(label: String, value: String) { Column { Text(label, style
 
 @Composable
 private fun RouteSavedScreen(onFinished: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Text("Rute utama siap", style = MaterialTheme.typography.headlineMedium)
         Text("Pilihan rute, halte jemput, dan tujuan Anda sudah disimpan.", modifier = Modifier.padding(top = 8.dp))
         Button(onClick = onFinished, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) { Text("Ke beranda") }

@@ -111,7 +111,11 @@ fun PassengerHomeContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         GreetingHeader(name = displayName, avatar = painterResource(R.drawable.avatar))
-        TripSummaryCard(routeName = "BSD", pickupStop = "Halte ABCD", todayStatus = TodayRideStatus.NotRiding)
+        TripSummaryCard(
+            routeName = state.primaryRouteName,
+            pickupStop = state.primaryPickupStopName,
+            todayStatus = if (state.hasConfirmedBoarding) TodayRideStatus.Riding else TodayRideStatus.Undecided,
+        )
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ){
@@ -124,6 +128,7 @@ fun PassengerHomeContent(
                         busStatus = BusStatusType.PassedStops,
                         onBoardingIntent = onBoardingIntent,
                         onLiveTrip = onLiveTrip,
+                        boardingConfirmed = state.hasConfirmedBoarding,
                     )
                 }
             }

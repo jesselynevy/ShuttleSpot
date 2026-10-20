@@ -34,7 +34,7 @@ The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.co
    The current onboarding route picker has two steps: choose a directional demo route, then choose the pickup and a later destination from its ordered stops. Selecting `Pilih Rute` opens the Review screen, which summarizes the route and shows the selected pickup and destination times derived from the available demo timetable.
    Confirming the Review screen saves the route and opens the registration-completion screen with confetti; `Oke!` opens Home. Later route changes retain their separate saved-route confirmation.
 4. Home displays the signed-in passenger's display name, primary route, and pickup stop from the saved onboarding selection. Before a route is saved, those summary fields show `Belum pilih`. Home also displays boarding status, announcements, and either no-bus or active-bus status.
-5. The passenger can open a tracker and confirm boarding once. A confirmed intent disables further confirmation and changes Home's `Hari ini naik?` status to `Naik`; Home and Tracker then show the confirmed state and handle arrived/missed-bus states.
+5. The passenger can open a tracker and confirm boarding once. A confirmed intent disables further confirmation on Home and Live Trip and changes Home's `Hari ini naik?` status to `Naik`; Home and Tracker then show the confirmed state and handle arrived/missed-bus states.
 6. The Route tab supports viewing and replacing the saved route selection.
 
 The first welcome screen introduces ShuttleSpot with the UMN shuttle visual and sends users to role selection through `Masuk`. It explains that university accounts are for students, while driver access is provisioned by an administrator.

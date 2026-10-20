@@ -31,6 +31,8 @@ The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.co
 1. A passenger chooses `Mahasiswa`, enters a demo SSO username and password input, and continues only with the configured in-memory demo account. This remains a prototype interaction until real authentication is implemented.
 2. They proceed through a notification-permission explanation that distinguishes bus-status alerts from general announcements, then optional location permission, with a manual route/stop fallback. Choosing `Aktifkan notifikasi` opens Android's native permission prompt; skipping remains available.
 3. They select a route, pickup stop, destination, and desired time; inspect the route map; review the chosen details; and see registration success.
+   The current onboarding route picker has two steps: choose a directional demo route, then choose the pickup and a later destination from its ordered stops. Selecting `Pilih Rute` opens the Review screen, which summarizes the route and shows the selected pickup and destination times derived from the available demo timetable.
+   Confirming the Review screen saves the route and opens the registration-completion screen with confetti; `Oke!` opens Home. Later route changes retain their separate saved-route confirmation.
 4. Home displays the primary route, pickup stop, boarding status, announcements, and either no-bus or active-bus status.
 5. The passenger can open a tracker, confirm boarding once, see the confirmed state on Home and Tracker, and handle arrived/missed-bus states.
 6. The Route tab supports viewing and replacing the saved route selection.

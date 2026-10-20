@@ -51,7 +51,7 @@ fun NavGraphBuilder.passengerOnboardingNavGraph(
 
         composable(OnboardingRoute.ROUTE_SELECTION) {
             RequireRole(UserRole.PASSENGER, navController) {
-                RouteSelectionScreen(onFinished = onCompleted, showOnboardingProgress = true)
+                RouteSelectionScreen(onFinished = onCompleted, showOnboardingProgress = true, onBack = { navController.popBackStack() })
             }
         }
     }

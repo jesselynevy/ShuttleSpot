@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.Route
 import com.beg.shuttlespot.core.model.RouteDetails
 import com.beg.shuttlespot.core.model.Stop
+import com.beg.shuttlespot.core.model.TimetableEntry
 import com.beg.shuttlespot.data.repository.RouteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +23,35 @@ data class RouteSelectionUiState(
     val selectedRoute: RouteDetails? = null,
     val pickupStopId: String? = null,
     val destinationStopId: String? = null,
-    val showReview: Boolean = false,
+    val showTimetable: Boolean = false,
     val selectionSaved: Boolean = false,
     val errorMessage: String? = null
 ) {
     val pickupStop: Stop? get() = selectedRoute?.stops?.find { it.id == pickupStopId }
     val destinationStop: Stop? get() = selectedRoute?.stops?.find { it.id == destinationStopId }
     val canReview: Boolean get() = pickupStop != null && destinationStop != null && pickupStop!!.sequence < destinationStop!!.sequence
+    val timetableSummary: TimetableSummary? get() = selectedRoute?.let { route ->
+        pickupStop?.let { pickup ->
+            destinationStop?.let { destination ->
+                TimetableSummary(
+                    pickupTime = route.timetableEntries.timeFor(pickup.name, isPickup = true),
+                    destinationTime = route.timetableEntries.timeFor(destination.name, isPickup = false),
+                )
+            }
+        }
+    }
+}
+
+data class TimetableSummary(
+    val pickupTime: String?,
+    val destinationTime: String?,
+)
+
+private fun List<TimetableEntry>.timeFor(stopName: String, isPickup: Boolean): String? {
+    val matchingEntries = filter { entry -> entry.description.contains(stopName, ignoreCase = true) }
+    val entry = (if (isPickup) matchingEntries.firstOrNull() else matchingEntries.lastOrNull()) ?: return null
+    val endpoints = entry.time.split('–', '-', limit = 2).map(String::trim)
+    return (if (isPickup) endpoints.firstOrNull() else endpoints.lastOrNull())?.takeIf(String::isNotBlank)
 }
 
 @HiltViewModel
@@ -59,15 +82,27 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
-    fun selectRoute(routeId: String, pickupStopId: String? = null, destinationStopId: String? = null) {
+    fun selectRoute(routeId: String, pickupStopId: String? = null, destinationStopId: String? = null, useDefaults: Boolean = true) {
+        if (!useDefaults) {
+            _uiState.update { it.copy(selectedRoute = null, pickupStopId = null, destinationStopId = null, errorMessage = null) }
+        }
         viewModelScope.launch {
             val details = routeRepository.observeRouteDetails(routeId).first() ?: return@launch
             // Tanpa pilihan tersimpan, pilih halte pertama (jemput) dan terakhir (tujuan) supaya pilihan awal selalu valid.
-            val pickup = pickupStopId ?: details.stops.firstOrNull()?.id
-            val destination = destinationStopId ?: details.stops.lastOrNull()?.takeIf { it.id != pickup }?.id
+            val pickup = pickupStopId ?: if (useDefaults) details.stops.firstOrNull()?.id else null
+            val destination = destinationStopId ?: if (useDefaults) details.stops.lastOrNull()?.takeIf { it.id != pickup }?.id else null
             _uiState.update {
-                it.copy(selectedRoute = details, pickupStopId = pickup, destinationStopId = destination, showReview = false, selectionSaved = false, errorMessage = null)
+                it.copy(selectedRoute = details, pickupStopId = pickup, destinationStopId = destination, showTimetable = false, selectionSaved = false, errorMessage = null)
             }
+        }
+    }
+
+    fun selectOnboardingStop(stopId: String) {
+        val state = _uiState.value
+        if (state.pickupStop == null || state.destinationStop != null) {
+            _uiState.update { it.copy(pickupStopId = stopId, destinationStopId = null, errorMessage = null) }
+        } else {
+            selectDestination(stopId)
         }
     }
 
@@ -87,11 +122,14 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
-    fun openReview() {
-        _uiState.update { state -> if (state.canReview) state.copy(showReview = true, errorMessage = null) else state.copy(errorMessage = "Pilih halte jemput dan tujuan yang urutannya benar.") }
+    fun openTimetable() {
+        _uiState.update { state ->
+            if (state.canReview) state.copy(showTimetable = true, errorMessage = null)
+            else state.copy(errorMessage = "Pilih halte jemput dan tujuan yang urutannya benar.")
+        }
     }
 
-    fun closeReview() = _uiState.update { it.copy(showReview = false) }
+    fun closeTimetable() = _uiState.update { it.copy(showTimetable = false) }
 
     fun saveSelection() {
         val state = _uiState.value
@@ -99,12 +137,12 @@ class RouteSelectionViewModel @Inject constructor(
         val pickup = state.pickupStop ?: return
         val destination = state.destinationStop ?: return
         if (!state.canReview) {
-            _uiState.update { it.copy(errorMessage = "Tujuan harus berada setelah halte jemput.", showReview = false) }
+            _uiState.update { it.copy(errorMessage = "Tujuan harus berada setelah halte jemput.") }
             return
         }
         viewModelScope.launch {
             runCatching { routeRepository.savePrimaryRoute(route.route.id, pickup.id, destination.id) }
-                .onSuccess { _uiState.update { it.copy(showReview = false, selectionSaved = true, errorMessage = null) } }
+                .onSuccess { _uiState.update { it.copy(showTimetable = false, selectionSaved = true, errorMessage = null) } }
                 .onFailure { error -> _uiState.update { it.copy(errorMessage = error.message ?: "Pilihan rute belum dapat disimpan.") } }
         }
     }

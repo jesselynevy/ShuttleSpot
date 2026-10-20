@@ -33,9 +33,14 @@ fun ProfileTab(role: UserRole, viewModel: SessionViewModel = hiltViewModel()) {
     val session = (state as? SessionUiState.Ready)?.session
 
     BaseColumn("Profil") {
-        AvatarHeader(name = session?.displayName ?: "-", role = role, isGreeting = false)
+        AvatarHeader(
+            name = session?.displayName ?: "-",
+            role = role,
+            isGreeting = false,
+            centerContent = true
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         ProfileBlockGroup("Informasi Pribadi") {
             ProfileDataBlock(

@@ -35,27 +35,38 @@ import com.beg.shuttlespot.core.model.Stop
 import com.beg.shuttlespot.core.model.TimetableEntry
 import com.beg.shuttlespot.core.ui.components.EmptyState
 import com.beg.shuttlespot.core.ui.components.LoadingState
+import com.beg.shuttlespot.core.ui.components.StudentOnboardingProgressHeader
+import com.beg.shuttlespot.core.ui.components.StudentOnboardingStep
 
 @Composable
-fun RouteSelectionScreen(onFinished: () -> Unit, viewModel: RouteSelectionViewModel = hiltViewModel()) {
+fun RouteSelectionScreen(
+    onFinished: () -> Unit,
+    showOnboardingProgress: Boolean = false,
+    viewModel: RouteSelectionViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsState()
     when {
-        state.selectionSaved -> RouteSavedScreen(onFinished)
-        state.showReview -> RouteReviewScreen(state, viewModel::closeReview, viewModel::saveSelection)
-        else -> RoutePickerScreen(state, viewModel::selectRoute, viewModel::selectPickup, viewModel::selectDestination, viewModel::openReview)
+        state.selectionSaved -> RouteSavedScreen(onFinished, showOnboardingProgress)
+        state.showReview -> RouteReviewScreen(state, viewModel::closeReview, viewModel::saveSelection, showOnboardingProgress)
+        else -> RoutePickerScreen(state, viewModel::selectRoute, viewModel::selectPickup, viewModel::selectDestination, viewModel::openReview, showOnboardingProgress)
     }
 }
 
 @Composable
-private fun RoutePickerScreen(state: RouteSelectionUiState, onRouteSelected: (String) -> Unit, onPickupSelected: (String) -> Unit, onDestinationSelected: (String) -> Unit, onReview: () -> Unit) {
+private fun RoutePickerScreen(state: RouteSelectionUiState, onRouteSelected: (String) -> Unit, onPickupSelected: (String) -> Unit, onDestinationSelected: (String) -> Unit, onReview: () -> Unit, showOnboardingProgress: Boolean) {
     Column(
         Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
-            .padding(horizontal = 16.dp, vertical = 20.dp),
+            .padding(horizontal = 32.dp),
     ) {
+        if (showOnboardingProgress) {
+            StudentOnboardingProgressHeader(StudentOnboardingStep.ROUTE)
+        } else {
+            Spacer(Modifier.height(20.dp))
+        }
         Text("Pilih rute dan halte", style = MaterialTheme.typography.headlineMedium)
         Text("Tentukan halte jemput dan tujuan untuk melihat jadwal perjalanan.", modifier = Modifier.padding(top = 4.dp))
         Spacer(Modifier.height(16.dp))
@@ -111,7 +122,7 @@ private fun TimetableCard(entries: List<TimetableEntry>, serviceNotice: String?)
 }
 
 @Composable
-private fun RouteReviewScreen(state: RouteSelectionUiState, onBack: () -> Unit, onConfirm: () -> Unit) {
+private fun RouteReviewScreen(state: RouteSelectionUiState, onBack: () -> Unit, onConfirm: () -> Unit, showOnboardingProgress: Boolean) {
     val route = state.selectedRoute ?: return
     Column(
         Modifier
@@ -119,13 +130,26 @@ private fun RouteReviewScreen(state: RouteSelectionUiState, onBack: () -> Unit, 
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 32.dp),
     ) {
+        if (showOnboardingProgress) {
+            StudentOnboardingProgressHeader(StudentOnboardingStep.REVIEW)
+        } else {
+            Spacer(Modifier.height(20.dp))
+        }
         Text("Tinjau pilihan rute", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
         Text("Pastikan rute utama Anda sudah benar sebelum disimpan.")
-        ReviewRow("Rute", route.route.name); ReviewRow("Halte jemput", state.pickupStop?.name.orEmpty()); ReviewRow("Tujuan", state.destinationStop?.name.orEmpty())
-        HorizontalDivider(); Text("Jadwal: ${route.timetableEntries.joinToString { "${it.period} ${it.time}" }}")
+        Spacer(Modifier.height(16.dp))
+        ReviewRow("Rute", route.route.name)
+        Spacer(Modifier.height(16.dp))
+        ReviewRow("Halte jemput", state.pickupStop?.name.orEmpty())
+        Spacer(Modifier.height(16.dp))
+        ReviewRow("Tujuan", state.destinationStop?.name.orEmpty())
+        Spacer(Modifier.height(16.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(16.dp))
+        Text("Jadwal: ${route.timetableEntries.joinToString { "${it.period} ${it.time}" }}")
         Spacer(Modifier.weight(1f))
         state.errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = onConfirm, modifier = Modifier.fillMaxWidth()) { Text("Sudah benar") }
@@ -134,22 +158,31 @@ private fun RouteReviewScreen(state: RouteSelectionUiState, onBack: () -> Unit, 
 }
 
 @Composable
-private fun ReviewRow(label: String, value: String) { Column { Text(label, style = MaterialTheme.typography.labelLarge); Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium) } }
+private fun ReviewRow(label: String, value: String) { Column { Text(label, style = MaterialTheme.typography.labelLarge); Text(value, style = MaterialTheme.typography.titleMedium) } }
 
 @Composable
-private fun RouteSavedScreen(onFinished: () -> Unit) {
+private fun RouteSavedScreen(onFinished: () -> Unit, showOnboardingProgress: Boolean) {
     Column(
         Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = 32.dp),
     ) {
-        Text("Rute utama siap", style = MaterialTheme.typography.headlineMedium)
-        Text("Pilihan rute, halte jemput, dan tujuan Anda sudah disimpan.", modifier = Modifier.padding(top = 8.dp))
-        Button(onClick = onFinished, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) { Text("Ke beranda") }
+        if (showOnboardingProgress) {
+            StudentOnboardingProgressHeader(StudentOnboardingStep.REVIEW)
+        } else {
+            Spacer(Modifier.height(20.dp))
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("Rute utama siap", style = MaterialTheme.typography.headlineMedium)
+            Text("Pilihan rute, halte jemput, dan tujuan Anda sudah disimpan.", modifier = Modifier.padding(top = 8.dp))
+            Button(onClick = onFinished, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) { Text("Ke beranda") }
+        }
     }
 }

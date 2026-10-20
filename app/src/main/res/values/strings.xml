@@ -17,4 +17,10 @@
     <string name="role_driver_tag_schedule">Jadwal</string>
     <string name="role_driver_tag_passengers">Penumpang</string>
     <string name="role_continue">Pilih &amp; lanjut</string>
+    <string name="sso_title">SSO</string>
+    <string name="sso_email_label">Username (E-Mail Address):</string>
+    <string name="sso_password_label">Password:</string>
+    <string name="sso_login">Login</string>
+    <string name="sso_show_password">Tampilkan password</string>
+    <string name="sso_hide_password">Sembunyikan password</string>
 </resources>

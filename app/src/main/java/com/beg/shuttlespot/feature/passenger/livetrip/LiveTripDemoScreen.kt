@@ -3,7 +3,6 @@ package com.beg.shuttlespot.feature.passenger.livetrip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.layout.Column
@@ -50,6 +49,7 @@ import com.beg.shuttlespot.core.ui.components.MapMarker
 import com.beg.shuttlespot.core.ui.components.MarkerKind
 import com.beg.shuttlespot.core.ui.components.OpenStreetMap
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
+import com.beg.shuttlespot.core.ui.theme.CircularShape
 import kotlinx.coroutines.launch
 
 /**
@@ -145,7 +145,7 @@ private fun LiveTripContent(
                     Surface(
                         onClick = { focusBusTrigger++ },
                         modifier = Modifier.align(Alignment.End).size(48.dp),
-                        shape = CircleShape,
+                        shape = CircularShape,
                         color = LocalExtendedColors.current.groupingColor,
                         shadowElevation = 4.dp,
                     ) {
@@ -209,7 +209,6 @@ private fun FloatingRouteBar(
                 text = title,
                 modifier = Modifier.padding(horizontal = 48.dp),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

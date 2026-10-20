@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +26,7 @@ import com.beg.shuttlespot.core.model.AnnouncementTag
 import com.beg.shuttlespot.core.model.AnnouncementTagKind
 import com.beg.shuttlespot.core.ui.components.LabelColor
 import com.beg.shuttlespot.core.ui.components.StatusBadge
+import com.beg.shuttlespot.core.ui.theme.CircularShape
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -63,15 +63,14 @@ fun AnnouncementListItem(
                         Modifier
                             .padding(top = 7.dp, end = 8.dp)
                             .size(8.dp)
-                            .clip(CircleShape)
+                            .clip(CircularShape)
                             .background(scheme.primary)
                     )
                 }
                 Text(
                     text = item.title.ifBlank { item.sender },
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
                     color = titleColor,
                 )
                 Spacer(Modifier.width(12.dp))

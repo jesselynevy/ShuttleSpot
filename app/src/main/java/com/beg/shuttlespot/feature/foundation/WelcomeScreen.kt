@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -27,10 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.R
-import com.beg.shuttlespot.core.ui.theme.SpringSky
 
 /**
  * First screen of the app. The action deliberately leads to role selection so both
@@ -43,7 +40,7 @@ fun WelcomeScreen(onEnter: () -> Unit) {
             .fillMaxSize()
             // welcome_bg has a transparent export fringe around its outside edge.
             // Use a matching blue behind it so the app surface never appears there.
-            .background(Color(0xFF20B6DD))
+            .background(MaterialTheme.colorScheme.primary)
             .clipToBounds(),
     ) {
         Image(
@@ -61,18 +58,18 @@ fun WelcomeScreen(onEnter: () -> Unit) {
         ) {
             Text(
                 text = stringResource(R.string.welcome_greeting),
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.titleLarge,
             )
             Text(
                 text = stringResource(R.string.app_name),
-                color = Color.White,
-                style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.displayLarge,
             )
             Text(
                 text = stringResource(R.string.welcome_tagline),
-                color = Color.White,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.headlineSmall,
             )
         }
 
@@ -97,10 +94,10 @@ fun WelcomeScreen(onEnter: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = SpringSky,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
             ) {
                 Text(
@@ -111,7 +108,7 @@ fun WelcomeScreen(onEnter: () -> Unit) {
             Spacer(Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.welcome_access_note),
-                color = Color(0xFF7E7E7E),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -122,7 +119,7 @@ fun WelcomeScreen(onEnter: () -> Unit) {
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 28.dp),
-            color = Color(0xFF1A1A1A),
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodySmall,
         )
     }

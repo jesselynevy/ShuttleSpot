@@ -23,7 +23,6 @@ fun LinkText(
             .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 4.dp),
         style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.primary,
         textDecoration = TextDecoration.Underline,
     )

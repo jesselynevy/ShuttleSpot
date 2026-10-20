@@ -63,9 +63,11 @@ fun LiveTripDemoScreen(
 ) {
     val mapState by viewModel.mapState.collectAsState()
     val trip by viewModel.trip.collectAsState()
+    val boardingConfirmed by viewModel.boardingConfirmed.collectAsState()
     var showBoardingIntent by remember { mutableStateOf(false) }
     LiveTripContent(
         trip = trip,
+        boardingConfirmed = boardingConfirmed,
         onBack = onBack,
         onBoardingIntent = { showBoardingIntent = true },
         mapState = mapState,
@@ -78,6 +80,7 @@ fun LiveTripDemoScreen(
 @Composable
 private fun LiveTripContent(
     trip: ActiveTripSnapshot?,
+    boardingConfirmed: Boolean,
     onBack: () -> Unit,
     onBoardingIntent: () -> Unit,
     mapState: RouteMapUiState,
@@ -107,7 +110,11 @@ private fun LiveTripContent(
                 BusStatusCard(
                     busStatus = trip?.status.toBusStatusType(),
                     onBoardingIntent = onBoardingIntent,
-                    showLiveTrip = false
+                    boardingConfirmed = boardingConfirmed,
+                    showLiveTrip = false,
+                    progress = trip?.progress ?: 0f,
+                    fromStopName = trip?.previousStopName,
+                    toStopName = trip?.nextStopName,
                 )
             }
         },

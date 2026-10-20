@@ -34,6 +34,7 @@ For the current UI-first milestone, the approved Flow ShuttleSpot document defin
 - The current app remains a single Gradle module, organized into `core`, `data`, `feature`, and `navigation` packages.
 - `SessionRepository`, `RouteRepository`, `PassengerTripRepository`, and `DriverTripRepository` are the public seams used by ViewModels. Hilt binds deterministic in-memory adapters by default so UI work does not depend on Supabase credentials.
 - `LocationPublisher` is an isolated seam; its current no-op adapter is intentionally replaced later by the driver foreground-service implementation.
+- ConfettiKit provides the short Compose confetti animation on passenger registration completion.
 - Room contains cache/outbox scaffolding for routes, stops, selections, trip snapshots, announcements, and retryable passenger mutations. WorkManager is available for the future network-constrained sync worker, but no worker is scheduled until a Supabase adapter is configured.
 - Supabase schema is versioned under `supabase/migrations/`; URL and anonymous-key values stay in untracked `local.properties` and are validated through `SupabaseConfig`.
 

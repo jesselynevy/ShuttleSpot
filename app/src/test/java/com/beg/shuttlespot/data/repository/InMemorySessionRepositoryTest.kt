@@ -12,9 +12,10 @@ class InMemorySessionRepositoryTest {
 
     @Test fun passenger_sso_requires_the_configured_demo_credentials() = runTest {
         assertTrue(repository.signInPassenger("student@gmail.com", "enterpassword") is SignInResult.Rejected)
-        assertTrue(repository.signInPassenger("jesselyn.angela.student.umn.ac.id", "wrong-password") is SignInResult.Rejected)
-        assertTrue(repository.signInPassenger("jesselyn.angela.student.umn.ac.id", "enterpassword") is SignInResult.Success)
-        assertTrue(repository.signInPassenger("jesselyn.angela@student.umn.ac.id", "enterpassword") is SignInResult.Success)
+        assertTrue(repository.signInPassenger("jimmy.donaldson@student.umn.ac.id", "wrong-password") is SignInResult.Rejected)
+        val result = repository.signInPassenger("jimmy.donaldson@student.umn.ac.id", "enterpassword")
+        assertTrue(result is SignInResult.Success)
+        assertEquals("Jimmy Donaldson", (result as SignInResult.Success).session.displayName)
     }
 
     @Test fun registered_driver_phone_creates_driver_session() = runTest {

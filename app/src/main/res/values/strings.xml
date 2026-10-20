@@ -23,4 +23,6 @@
     <string name="sso_login">Login</string>
     <string name="sso_show_password">Tampilkan password</string>
     <string name="sso_hide_password">Sembunyikan password</string>
+    <string name="registration_complete_message">Terima kasih telah\nregistrasi di ShuttleSpot!</string>
+    <string name="registration_complete_action">Oke!</string>
 </resources>

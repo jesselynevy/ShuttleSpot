@@ -26,6 +26,7 @@ fun AppButton(
     text : String,
     variant: ButtonVariant = ButtonVariant.Primary,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick : () -> Unit
 ){
     when(variant){
@@ -33,6 +34,7 @@ fun AppButton(
             Button(
                 modifier = modifier.defaultMinSize(minHeight = 48.dp),
                 onClick = onClick,
+                enabled = enabled,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -46,6 +48,7 @@ fun AppButton(
             OutlinedButton(
                 modifier = modifier.defaultMinSize(minHeight = 48.dp),
                 onClick = onClick,
+                enabled = enabled,
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = Color.Transparent,
                     contentColor = MaterialTheme.colorScheme.primary

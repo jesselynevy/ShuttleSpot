@@ -3,6 +3,7 @@ package com.beg.shuttlespot.feature.passenger.livetrip
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
+import com.beg.shuttlespot.core.model.BoardingIntentStatus
 import com.beg.shuttlespot.core.model.LiveLocation
 import com.beg.shuttlespot.core.model.Stop
 import com.beg.shuttlespot.core.ui.components.MapMarker
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import com.beg.shuttlespot.core.model.GeoPoint
@@ -58,14 +60,26 @@ data class RouteMapUiState(
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class LiveTripViewModel @Inject constructor(
-    repository: PassengerTripRepository,
-    routeRepository: RouteRepository
+    private val repository: PassengerTripRepository,
+    private val routeRepository: RouteRepository,
 ) : ViewModel() {
     val trip: StateFlow<ActiveTripSnapshot?> = routeRepository.observePrimarySelection()
         .flatMapLatest { selection ->
             selection?.let { repository.observeActiveTrip(it.routeId) } ?: flowOf(null)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val boardingConfirmed: StateFlow<Boolean> = routeRepository.observePrimarySelection()
+        .flatMapLatest { selection ->
+            if (selection == null) flowOf(false)
+            else trip.flatMapLatest { activeTrip ->
+                activeTrip?.let {
+                    repository.observeBoardingIntent(it.tripId, selection.pickupStopId)
+                        .map { intent -> intent?.status == BoardingIntentStatus.CONFIRMED }
+                } ?: flowOf(false)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val selectedStopId = MutableStateFlow<String?>(null)
 

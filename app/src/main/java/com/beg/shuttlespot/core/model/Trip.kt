@@ -19,6 +19,8 @@ data class ActiveTripSnapshot(
     val vehicleLabel: String,
     val status: TripStatus,
     val progress: Float,
+    /** Halte yang baru dilewati/ditinggalkan bus pada ruas yang sedang berjalan sekarang. */
+    val previousStopName: String? = null,
     val nextStopName: String?,
     val eta: EtaEstimate,
     val lastUpdatedEpochMillis: Long?,

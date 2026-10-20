@@ -107,7 +107,10 @@ private fun LiveTripContent(
                 BusStatusCard(
                     busStatus = trip?.status.toBusStatusType(),
                     onBoardingIntent = onBoardingIntent,
-                    showLiveTrip = false
+                    showLiveTrip = false,
+                    progress = trip?.progress ?: 0f,
+                    fromStopName = trip?.previousStopName,
+                    toStopName = trip?.nextStopName,
                 )
             }
         },

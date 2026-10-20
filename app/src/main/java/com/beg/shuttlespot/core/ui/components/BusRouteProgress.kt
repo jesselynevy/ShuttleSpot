@@ -36,11 +36,6 @@ fun BusRouteProgress(
     progress: Float,
     modifier: Modifier = Modifier
 ){
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 800),
-        label = "busProgress"
-    )
 
     BoxWithConstraints(
         modifier = Modifier
@@ -64,7 +59,7 @@ fun BusRouteProgress(
             Modifier
                 .align(Alignment.TopStart)
                 .padding(top = 7.dp)
-                .fillMaxWidth(animatedProgress)
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
                 .height(2.dp)
                 .background(MaterialTheme.colorScheme.primary)
         )
@@ -117,7 +112,7 @@ fun BusRouteProgress(
         // icon bus bergerak sesuai progress
         Box(
             modifier = Modifier
-                .offset(x = trackWidth * animatedProgress - 12.dp)
+                .offset(x = trackWidth * progress.coerceIn(0f, 1f) - 12.dp)
                 .size(24.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),

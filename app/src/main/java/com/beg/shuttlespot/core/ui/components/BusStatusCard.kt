@@ -39,6 +39,8 @@ fun BusStatusCard(
     onBoardingIntent: () -> Unit = {},
     onLiveTrip: () -> Unit = {},
     showLiveTrip : Boolean = true,
+    /** Fraksi 0f..1f posisi bus pada rute, dipakai [BusRouteProgress]. */
+    progress: Float = 0.3f,
 ){
     val (labelText, labelColor, labelStyle) = when (busStatus) {
         BusStatusType.PassedStops -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
@@ -57,7 +59,9 @@ fun BusStatusCard(
 
     Column(
         modifier = Modifier
-            .background(LocalExtendedColors.current.groupingColor)
+            .background(
+                color = LocalExtendedColors.current.groupingColor,
+                shape = MaterialTheme.shapes.medium)
             .border(border = BorderStroke(1.dp,
                 color=(LocalExtendedColors.current.secondary3) ),
                 shape= MaterialTheme.shapes.medium)
@@ -125,7 +129,7 @@ fun BusStatusCard(
 
             if(busStatus == BusStatusType.PassedStops || busStatus == BusStatusType.EnRoute || busStatus == BusStatusType.WaitingAtStop){
                 BusRouteProgress(
-                    progress = 0.3f,
+                    progress = progress,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

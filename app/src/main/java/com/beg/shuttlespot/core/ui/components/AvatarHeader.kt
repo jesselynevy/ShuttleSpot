@@ -1,9 +1,11 @@
 package com.beg.shuttlespot.core.ui.components
 
+import android.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -13,12 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 import com.beg.shuttlespot.core.ui.theme.AvatarShape
 import java.time.LocalTime
@@ -37,16 +38,17 @@ fun timeOfDayGreeting(now: LocalTime = LocalTime.now()): String = when (now.hour
  * Jika [avatar] null, ditampilkan lingkaran dengan inisial nama.
  */
 @Composable
-fun GreetingHeader(
+fun AvatarHeader(
     name: String,
+    role: UserRole,
     modifier: Modifier = Modifier,
     avatar: Painter? = null,
-    greeting: String = timeOfDayGreeting(),
+    isGreeting: Boolean = true,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.Center,
     ) {
         Box(
             modifier = Modifier
@@ -70,18 +72,29 @@ fun GreetingHeader(
                 )
             }
         }
-        Text(
-            text = "$greeting, $name",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = if (isGreeting) "${timeOfDayGreeting()}, $name" else "$name",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                text = if (role == UserRole.PASSENGER) "Mahasiswa" else "Driver",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF2BB5DD)
 @Composable
-private fun GreetingHeaderPreview() {
+private fun AvatarHeaderPreview() {
     ShuttleSpotTheme {
-        GreetingHeader(name = "Angela Benedictin Sunny", modifier = Modifier.size(width = 320.dp, height = 60.dp))
+        AvatarHeader(name = "Gavriel Donovan", role = UserRole.PASSENGER, modifier = Modifier.size(width = 320.dp, height = 60.dp), isGreeting = true)
     }
 }

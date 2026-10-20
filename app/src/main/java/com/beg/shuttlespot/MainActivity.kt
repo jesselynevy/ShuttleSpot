@@ -55,7 +55,6 @@ private fun ShuttleSpotApp() {
                 hierarchy.any { it.route == RootRoute.GATE } -> WaveStyle.None
                 hierarchy.any { it.route == MainRoute.SHELL } -> WaveStyle.None
                 else -> WaveStyle.Main
-
             }
             WaveBackground(style) { ShuttleSpotNavGraph(navController = navController) }
 

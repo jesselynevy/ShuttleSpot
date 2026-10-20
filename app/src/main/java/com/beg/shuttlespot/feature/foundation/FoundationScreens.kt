@@ -29,7 +29,7 @@ import com.beg.shuttlespot.feature.auth.AuthViewModel
 import com.beg.shuttlespot.feature.driver.trip.DriverTripViewModel
 
 @Composable
-fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
+fun RoleSelectionScreen(onPassenger: () -> Unit) {
     var selectedRole by remember { mutableStateOf<UserRole?>(null) }
     val colors = MaterialTheme.colorScheme
     Box(
@@ -68,21 +68,21 @@ fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
                 ),
                 onClick = { selectedRole = UserRole.DRIVER },
             )
+            if (selectedRole == UserRole.DRIVER) {
+                Spacer(Modifier.height(8.dp))
+                DriverUnavailableTooltip()
+            }
             Spacer(Modifier.height(28.dp))
             Button(
                 onClick = {
-                    when (selectedRole) {
-                        UserRole.PASSENGER -> onPassenger()
-                        UserRole.DRIVER -> onDriver()
-                        null -> Unit
-                    }
+                    if (selectedRole == UserRole.PASSENGER) onPassenger()
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
                     contentColor = colors.onPrimary,
                 ),
-                enabled = selectedRole != null,
+                enabled = selectedRole == UserRole.PASSENGER,
             ) { Text(stringResource(R.string.role_continue), style = MaterialTheme.typography.labelLarge) }
             Spacer(Modifier.weight(1f))
             Spacer(Modifier.height(32.dp))
@@ -92,6 +92,22 @@ fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
                 style = MaterialTheme.typography.labelMedium,
             )
         }
+    }
+}
+
+@Composable
+private fun DriverUnavailableTooltip() {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = "Fitur Supir Bus belum tersedia.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(12.dp),
+        )
     }
 }
 

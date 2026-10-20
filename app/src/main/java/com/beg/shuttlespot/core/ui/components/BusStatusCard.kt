@@ -41,6 +41,8 @@ fun BusStatusCard(
     showLiveTrip : Boolean = true,
     /** Fraksi 0f..1f posisi bus pada rute, dipakai [BusRouteProgress]. */
     progress: Float = 0.3f,
+    fromStopName: String? = null,
+    toStopName: String? = null,
 ){
     val (labelText, labelColor, labelStyle) = when (busStatus) {
         BusStatusType.PassedStops -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
@@ -129,6 +131,8 @@ fun BusStatusCard(
             if(busStatus == BusStatusType.PassedStops || busStatus == BusStatusType.EnRoute || busStatus == BusStatusType.WaitingAtStop){
                 BusRouteProgress(
                     progress = progress,
+                    fromStopName = fromStopName ?: "Halte Sebelum Sekarang",
+                    toStopName = toStopName ?: "Halte Setelah",
                     modifier = Modifier.fillMaxWidth()
                 )
             }

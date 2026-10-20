@@ -34,6 +34,10 @@ import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 @Composable
 fun BusRouteProgress(
     progress: Float,
+    /** Nama halte asal ruas yang sedang berjalan (ditampilkan di ujung kiri). */
+    fromStopName: String = "Halte Sebelum Sekarang",
+    /** Nama halte tujuan ruas yang sedang berjalan (ditampilkan di ujung kanan). */
+    toStopName: String = "Halte Setelah",
     modifier: Modifier = Modifier
 ){
 
@@ -80,7 +84,7 @@ fun BusRouteProgress(
                     .border(2.dp, MaterialTheme.colorScheme.primary, CircularShape)
                     .background(MaterialTheme.colorScheme.background)
             )
-            Text(text = "Halte Sebelum Sekarang",
+            Text(text = fromStopName,
                 style = MaterialTheme.typography.labelMedium,
                 color = LocalExtendedColors.current.secondary2)
         }
@@ -101,7 +105,7 @@ fun BusRouteProgress(
                     .border(2.dp, LocalExtendedColors.current.secondary3, CircularShape)
                     .background(MaterialTheme.colorScheme.background)
             )
-            Text(text = "Halte Setelah",
+            Text(text = toStopName,
                 style = MaterialTheme.typography.labelMedium,
                 color = LocalExtendedColors.current.secondary2
 

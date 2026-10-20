@@ -109,6 +109,8 @@ private fun LiveTripContent(
                     onBoardingIntent = onBoardingIntent,
                     showLiveTrip = false,
                     progress = trip?.progress ?: 0f,
+                    fromStopName = trip?.previousStopName,
+                    toStopName = trip?.nextStopName,
                 )
             }
         },

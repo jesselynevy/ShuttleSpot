@@ -46,11 +46,11 @@ class InMemoryPassengerTripRepository @Inject constructor() : PassengerTripRepos
         DEMO_STOPS.map { RoutePaths.bsdUmnProgressNear(it.point) }
 
     /**
-     * DEMO: posisi bus bergerak sendiri bolak-balik di SATU ruas rute dulu -- dari halte
-     * [DEMO_LEG_START_POINT] (Halte Assobirin) ke [DEMO_LEG_END_POINT] (Halte Bundaran Alam
-     * Sutera) -- supaya ada animasi untuk ditunjukkan, tanpa backend/GPS asli. Belum seluruh
-     * rute (lihat docs/bus-demo-animation.md). Ganti blok ini dengan collector dari sumber
-     * posisi bus sesungguhnya (WebSocket/polling) saat sudah ada.
+     * DEMO: posisi bus bergerak sendiri dari [DEMO_STOPS] pertama sampai yang terakhir (UMN),
+     * berhenti sejenak ([DEMO_STOP_DWELL_MILLIS]) di tiap halte di antaranya, lalu berhenti
+     * total begitu sampai -- supaya ada animasi untuk ditunjukkan, tanpa backend/GPS asli.
+     * Ganti blok ini dengan collector dari sumber posisi bus sesungguhnya
+     * (WebSocket/polling) saat sudah ada.
      */
     private val activeTrip: StateFlow<ActiveTripSnapshot?> = flow {
         // Nilai awal sudah dikirim lewat `initialValue` di bawah (stateIn), jadi di sini
@@ -69,8 +69,8 @@ class InMemoryPassengerTripRepository @Inject constructor() : PassengerTripRepos
 
             if (arrivedStopProgress != null) {
                 routeProgress = arrivedStopProgress
-                emit(snapshotAt(routeProgress))
-                delay( 2_000L)               // jeda diam
+                emit(snapshotAt(routeProgress, isAtStop = true))  // berhenti di halte -> status "Sudah Tiba"
+                delay(DEMO_STOP_DWELL_MILLIS)               // jeda diam
                 if(routeProgress >= 1f) break;
                 continue
             }
@@ -89,14 +89,14 @@ class InMemoryPassengerTripRepository @Inject constructor() : PassengerTripRepos
      * tidak perlu menunggu tick pertama dari coroutine di [repositoryScope] yang berjalan di
      * thread lain, jadi tidak ada race.
      *
-     * [legProgress] (0f..1f) adalah posisi bus DI RUAS INI SAJA -- dipakai langsung sebagai
-     * [ActiveTripSnapshot.progress] karena itu yang dibaca [BusRouteProgress] (0f = di titik
-     * "Halte Sebelum Sekarang", 1f = di titik "Halte Setelah"). Untuk posisi di peta, nilai ini
-     * dikonversi dulu ke progress SEPANJANG RUTE (bukan cuma ruas ini) lewat interpolasi antara
-     * [DEMO_LEG_START_PROGRESS] dan [DEMO_LEG_END_PROGRESS], baru dicari titik jalannya lewat
-     * [RoutePaths.bsdUmnPointAt].
+     * [legProgress] (0f..1f) dihitung lewat [currentLegIndex] -- posisi bus DI RUAS SEKARANG
+     * SAJA (0f = baru berangkat dari halte sebelumnya, 1f = baru sampai di halte berikutnya) --
+     * dipakai langsung sebagai [ActiveTripSnapshot.progress] karena itu yang dibaca
+     * [BusRouteProgress] (0f = titik "Halte Sebelum Sekarang", 1f = titik "Halte Setelah").
+     * Untuk posisi di peta, [routeProgress] (fraksi SEPANJANG SELURUH RUTE, bukan cuma satu
+     * ruas) dicari langsung titik jalannya lewat [RoutePaths.bsdUmnPointAt].
      */
-    private fun snapshotAt(routeProgress: Float): ActiveTripSnapshot {
+    private fun snapshotAt(routeProgress: Float, isAtStop: Boolean = false): ActiveTripSnapshot {
         val now = System.currentTimeMillis()
         val point = RoutePaths.bsdUmnPointAt(routeProgress)
 
@@ -108,8 +108,11 @@ class InMemoryPassengerTripRepository @Inject constructor() : PassengerTripRepos
 
         return ActiveTripSnapshot(
             tripId = "trip-bsd-1", routeId = "bsd_umn", vehicleLabel = "D 8801 VBN",
-            status = TripStatus.EN_ROUTE,
+            // AT_PICKUP -> BusStatusType.WaitingAtStop ("Sudah Tiba") selama jeda diam di halte;
+            // EN_ROUTE selama bus bergerak di antara halte.
+            status = if (isAtStop) TripStatus.AT_PICKUP else TripStatus.EN_ROUTE,
             progress = legProgress,
+            previousStopName = DEMO_STOPS[legIndex].name,
             nextStopName = DEMO_STOPS[legIndex + 1].name,
             eta = EtaEstimate(minutes = ((1 - legProgress) * DEMO_LEG_ETA_MINUTES).toInt().coerceAtLeast(1)),
             lastUpdatedEpochMillis = now,
@@ -149,23 +152,11 @@ class InMemoryPassengerTripRepository @Inject constructor() : PassengerTripRepos
     private companion object {
         /** Jeda antar tick animasi. Makin kecil = makin halus, makin sering recompute/redraw. */
         const val DEMO_TICK_MILLIS = 25L
+        /** Lama waktu (ms) bus menempuh SELURUH rute, halte pertama sampai UMN (dipercepat untuk demo). */
         const val DEMO_FULL_ROUTE_DURATION_MILLIS = 70_000L
-        /** Lama waktu (ms) bus menempuh SATU RUAS ini (dipercepat untuk demo). */
-        const val DEMO_LEG_DURATION_MILLIS = 16_000L
-        /** ETA kosmetik kalau bus baru berangkat dari halte awal ruas ini (legProgress = 0). */
+        /** Lama bus "berhenti" tiap kali sampai di satu halte sebelum lanjut jalan. */
+        const val DEMO_STOP_DWELL_MILLIS = 2_000L
+        /** ETA kosmetik dalam ruas yang sedang dilalui (legProgress = 0 -> nilai ini, 1 -> 1 menit). */
         const val DEMO_LEG_ETA_MINUTES = 3
-        /** Nama halte tujuan ruas demo ini -- cocokkan manual kalau titiknya diganti. */
-        const val DEMO_LEG_END_STOP_NAME = "Halte Bundaran Alam Sutera"
-        val DEMO_LEG_START_POINT = GeoPoint(-6.258629712030424, 106.65182741364757)
-        val DEMO_LEG_END_POINT = GeoPoint(-6.24412, 106.64886)
-
-        /**
-         * Posisi [DEMO_LEG_START_POINT]/[DEMO_LEG_END_POINT] sebagai fraksi progress SEPANJANG
-         * RUTE (bukan cuma ruas ini) -- dihitung sekali lewat pencarian titik terdekat di
-         * polyline jalan, bukan ditulis manual, supaya tetap akurat kalau [RoutePaths.BSD_UMN]
-         * berubah.
-         */
-        val DEMO_LEG_START_PROGRESS: Float = RoutePaths.bsdUmnProgressNear(DEMO_LEG_START_POINT)
-        val DEMO_LEG_END_PROGRESS: Float = RoutePaths.bsdUmnProgressNear(DEMO_LEG_END_POINT)
     }
 }

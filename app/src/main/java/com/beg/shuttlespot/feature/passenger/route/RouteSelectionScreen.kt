@@ -46,6 +46,7 @@ fun RouteSelectionScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     when {
+        state.selectionSaved && showOnboardingProgress -> RegistrationCompleteScreen(onFinished)
         state.selectionSaved -> RouteSavedScreen(onFinished, showOnboardingProgress)
         state.showReview -> RouteReviewScreen(state, viewModel::closeReview, viewModel::saveSelection, showOnboardingProgress)
         else -> RoutePickerScreen(state, viewModel::selectRoute, viewModel::selectPickup, viewModel::selectDestination, viewModel::openReview, showOnboardingProgress)

@@ -14,8 +14,7 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
     private val session = MutableStateFlow<AppSession?>(null)
     private val registeredDrivers = setOf("+6281234567890", "+6289530000000")
     private val demoStudentEmails = setOf(
-        "jesselyn.angela.student.umn.ac.id",
-        "jesselyn.angela@student.umn.ac.id",
+        "jimmy.donaldson@student.umn.ac.id"
     )
     private val demoStudentPassword = "enterpassword"
 
@@ -26,7 +25,7 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
         if (normalizedEmail !in demoStudentEmails || password != demoStudentPassword) {
             return SignInResult.Rejected("Email atau password SSO tidak sesuai.")
         }
-        return AppSession("passenger-demo", UserRole.PASSENGER, "Jesselyn Angela", normalizedEmail)
+        return AppSession("passenger-demo", UserRole.PASSENGER, "Jimmy Donaldson", normalizedEmail)
             .also { session.value = it }
             .let(SignInResult::Success)
     }

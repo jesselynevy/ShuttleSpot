@@ -10,8 +10,11 @@ import org.junit.Test
 class InMemorySessionRepositoryTest {
     private val repository = InMemorySessionRepository()
 
-    @Test fun passenger_email_must_use_student_domain() = runTest {
-        assertTrue(repository.signInPassenger("student@gmail.com") is SignInResult.Rejected)
+    @Test fun passenger_sso_requires_the_configured_demo_credentials() = runTest {
+        assertTrue(repository.signInPassenger("student@gmail.com", "enterpassword") is SignInResult.Rejected)
+        assertTrue(repository.signInPassenger("jesselyn.angela.student.umn.ac.id", "wrong-password") is SignInResult.Rejected)
+        assertTrue(repository.signInPassenger("jesselyn.angela.student.umn.ac.id", "enterpassword") is SignInResult.Success)
+        assertTrue(repository.signInPassenger("jesselyn.angela@student.umn.ac.id", "enterpassword") is SignInResult.Success)
     }
 
     @Test fun registered_driver_phone_creates_driver_session() = runTest {

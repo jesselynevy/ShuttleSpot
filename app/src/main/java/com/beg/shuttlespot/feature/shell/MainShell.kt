@@ -4,13 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
+import com.beg.shuttlespot.core.ui.theme.CircularShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -56,7 +56,7 @@ fun MainShell(role: UserRole, rootNav: NavHostController) {
                                 Box(
                                     modifier = Modifier
                                         .size(40.dp)
-                                        .clip(CircleShape)
+                                        .clip(CircularShape)
                                         .background(if (selected) scheme.primary.copy(alpha = 0.1f) else Color.Transparent),
                                     contentAlignment = Alignment.Center,
                                 ) {

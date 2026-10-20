@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material3.Icon
@@ -29,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
+import com.beg.shuttlespot.core.ui.theme.CircularShape
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
 @Composable
@@ -81,8 +81,8 @@ fun BusRouteProgress(
             Box(
                 Modifier
                     .size(12.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .clip(CircularShape)
+                    .border(2.dp, MaterialTheme.colorScheme.primary, CircularShape)
                     .background(MaterialTheme.colorScheme.background)
             )
             Text(text = "Halte Sebelum Sekarang",
@@ -102,8 +102,8 @@ fun BusRouteProgress(
             Box(
                 Modifier
                     .size(12.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, LocalExtendedColors.current.secondary3, CircleShape)
+                    .clip(CircularShape)
+                    .border(2.dp, LocalExtendedColors.current.secondary3, CircularShape)
                     .background(MaterialTheme.colorScheme.background)
             )
             Text(text = "Halte Setelah",
@@ -119,14 +119,14 @@ fun BusRouteProgress(
             modifier = Modifier
                 .offset(x = trackWidth * animatedProgress - 12.dp)
                 .size(24.dp)
-                .clip(CircleShape)
+                .clip(CircularShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ){
             Icon(
                 imageVector = Icons.Default.DirectionsBus,
                 contentDescription = "Posisi bus pada rute",
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(14.dp)
             )
         }

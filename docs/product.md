@@ -28,8 +28,8 @@ Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's
 
 The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing) journey, summarized in `docs/source-of-truth.md`.
 
-1. A passenger chooses `Mahasiswa`, enters a UMN student email and password input, and continues only if the email domain is exactly `student.umn.ac.id`. This is a demo account-setup/eligibility interaction until real authentication is implemented.
-2. They proceed through notification permission and optional location permission, with a manual route/stop fallback.
+1. A passenger chooses `Mahasiswa`, enters a demo SSO username and password input, and continues only with the configured in-memory demo account. This remains a prototype interaction until real authentication is implemented.
+2. They proceed through a notification-permission explanation that distinguishes bus-status alerts from general announcements, then optional location permission, with a manual route/stop fallback. Choosing `Aktifkan notifikasi` opens Android's native permission prompt; skipping remains available.
 3. They select a route, pickup stop, destination, and desired time; inspect the route map; review the chosen details; and see registration success.
 4. Home displays the primary route, pickup stop, boarding status, announcements, and either no-bus or active-bus status.
 5. The passenger can open a tracker, confirm boarding once, see the confirmed state on Home and Tracker, and handle arrived/missed-bus states.

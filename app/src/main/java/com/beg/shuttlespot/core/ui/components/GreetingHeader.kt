@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
+import com.beg.shuttlespot.core.ui.theme.AvatarShape
 import java.time.LocalTime
 
 /** "Selamat pagi/siang/sore/malam" sesuai jam perangkat. */
@@ -51,7 +51,7 @@ fun GreetingHeader(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .clip(CircleShape)
+                .clip(AvatarShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
@@ -66,15 +66,14 @@ fun GreetingHeader(
                 Text(
                     text = name.trim().firstOrNull()?.uppercase().orEmpty(),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
         Text(
             text = "$greeting, $name",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }
 }

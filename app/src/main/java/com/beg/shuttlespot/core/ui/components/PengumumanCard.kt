@@ -46,7 +46,6 @@ fun PengumumanInsideCard(item: Announcement,  modifier: Modifier = Modifier){
                 Text(
                     text = senderLabel,
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.alignByBaseline(),
                 )
                 Text(
@@ -58,7 +57,7 @@ fun PengumumanInsideCard(item: Announcement,  modifier: Modifier = Modifier){
             }
             Text(
                 text = item.message,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }

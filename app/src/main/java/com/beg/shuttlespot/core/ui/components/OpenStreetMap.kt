@@ -88,19 +88,24 @@ private const val BUS_ICON_ID = "bus-icon"
  * Ikon marker bus: lingkaran [color] dengan cincin putih dan halo tipis, berisi gambar bus tampak depan.
  * Digambar manual (tanpa file gambar) supaya warnanya selalu mengikuti tema.
  */
-private fun createBusMarkerBitmap(density: Density, size: Dp, color: Color): android.graphics.Bitmap {
+private fun createBusMarkerBitmap(
+    density: Density,
+    size: Dp,
+    color: Color,
+    onColor: Color,
+): android.graphics.Bitmap {
     val sizePx = with(density) { size.roundToPx() }
     val image = ImageBitmap(sizePx, sizePx)
     CanvasDrawScope().draw(density, LayoutDirection.Ltr, Canvas(image), Size(sizePx.toFloat(), sizePx.toFloat())) {
         val r = this.size.minDimension / 2f
         val c = center
         drawCircle(color.copy(alpha = 0.22f), radius = r, center = c)   // halo
-        drawCircle(Color.White, radius = r * 0.80f, center = c)         // cincin putih
+        drawCircle(onColor, radius = r * 0.80f, center = c)            // cincin kontras
         drawCircle(color, radius = r * 0.68f, center = c)               // isi warna primary
 
         // Bus tampak depan: badan putih, kaca, dua lampu, dua roda.
         drawRoundRect(
-            Color.White,
+            onColor,
             topLeft = Offset(c.x - r * 0.36f, c.y - r * 0.40f),
             size = Size(r * 0.72f, r * 0.70f),
             cornerRadius = CornerRadius(r * 0.12f),
@@ -114,13 +119,13 @@ private fun createBusMarkerBitmap(density: Density, size: Dp, color: Color): and
         drawCircle(color, radius = r * 0.055f, center = Offset(c.x - r * 0.17f, c.y + 0.12f * r))
         drawCircle(color, radius = r * 0.055f, center = Offset(c.x + r * 0.17f, c.y + 0.12f * r))
         drawRoundRect(
-            Color.White,
+            onColor,
             topLeft = Offset(c.x - r * 0.27f, c.y + r * 0.27f),
             size = Size(r * 0.14f, r * 0.13f),
             cornerRadius = CornerRadius(r * 0.03f),
         )
         drawRoundRect(
-            Color.White,
+            onColor,
             topLeft = Offset(c.x + r * 0.13f, c.y + r * 0.27f),
             size = Size(r * 0.14f, r * 0.13f),
             cornerRadius = CornerRadius(r * 0.03f),
@@ -161,7 +166,10 @@ fun OpenStreetMap(
 
     val density = LocalDensity.current
     val primary = MaterialTheme.colorScheme.primary
-    val busIcon = remember(density, primary) { createBusMarkerBitmap(density, 44.dp, primary) }
+    val onPrimaryContainer = MaterialTheme.colorScheme.onPrimaryContainer
+    val busIcon = remember(density, primary, onPrimaryContainer) {
+        createBusMarkerBitmap(density, 44.dp, primary, onPrimaryContainer)
+    }
 
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
     var anchor by remember { mutableStateOf<Offset?>(null) } // posisi layar (px) marker terpilih

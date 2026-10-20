@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Flag
@@ -41,8 +40,8 @@ fun BusStatusRow(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = if (type == BusStatusType.Passed) Color(0XFFD9A5AE) else Color.Transparent,
+        shape = MaterialTheme.shapes.medium,
+        color = if (type == BusStatusType.Passed) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
         border = BorderStroke(
             1.dp,
             if (type == BusStatusType.WaitingAtStop) LocalExtendedColors.current.secondary3.copy(alpha = 0.6f) else LocalExtendedColors.current.secondary3
@@ -56,7 +55,7 @@ fun BusStatusRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if(type == BusStatusType.Passed) Color(0XFF912A43) else LocalExtendedColors.current.secondary2,
+                tint = if(type == BusStatusType.Passed) MaterialTheme.colorScheme.onErrorContainer else LocalExtendedColors.current.secondary2,
                 modifier = Modifier.size(16.dp)
             )
 
@@ -65,27 +64,27 @@ fun BusStatusRow(
                 when (type) {
                     BusStatusType.PassedStops -> {
                         append("Melewati ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("$haltCount halte") }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("$haltCount halte") }
                         append(" lagi \u00B7 estimasi tiba ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append(eta) }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(eta) }
                     }
                     BusStatusType.WaitingAtStop -> {
                         append("Segera naik, bus sedang menunggu di ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("haltemu") }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("haltemu") }
                         append("!")
                     }
                     BusStatusType.EnRoute -> {
                         append("Bus dalam perjalanan ke ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("haltemu") }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("haltemu") }
                         append(" \u00B7 estimasi tiba ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append(eta) }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(eta) }
                     }
                     BusStatusType.Passed -> {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFF912A43))) { append("Bus sudah melewati haltemu!") }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = MaterialTheme.colorScheme.onErrorContainer)) { append("Bus sudah melewati haltemu!") }
                     }
                     BusStatusType.NoBusOperating -> {
                         append("Jadwal berikutnya ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = emphasisColor)) { append("TIME HERE") }
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("TIME HERE") }
                     }
                     BusStatusType.Riding -> {
 

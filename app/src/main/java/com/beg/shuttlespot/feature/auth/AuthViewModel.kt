@@ -18,7 +18,7 @@ class AuthViewModel @Inject constructor(private val sessions: SessionRepository)
     private val _state = MutableStateFlow(SignInUiState())
     val state: StateFlow<SignInUiState> = _state.asStateFlow()
 
-    fun signInPassenger(email: String) = signIn { sessions.signInPassenger(email) }
+    fun signInPassenger(email: String, password: String) = signIn { sessions.signInPassenger(email, password) }
     fun signInDriver(phone: String) = signIn { sessions.signInDriver(phone) }
 
     private fun signIn(block: suspend () -> SignInResult) = viewModelScope.launch {

@@ -3,7 +3,6 @@ package com.beg.shuttlespot.core.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -11,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
+import com.beg.shuttlespot.core.ui.theme.StatusPillShape
 
 enum class LabelColor{
     Success, Pending, Failed, Blue, Purple, Grey
@@ -26,7 +26,7 @@ fun StatusBadge(text: String, color : LabelColor, style : LabelStyle = LabelStyl
     val (containerColor, contentColor) = getLabelColors(color, style)
     Surface(
         color = containerColor,
-        shape = RoundedCornerShape(50),
+        shape = StatusPillShape,
         contentColor = contentColor,
         border = if (style == LabelStyle.Soft) {
             BorderStroke(1.dp, contentColor.copy(alpha = 0.25f))

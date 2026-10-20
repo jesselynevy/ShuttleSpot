@@ -13,15 +13,19 @@ import javax.inject.Singleton
 class InMemorySessionRepository @Inject constructor() : SessionRepository {
     private val session = MutableStateFlow<AppSession?>(null)
     private val registeredDrivers = setOf("+6281234567890", "+6289530000000")
+    private val demoStudentEmails = setOf(
+        "jesselyn.angela@student.umn.ac.id",
+    )
+    private val demoStudentPassword = "enterpassword"
 
     override fun observeSession(): Flow<AppSession?> = session.asStateFlow()
 
-    override suspend fun signInPassenger(email: String): SignInResult {
+    override suspend fun signInPassenger(email: String, password: String): SignInResult {
         val normalizedEmail = email.trim().lowercase()
-        if (!normalizedEmail.matches(Regex("^[^@\\s]+@student\\.umn\\.ac\\.id$"))) {
-            return SignInResult.Rejected("Gunakan email mahasiswa @student.umn.ac.id.")
+        if (normalizedEmail !in demoStudentEmails || password != demoStudentPassword) {
+            return SignInResult.Rejected("Email atau password SSO tidak sesuai.")
         }
-        return AppSession("passenger-demo", UserRole.PASSENGER, normalizedEmail.substringBefore('@'), normalizedEmail)
+        return AppSession("passenger-demo", UserRole.PASSENGER, "Jesselyn Angela", normalizedEmail)
             .also { session.value = it }
             .let(SignInResult::Success)
     }

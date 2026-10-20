@@ -6,28 +6,32 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.beg.shuttlespot.R
 import com.beg.shuttlespot.core.model.UserRole
-import com.beg.shuttlespot.core.ui.components.StudentOnboardingProgressIndicator
+import com.beg.shuttlespot.core.ui.components.StudentOnboardingProgressHeader
 import com.beg.shuttlespot.core.ui.components.StudentOnboardingStep
-import com.beg.shuttlespot.core.ui.theme.SpringSky
+import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 import com.beg.shuttlespot.feature.auth.AuthViewModel
 import com.beg.shuttlespot.feature.driver.trip.DriverTripViewModel
 
 @Composable
 fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
     var selectedRole by remember { mutableStateOf<UserRole?>(null) }
+    val colors = MaterialTheme.colorScheme
     Box(
         Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 32.dp, vertical = 28.dp),
     ) {
@@ -36,7 +40,7 @@ fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
             Text(
                 stringResource(R.string.role_selection_title),
                 Modifier.align(Alignment.CenterHorizontally),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineSmall,
             )
             Spacer(Modifier.height(40.dp))
             RoleCard(
@@ -74,7 +78,10 @@ fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SpringSky),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.primary,
+                    contentColor = colors.onPrimary,
+                ),
                 enabled = selectedRole != null,
             ) { Text(stringResource(R.string.role_continue), style = MaterialTheme.typography.labelLarge) }
             Spacer(Modifier.weight(1f))
@@ -90,10 +97,14 @@ fun RoleSelectionScreen(onPassenger: () -> Unit, onDriver: () -> Unit) {
 
 @Composable
 private fun RoleCard(title: String, description: String, avatarRes: Int, selected: Boolean, tags: List<String>, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
     Card(
         Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = if (selected) Color(0xFFDDF3FF) else Color.White),
-        border = BorderStroke(1.dp, if (selected) SpringSky else Color(0xFFE0E0E0)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) colors.primary.copy(alpha = 0.16f) else colors.surface,
+            contentColor = colors.onSurface,
+        ),
+        border = BorderStroke(1.dp, if (selected) colors.primary else colors.outlineVariant),
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Image(
@@ -103,7 +114,7 @@ private fun RoleCard(title: String, description: String, avatarRes: Int, selecte
                 contentScale = ContentScale.Crop,
             )
             Column(Modifier.padding(start = 14.dp)) {
-                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(description, style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(4.dp))
                 RoleTags(tags)
@@ -114,18 +125,20 @@ private fun RoleCard(title: String, description: String, avatarRes: Int, selecte
 
 @Composable
 private fun RoleTags(tags: List<String>) {
+    val colors = MaterialTheme.colorScheme
+    val extended = LocalExtendedColors.current
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        RoleTag(tags[0], Color(0xFFFFDDE2))
-        RoleTag(tags[1], Color(0xFFFFEDBC))
+        RoleTag(tags[0], colors.errorContainer, colors.onErrorContainer)
+        RoleTag(tags[1], extended.pendingContainer, extended.onPendingContainer)
     }
     Spacer(Modifier.height(4.dp))
-    RoleTag(tags[2], Color(0xFFD5F7D7))
+    RoleTag(tags[2], extended.successContainer, extended.onSuccessContainer)
 }
 
 @Composable
-private fun RoleTag(text: String, color: Color) {
-    Surface(color = color, shape = MaterialTheme.shapes.small) {
-        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 4.dp), Color(0xFF5E5E5E), style = MaterialTheme.typography.labelSmall)
+private fun RoleTag(text: String, containerColor: androidx.compose.ui.graphics.Color, contentColor: androidx.compose.ui.graphics.Color) {
+    Surface(color = containerColor, contentColor = contentColor, shape = MaterialTheme.shapes.small) {
+        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -136,21 +149,124 @@ fun SignInScreen(
     showPassengerOnboardingProgress: Boolean = false,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    var value by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     LaunchedEffect(state.signedIn) { if (state.signedIn) onSuccess() }
-    BaseColumn(if (isDriver) "Login Driver" else "Masuk Mahasiswa") {
-        if (showPassengerOnboardingProgress) {
-            StudentOnboardingProgressIndicator(StudentOnboardingStep.SSO)
+    if (isDriver) {
+        var phoneNumber by remember { mutableStateOf("") }
+        BaseColumn("Login Driver") {
+            Text("Masukkan nomor yang sudah terdaftar.")
+            OutlinedTextField(phoneNumber, { phoneNumber = it }, Modifier.fillMaxWidth(), label = { Text("Nomor telepon") }, singleLine = true)
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            Button(
+                onClick = { viewModel.signInDriver(phoneNumber) },
+                enabled = !state.loading,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(if (state.loading) "Memeriksa…" else "Lanjut") }
         }
-        Text(if (isDriver) "Masukkan nomor yang sudah terdaftar." else "Gunakan email @student.umn.ac.id.")
-        OutlinedTextField(value, { value = it }, Modifier.fillMaxWidth(), label = { Text(if (isDriver) "Nomor telepon" else "Email mahasiswa") }, singleLine = true)
-        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(
-            onClick = { if (isDriver) viewModel.signInDriver(value) else viewModel.signInPassenger(value) },
-            enabled = !state.loading,
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text(if (state.loading) "Memeriksa…" else "Lanjut") }
+    } else {
+        StudentSsoScreen(
+            state = state,
+            showProgress = showPassengerOnboardingProgress,
+            onLogin = viewModel::signInPassenger,
+        )
+    }
+}
+
+@Composable
+private fun StudentSsoScreen(
+    state: com.beg.shuttlespot.feature.auth.SignInUiState,
+    showProgress: Boolean,
+    onLogin: (String, String) -> Unit,
+) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(horizontal = 32.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight),
+        ) {
+            if (showProgress) {
+                StudentOnboardingProgressHeader(StudentOnboardingStep.SSO)
+            } else {
+                Spacer(Modifier.height(20.dp))
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
+                border = BorderStroke(1.dp, colors.outline),
+            ) {
+                Column(Modifier.padding(horizontal = 28.dp, vertical = 32.dp)) {
+                    Text(
+                        text = stringResource(R.string.sso_title),
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        color = colors.primaryContainer,
+                        style = MaterialTheme.typography.displaySmall,
+                    )
+                    Spacer(Modifier.height(28.dp))
+                    Text(
+                        text = stringResource(R.string.sso_email_label),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("e.g name@student.umn.ac.id") },
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.sso_password_label),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = stringResource(
+                                        if (passwordVisible) R.string.sso_hide_password else R.string.sso_show_password,
+                                    ),
+                                )
+                            }
+                        },
+                    )
+                    state.error?.let {
+                        Spacer(Modifier.height(12.dp))
+                        Text(it, color = colors.error, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.weight(1f))
+            Button(
+                onClick = { onLogin(username, password) },
+                enabled = !state.loading,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) {
+                Text(if (state.loading) "Memeriksa…" else stringResource(R.string.sso_login))
+            }
+            Spacer(Modifier.height(24.dp))
+        }
     }
 }
 

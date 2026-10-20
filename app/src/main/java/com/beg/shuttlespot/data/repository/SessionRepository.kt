@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface SessionRepository {
     fun observeSession(): Flow<AppSession?>
-    suspend fun signInPassenger(email: String): SignInResult
+    suspend fun signInPassenger(email: String, password: String): SignInResult
     suspend fun signInDriver(phoneNumber: String): SignInResult
     suspend fun signOut()
 }

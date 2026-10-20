@@ -38,6 +38,7 @@ The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.co
 6. The Route tab supports viewing and replacing the saved route selection.
 
 The first welcome screen introduces ShuttleSpot with the UMN shuttle visual and sends users to role selection through `Masuk`. It explains that university accounts are for students, while driver access is provisioned by an administrator.
+In the current passenger-focused build, selecting `Supir Bus` highlights the role and shows that it is not yet available; the continue button remains disabled.
 
 ## Core flow: driver MVP
 

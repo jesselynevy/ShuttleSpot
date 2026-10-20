@@ -108,7 +108,7 @@ fun PassengerHomeContent(
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ){
-            Text("Pantauan Perjalanan & Konfirmasi", style = MaterialTheme.typography.titleMedium)
+            Text("Pantauan Perjalanan & Konfirmasi", style = MaterialTheme.typography.titleSmall)
             when {
                 state.isLoading -> LoadingState("Memuat status perjalanan")
                 state.errorMessage != null -> ErrorState(state.errorMessage)
@@ -130,7 +130,7 @@ fun PassengerHomeContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ){
-                Text("Pengumuman", style = MaterialTheme.typography.titleMedium)
+                Text("Pengumuman", style = MaterialTheme.typography.titleSmall)
                 LinkText("Lihat Pengumuman", onClick = onAnnouncements)
             }
 

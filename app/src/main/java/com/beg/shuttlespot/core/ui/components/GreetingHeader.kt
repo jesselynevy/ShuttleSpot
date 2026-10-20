@@ -72,7 +72,7 @@ fun GreetingHeader(
         }
         Text(
             text = "$greeting, $name",
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }

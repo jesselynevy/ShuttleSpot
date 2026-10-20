@@ -112,11 +112,12 @@ fun BusStatusCard(
                 ) {
                     Text(
                         text = labelPojokKanan,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
                         text = valuePojokKanan,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
             }

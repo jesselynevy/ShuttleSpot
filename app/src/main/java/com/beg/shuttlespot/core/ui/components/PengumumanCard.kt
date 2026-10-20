@@ -45,7 +45,7 @@ fun PengumumanInsideCard(item: Announcement,  modifier: Modifier = Modifier){
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = senderLabel,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.alignByBaseline(),
                 )
                 Text(
@@ -57,7 +57,7 @@ fun PengumumanInsideCard(item: Announcement,  modifier: Modifier = Modifier){
             }
             Text(
                 text = item.message,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }

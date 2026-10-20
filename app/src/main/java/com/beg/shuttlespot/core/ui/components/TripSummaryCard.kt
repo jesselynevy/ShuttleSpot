@@ -80,7 +80,7 @@ private fun SummaryColumn(title: String, modifier: Modifier, value: @Composable 
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.labelLarge,
             textAlign = TextAlign.Center,
         )
         value()

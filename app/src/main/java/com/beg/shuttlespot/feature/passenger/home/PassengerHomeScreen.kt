@@ -47,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.beg.shuttlespot.feature.auth.SessionUiState
+import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.core.ui.components.BusStatusCard
 import com.beg.shuttlespot.core.ui.components.BusStatusType
 import com.beg.shuttlespot.core.ui.components.ErrorState
@@ -68,12 +70,16 @@ fun PassengerHomeScreen(
     onAnnouncements: () -> Unit,
     onNotifications: () -> Unit,
     onProfile: () -> Unit,
-    viewModel: PassengerHomeViewModel = hiltViewModel()
+    viewModel: PassengerHomeViewModel = hiltViewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState(initial = PassengerHomeUiState(PassengerTripStatus.NO_ACTIVE_BUS))
+    val sessionState by sessionViewModel.state.collectAsState()
+    val displayName = (sessionState as? SessionUiState.Ready)?.session?.displayName ?: "Mahasiswa"
     var showBoardingIntent by remember { mutableStateOf(false) }
     PassengerHomeContent(
         state = state,
+        displayName = displayName,
         onLiveTrip = onLiveTrip,
         onBoardingIntent = { showBoardingIntent = true },
         onRoutes = onRoutes,
@@ -87,6 +93,7 @@ fun PassengerHomeScreen(
 @Composable
 fun PassengerHomeContent(
     state: PassengerHomeUiState,
+    displayName: String,
     onLiveTrip: () -> Unit,
     onBoardingIntent: () -> Unit,
     onRoutes: () -> Unit,
@@ -103,8 +110,12 @@ fun PassengerHomeContent(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        GreetingHeader(name = "Angela Benedictin Sunny", avatar = painterResource(R.drawable.avatar))
-        TripSummaryCard(routeName = "BSD", pickupStop = "Halte ABCD", todayStatus = TodayRideStatus.NotRiding)
+        GreetingHeader(name = displayName, avatar = painterResource(R.drawable.avatar))
+        TripSummaryCard(
+            routeName = state.primaryRouteName,
+            pickupStop = state.primaryPickupStopName,
+            todayStatus = if (state.hasConfirmedBoarding) TodayRideStatus.Riding else TodayRideStatus.Undecided,
+        )
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ){
@@ -117,6 +128,7 @@ fun PassengerHomeContent(
                         busStatus = BusStatusType.PassedStops,
                         onBoardingIntent = onBoardingIntent,
                         onLiveTrip = onLiveTrip,
+                        boardingConfirmed = state.hasConfirmedBoarding,
                     )
                 }
             }
@@ -157,6 +169,7 @@ private fun PassengerHomeContentPreview() {
     ShuttleSpotTheme(darkTheme = false) {
         PassengerHomeContent(
             state = previewState,
+            displayName = "Jimmy Donaldson",
             onLiveTrip = {},
             onBoardingIntent = {},
             onRoutes = {},
@@ -173,6 +186,7 @@ private fun PassengerHomeContentDarkPreview() {
     ShuttleSpotTheme(darkTheme = true) {
         PassengerHomeContent(
             state = previewState,
+            displayName = "Jimmy Donaldson",
             onLiveTrip = {},
             onBoardingIntent = {},
             onRoutes = {},

@@ -39,6 +39,7 @@ fun BusStatusCard(
     onBoardingIntent: () -> Unit = {},
     onLiveTrip: () -> Unit = {},
     showLiveTrip : Boolean = true,
+    boardingConfirmed: Boolean = false,
     /** Fraksi 0f..1f posisi bus pada rute, dipakai [BusRouteProgress]. */
     progress: Float = 0.3f,
     fromStopName: String? = null,
@@ -74,6 +75,7 @@ fun BusStatusCard(
             AppButton(
                 text = "Konfirmasi naik Bus",
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !boardingConfirmed,
                 onClick = onBoardingIntent
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -146,7 +148,7 @@ fun BusStatusCard(
         }
 
         if (showLiveTrip) {
-            ButtonsToShow(busStatus, onBoardingIntent, onLiveTrip)
+            ButtonsToShow(busStatus, onBoardingIntent, onLiveTrip, boardingConfirmed)
         }
     }
 }
@@ -156,6 +158,7 @@ fun ButtonsToShow(
     busStatus : BusStatusType,
     onBoardingIntent: () -> Unit = {},
     onLiveTrip: () -> Unit = {},
+    boardingConfirmed: Boolean = false,
 ){
 
     when(busStatus){
@@ -183,6 +186,7 @@ fun ButtonsToShow(
             AppButton(
                 text = "Konfirmasi naik Bus",
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !boardingConfirmed,
                 onClick = onBoardingIntent
             )
             Spacer(modifier = Modifier.height(6.dp))

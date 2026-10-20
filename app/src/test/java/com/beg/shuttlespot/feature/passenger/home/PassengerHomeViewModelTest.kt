@@ -31,6 +31,31 @@ class PassengerHomeViewModelTest {
         assertFalse(toPassengerHomeUiState(snapshot(TripStatus.RIDING)).canConfirmBoarding)
     }
 
+    @Test fun `confirmed boarding disables another confirmation`() {
+        val state = toPassengerHomeUiState(snapshot(TripStatus.EN_ROUTE), hasConfirmedBoarding = true)
+
+        assertTrue(state.hasConfirmedBoarding)
+        assertFalse(state.canConfirmBoarding)
+    }
+
+    @Test fun `saved route selection supplies the dashboard summary`() {
+        val state = toPassengerHomeUiState(
+            snapshot = null,
+            primaryRouteName = "Pasar Modern BSD ke UMN",
+            primaryPickupStopName = "Halte Pasar Modern BSD",
+        )
+
+        assertEquals("Pasar Modern BSD ke UMN", state.primaryRouteName)
+        assertEquals("Halte Pasar Modern BSD", state.primaryPickupStopName)
+    }
+
+    @Test fun `dashboard summary says belum pilih without a saved route`() {
+        val state = toPassengerHomeUiState(null)
+
+        assertEquals("Belum pilih", state.primaryRouteName)
+        assertEquals("Belum pilih", state.primaryPickupStopName)
+    }
+
     private fun snapshot(status: TripStatus) = ActiveTripSnapshot(
         tripId = "trip-1", routeId = "bsd_umn", vehicleLabel = "D 8801 VBN", status = status,
         progress = 1.2f, nextStopName = "Halte UMN", eta = EtaEstimate(5, isStale = true),

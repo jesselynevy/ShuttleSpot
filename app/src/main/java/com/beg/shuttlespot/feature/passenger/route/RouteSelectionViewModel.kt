@@ -25,6 +25,7 @@ data class RouteSelectionUiState(
     val destinationStopId: String? = null,
     val showTimetable: Boolean = false,
     val selectionSaved: Boolean = false,
+    val hasPrimarySelection: Boolean = false,
     val errorMessage: String? = null
 ) {
     val pickupStop: Stop? get() = selectedRoute?.stops?.find { it.id == pickupStopId }
@@ -78,6 +79,7 @@ class RouteSelectionViewModel @Inject constructor(
                 ) {
                     selectRoute(saved.routeId, saved.pickupStopId, saved.destinationStopId)
                 }
+                _uiState.update { it.copy(hasPrimarySelection = saved != null) }
             }
         }
     }
@@ -130,6 +132,10 @@ class RouteSelectionViewModel @Inject constructor(
     }
 
     fun closeTimetable() = _uiState.update { it.copy(showTimetable = false) }
+
+    fun beginRouteChange() {
+        _uiState.update { it.copy(selectionSaved = false, showTimetable = false, errorMessage = null) }
+    }
 
     fun saveSelection() {
         val state = _uiState.value

@@ -33,11 +33,12 @@ The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.co
 3. They select a route, pickup stop, destination, and desired time; inspect the route map; review the chosen details; and see registration success.
    The current onboarding route picker has two steps: choose a directional demo route, then choose the pickup and a later destination from its ordered stops. Selecting `Pilih Rute` opens the Review screen, which summarizes the route and shows the selected pickup and destination times derived from the available demo timetable.
    Confirming the Review screen saves the route and opens the registration-completion screen with confetti; `Oke!` opens Home. Later route changes retain their separate saved-route confirmation.
-4. Home displays the primary route, pickup stop, boarding status, announcements, and either no-bus or active-bus status.
-5. The passenger can open a tracker, confirm boarding once, see the confirmed state on Home and Tracker, and handle arrived/missed-bus states.
-6. The Route tab supports viewing and replacing the saved route selection.
+4. Home displays the signed-in passenger's display name, primary route, and pickup stop from the saved onboarding selection. Before a route is saved, those summary fields show `Belum pilih`. Home also displays boarding status, announcements, and either no-bus or active-bus status.
+5. The passenger can open a tracker and confirm boarding once. A confirmed intent disables further confirmation on Home and Live Trip and changes Home's `Hari ini naik?` status to `Naik`; Home and Tracker then show the confirmed state and handle arrived/missed-bus states.
+6. The Route tab displays the saved primary route, pickup, destination, and schedule. Without a saved route it offers `Pilih Rute`; selecting it reuses route/stop selection without onboarding progress. Reviewing a replacement uses `Tetapkan sebagai rute utama`, after which Home updates from the same saved selection.
 
 The first welcome screen introduces ShuttleSpot with the UMN shuttle visual and sends users to role selection through `Masuk`. It explains that university accounts are for students, while driver access is provisioned by an administrator.
+In the current passenger-focused build, selecting `Supir Bus` highlights the role and shows that it is not yet available; the continue button remains disabled.
 
 ## Core flow: driver MVP
 

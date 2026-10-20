@@ -57,7 +57,7 @@ fun TripSummaryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SummaryColumn("Rute Utama", Modifier.weight(1f)) {
-                Text(routeName, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                Text(routeName, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
             }
             SummaryDivider()
             SummaryColumn("Pickup Utama", Modifier.weight(1.2f)) {

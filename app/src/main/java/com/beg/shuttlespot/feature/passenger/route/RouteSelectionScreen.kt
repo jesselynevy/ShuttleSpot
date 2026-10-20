@@ -26,6 +26,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -53,6 +57,7 @@ fun RouteSelectionScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var choosingStops by remember { mutableStateOf(false) }
+    var editingRoute by remember { mutableStateOf(false) }
     if (showOnboardingProgress && !state.selectionSaved) {
         BackHandler {
             when {
@@ -64,50 +69,80 @@ fun RouteSelectionScreen(
     }
     when {
         state.selectionSaved && showOnboardingProgress -> RegistrationCompleteScreen(onFinished)
+        state.selectionSaved -> RouteTabSummaryScreen(state = state, onChooseOtherRoute = { routeId ->
+            viewModel.beginRouteChange()
+            viewModel.selectRoute(routeId, useDefaults = false)
+            choosingStops = true
+            editingRoute = true
+        })
+        !showOnboardingProgress && !state.hasPrimarySelection && !editingRoute -> RouteTabEmptyScreen(
+            onChooseRoute = {
+                viewModel.beginRouteChange()
+                editingRoute = true
+            },
+        )
+        !showOnboardingProgress && !editingRoute && state.hasPrimarySelection -> RouteTabSummaryScreen(
+            state = state,
+            onChooseOtherRoute = { routeId ->
+                viewModel.beginRouteChange()
+                viewModel.selectRoute(routeId, useDefaults = false)
+                choosingStops = true
+                editingRoute = true
+            },
+        )
         state.selectionSaved -> RouteSavedScreen(onFinished, showOnboardingProgress)
-        state.showTimetable -> TimetableDetailsScreen(state, viewModel::closeTimetable, viewModel::saveSelection)
-        showOnboardingProgress && !choosingStops -> OnboardingRouteList(state, onBack) { id ->
+        state.showTimetable -> TimetableDetailsScreen(
+            state = state,
+            onBack = viewModel::closeTimetable,
+            onContinue = viewModel::saveSelection,
+            showOnboardingProgress = showOnboardingProgress,
+        )
+        showOnboardingProgress && !choosingStops -> OnboardingRouteList(state, onBack, showProgress = true) { id ->
             viewModel.selectRoute(id, useDefaults = false)
             choosingStops = true
         }
-        showOnboardingProgress -> OnboardingStopList(state, { choosingStops = false }, viewModel::selectOnboardingStop, viewModel::openTimetable)
+        showOnboardingProgress -> OnboardingStopList(state, { choosingStops = false }, viewModel::selectOnboardingStop, viewModel::openTimetable, showProgress = true)
+        editingRoute && !choosingStops -> OnboardingRouteList(state, onBack = { editingRoute = false }, showProgress = false) { id ->
+            viewModel.selectRoute(id, useDefaults = false)
+            choosingStops = true
+        }
+        editingRoute -> OnboardingStopList(state, { choosingStops = false }, viewModel::selectOnboardingStop, viewModel::openTimetable, showProgress = false)
         else -> RoutePickerScreen(state, { viewModel.selectRoute(it) }, viewModel::selectPickup, viewModel::selectDestination, viewModel::openTimetable, showOnboardingProgress)
     }
 }
 
 @Composable
-private fun OnboardingRouteList(state: RouteSelectionUiState, onBack: () -> Unit, onSelect: (String) -> Unit) {
+private fun OnboardingRouteList(
+    state: RouteSelectionUiState,
+    onBack: () -> Unit,
+    showProgress: Boolean,
+    onSelect: (String) -> Unit,
+) {
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 32.dp)) {
-        StudentOnboardingProgressHeader(StudentOnboardingStep.ROUTE)
+        if (showProgress) StudentOnboardingProgressHeader(StudentOnboardingStep.ROUTE)
         Text("Mari kita cari rute yang cocok dengan Anda!", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp))
         Text("Jadwal dan rute demo", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             if (state.isLoading) item { LoadingState("Memuat rute") }
             else if (state.routes.isEmpty()) item { EmptyState("Belum ada rute", "Rute belum tersedia.") }
             else items(state.routes, key = { it.id }) { route ->
-                Card(
-                    colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,)
-                    ,modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Rute", style = MaterialTheme.typography.labelSmall)
-                            Text(route.name, style = MaterialTheme.typography.titleSmall)
-                        }
-                        RoutePrimaryButton(text = "Pilih", onClick = { onSelect(route.id) })
-                    }
-                }
+                RouteChoiceCard(route = route, onClick = { onSelect(route.id) })
             }
         }
     }
 }
 
 @Composable
-private fun OnboardingStopList(state: RouteSelectionUiState, onBack: () -> Unit, onSelect: (String) -> Unit, onShowTimetable: () -> Unit) {
+private fun OnboardingStopList(
+    state: RouteSelectionUiState,
+    onBack: () -> Unit,
+    onSelect: (String) -> Unit,
+    onShowTimetable: () -> Unit,
+    showProgress: Boolean,
+) {
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 32.dp)) {
-        StudentOnboardingProgressHeader(StudentOnboardingStep.ROUTE)
-        RouteSecondaryButton(text = "‹  Kembali", onClick = onBack)
+        if (showProgress) StudentOnboardingProgressHeader(StudentOnboardingStep.ROUTE)
+        BackTextButton(onClick = onBack)
         Text("Pilih titik jemput dan destinasi", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
         Text(if (state.pickupStop == null || state.destinationStop != null) "Pilih titik jemput terlebih dahulu." else "Pilih destinasi setelah titik jemput.", style = MaterialTheme.typography.bodyMedium)
         state.selectedRoute?.let { details ->
@@ -140,6 +175,7 @@ private fun TimetableDetailsScreen(
     state: RouteSelectionUiState,
     onBack: () -> Unit,
     onContinue: () -> Unit,
+    showOnboardingProgress: Boolean,
 ) {
     val route = state.selectedRoute ?: return
     Column(
@@ -149,62 +185,137 @@ private fun TimetableDetailsScreen(
             .navigationBarsPadding()
             .padding(horizontal = 32.dp),
     ) {
-        StudentOnboardingProgressHeader(StudentOnboardingStep.REVIEW)
-        RouteSecondaryButton(text = "‹  Kembali", onClick = onBack)
-        Text(
-            "Tinjau pilihan rute",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(top = 16.dp),
-        )
-        Text(
-            "Pastikan rute dan jadwal Anda sudah benar sebelum disimpan.",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-            border = CardDefaults.outlinedCardBorder(),
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(Modifier.padding(16.dp)) {
-                Text(route.route.name, style = MaterialTheme.typography.titleMedium)
-                Text("Titik jemput", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 12.dp))
-                Text(state.pickupStop?.name.orEmpty(), style = MaterialTheme.typography.bodyLarge)
-                Text("Destinasi", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 8.dp))
-                Text(state.destinationStop?.name.orEmpty(), style = MaterialTheme.typography.bodyLarge)
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant,
+            if (showOnboardingProgress) {
+                item { StudentOnboardingProgressHeader(StudentOnboardingStep.REVIEW) }
+            }
+            item { BackTextButton(onClick = onBack) }
+            item {
+                Text(
+                    "Tinjau pilihan rute",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    ScheduleTime(
-                        label = "Waktu berangkat",
-                        time = state.timetableSummary?.pickupTime,
-                        stopName = state.pickupStop?.name.orEmpty(),
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        "→",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    )
-                    ScheduleTime(
-                        label = "Tiba tujuan",
-                        time = state.timetableSummary?.destinationTime,
-                        stopName = state.destinationStop?.name.orEmpty(),
-                        modifier = Modifier.weight(1f),
-                    )
+            }
+            item {
+                Text(
+                    "Pastikan rute dan jadwal Anda sudah benar sebelum disimpan.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    border = CardDefaults.outlinedCardBorder(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(route.route.name, style = MaterialTheme.typography.titleMedium)
+                        Text("Titik jemput", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 12.dp))
+                        Text(state.pickupStop?.name.orEmpty(), style = MaterialTheme.typography.bodyLarge)
+                        Text("Destinasi", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 8.dp))
+                        Text(state.destinationStop?.name.orEmpty(), style = MaterialTheme.typography.bodyLarge)
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            ScheduleTime(
+                                label = "Waktu berangkat",
+                                time = state.timetableSummary?.pickupTime,
+                                stopName = state.pickupStop?.name.orEmpty(),
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                "→",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                            )
+                            ScheduleTime(
+                                label = "Tiba tujuan",
+                                time = state.timetableSummary?.destinationTime,
+                                stopName = state.destinationStop?.name.orEmpty(),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
+            item {
+                Text(
+                    text = "*Untuk waktu tiba dititik drop off dapat berubah sesuai kondisi kepadatan lalu lintas",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        RoutePrimaryButton(
+            text = if (showOnboardingProgress) "Sudah benar" else "Tetapkan sebagai rute utama",
+            onClick = onContinue,
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        )
+        RouteSecondaryButton(text = "Ubah pilihan", onClick = onBack, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+        Spacer(Modifier.height(12.dp))
+    }
+}
+
+@Composable
+private fun RouteTabEmptyScreen(onChooseRoute: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("Belum ada rute utama", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Text(
+            "Pilih rute, titik jemput, dan destinasi untuk perjalanan Anda.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        RoutePrimaryButton("Pilih Rute", onChooseRoute, Modifier.fillMaxWidth().padding(top = 24.dp))
+    }
+}
+
+@Composable
+private fun RouteTabSummaryScreen(state: RouteSelectionUiState, onChooseOtherRoute: (String) -> Unit) {
+    val route = state.selectedRoute ?: return
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item { Text("Rute Anda", style = MaterialTheme.typography.titleSmall) }
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = CardDefaults.outlinedCardBorder(),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(route.route.name, style = MaterialTheme.typography.titleMedium)
+                    Text("Titik jemput", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 16.dp))
+                    Text(state.pickupStop?.name.orEmpty(), style = MaterialTheme.typography.bodyLarge)
+                    Text("Destinasi", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 12.dp))
+                    Text(state.destinationStop?.name.orEmpty(), style = MaterialTheme.typography.bodyLarge)
+                    HorizontalDivider(Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(Modifier.fillMaxWidth()) {
+                        ScheduleTime("Waktu berangkat", state.timetableSummary?.pickupTime, state.pickupStop?.name.orEmpty(), Modifier.weight(1f))
+                        ScheduleTime("Tiba tujuan", state.timetableSummary?.destinationTime, state.destinationStop?.name.orEmpty(), Modifier.weight(1f))
+                    }
                 }
             }
         }
-        Text(text = "*Untuk waktu tiba dititik drop off dapat berubah sesuai kondisi kepadatan lalu lintas", style = MaterialTheme.typography.bodySmall)
-        Spacer(Modifier.weight(1f))
-        RoutePrimaryButton(text = "Sudah benar", onClick = onContinue, modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
-        RouteSecondaryButton(text = "Ubah pilihan halte", onClick = onBack, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-        Spacer(Modifier.height(20.dp))
+        item { Text("Rute lain", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 4.dp)) }
+        items(state.routes.filterNot { it.id == route.route.id }, key = { it.id }) { alternative ->
+            RouteChoiceCard(route = alternative, onClick = { onChooseOtherRoute(alternative.id) })
+        }
     }
 }
 
@@ -255,6 +366,31 @@ private fun RouteCard(route: Route, selected: Boolean, onClick: () -> Unit) {
             RadioButton(selected = selected, onClick = onClick)
             Column(Modifier.padding(start = 8.dp)) { Text(route.name, style = MaterialTheme.typography.titleMedium); Text("Data jadwal demo", style = MaterialTheme.typography.bodySmall) }
         }
+    }
+}
+
+@Composable
+private fun RouteChoiceCard(route: Route, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = MaterialTheme.shapes.medium,
+            )
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = "Rute",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(route.name, style = MaterialTheme.typography.titleSmall)
+        }
+        RoutePrimaryButton(text = "Pilih", onClick = onClick)
     }
 }
 
@@ -333,4 +469,22 @@ internal fun RouteSecondaryButton(
         onClick = onClick,
         modifier = modifier.height(48.dp),
     ) { Text(text) }
+}
+
+@Composable
+private fun BackTextButton(onClick: () -> Unit) {
+    TextButton(onClick = onClick,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = MaterialTheme.colorScheme.onBackground,
+        )) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = null,
+        )
+        Text(
+            text = "Kembali",
+            modifier = Modifier.padding(start = 8.dp),
+            style = MaterialTheme.typography.labelLarge,
+        )
+    }
 }

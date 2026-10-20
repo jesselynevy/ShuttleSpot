@@ -4,6 +4,8 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,33 +63,37 @@ fun LocationAssistanceScreen(onLocationGranted: () -> Unit, onChooseManually: ()
                 .navigationBarsPadding()
                 .padding(horizontal = 32.dp),
         ) {
-            StudentOnboardingProgressHeader(StudentOnboardingStep.LOCATION)
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .background(extended.blueContainer, MaterialTheme.shapes.extraLarge),
-                    contentAlignment = Alignment.Center,
+                StudentOnboardingProgressHeader(StudentOnboardingStep.LOCATION)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(Icons.Outlined.LocationOn, null, tint = extended.onBlueContainer)
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(extended.blueContainer, MaterialTheme.shapes.extraLarge),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Outlined.LocationOn, null, tint = extended.onBlueContainer)
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text("Izinkan akses lokasi", style = MaterialTheme.typography.titleLarge)
                 }
-                Spacer(Modifier.height(16.dp))
-                Text("Izinkan akses lokasi", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(12.dp))
+                LocationBenefitsCard()
+                if (permissionDenied) {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        "Izin belum diberikan. Anda tetap dapat memilih halte secara manual atau mengaktifkannya nanti dari pengaturan.",
+                        color = colors.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
             Spacer(Modifier.height(12.dp))
-            LocationBenefitsCard()
-            if (permissionDenied) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    "Izin belum diberikan. Anda tetap dapat memilih halte secara manual atau mengaktifkannya nanti dari pengaturan.",
-                    color = colors.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Spacer(Modifier.weight(1f))
             Button(
                 onClick = { permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION) },
                 modifier = Modifier.fillMaxWidth().height(48.dp),

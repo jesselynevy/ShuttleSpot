@@ -44,7 +44,6 @@ fun NavGraphBuilder.authNavGraph(
         composable(AuthRoute.ROLE_SELECTION) {
             RoleSelectionScreen(
                 onPassenger = { navController.navigate(AuthRoute.signIn(UserRole.PASSENGER)) },
-                onDriver = { navController.navigate(AuthRoute.signIn(UserRole.DRIVER)) },
             )
         }
 

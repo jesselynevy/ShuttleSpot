@@ -98,9 +98,7 @@ fun BusStatusCard(
                         modifier = Modifier,
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ){
-                        Text(text="PLAT BUS DI SINI",
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text(text="PLAT BUS DI SINI", style = MaterialTheme.typography.titleSmall)
                         StatusBadge(
                             text = labelText,
                             color = labelColor,
@@ -114,11 +112,11 @@ fun BusStatusCard(
                 ) {
                     Text(
                         text = labelPojokKanan,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = valuePojokKanan,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             }

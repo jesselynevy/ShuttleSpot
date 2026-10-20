@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = SpringSky,
-    onPrimary = DarkestColor,
+    onPrimary = FullWhite,
     primaryContainer = UMNBlue,
     onPrimaryContainer = FullWhite,
     background = DarkestColor,
@@ -66,7 +66,8 @@ fun ShuttleSpotTheme(
     CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography
+            typography = Typography,
+            shapes = ShuttleSpotShapes,
         ) {
             // Default text color for any Text without an explicit color
             // (FullWhite in dark mode, DarkestColor in light mode).

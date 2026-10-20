@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
@@ -35,6 +36,7 @@ import com.beg.shuttlespot.R
  */
 @Composable
 fun WelcomeScreen(onEnter: () -> Unit) {
+    val isLandscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -54,7 +56,11 @@ fun WelcomeScreen(onEnter: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
-                .padding(start = 32.dp, top = 120.dp, end = 24.dp),
+                .padding(
+                    start = 32.dp,
+                    top = if (isLandscape) 24.dp else 120.dp,
+                    end = 24.dp,
+                ),
         ) {
             Text(
                 text = stringResource(R.string.welcome_greeting),
@@ -79,15 +85,18 @@ fun WelcomeScreen(onEnter: () -> Unit) {
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset(x = maxWidth * 0.28f, y = (-16).dp)
-                .width(maxWidth * 2.7f),
+                .offset(
+                    x = maxWidth * if (isLandscape) 0.18f else 0.28f,
+                    y = if (isLandscape) 28.dp else (-16).dp,
+                )
+                .width(maxWidth * if (isLandscape) 1.9f else 2.7f),
         )
 
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 32.dp)
-                .padding(bottom = 112.dp),
+                .padding(bottom = if (isLandscape) 20.dp else 112.dp),
         ) {
             Button(
                 onClick = onEnter,
@@ -113,14 +122,16 @@ fun WelcomeScreen(onEnter: () -> Unit) {
             )
         }
 
-        Text(
-            text = stringResource(R.string.welcome_language),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 28.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.bodySmall,
-        )
+        if (!isLandscape) {
+            Text(
+                text = stringResource(R.string.welcome_language),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 28.dp),
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
     }
 }

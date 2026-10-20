@@ -32,17 +32,24 @@ import com.beg.shuttlespot.feature.driver.trip.DriverTripViewModel
 fun RoleSelectionScreen(onPassenger: () -> Unit) {
     var selectedRole by remember { mutableStateOf<UserRole?>(null) }
     val colors = MaterialTheme.colorScheme
-    Box(
+    val scrollState = rememberScrollState()
+    BoxWithConstraints(
         Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 32.dp, vertical = 28.dp),
     ) {
-        Column(Modifier.fillMaxSize()) {
-            Spacer(Modifier.height(72.dp))
+        val compactLayout = maxHeight < 600.dp
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = maxHeight)
+                .verticalScroll(scrollState),
+        ) {
+            Spacer(Modifier.height(if (compactLayout) 24.dp else 72.dp))
             Text(
                 stringResource(R.string.role_selection_title),
                 Modifier.align(Alignment.CenterHorizontally),
                 style = MaterialTheme.typography.headlineSmall,
             )
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(if (compactLayout) 20.dp else 40.dp))
             RoleCard(
                 title = stringResource(R.string.role_student),
                 description = stringResource(R.string.role_student_description),
@@ -84,7 +91,7 @@ fun RoleSelectionScreen(onPassenger: () -> Unit) {
                 ),
                 enabled = selectedRole == UserRole.PASSENGER,
             ) { Text(stringResource(R.string.role_continue), style = MaterialTheme.typography.labelLarge) }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
             Spacer(Modifier.height(32.dp))
             Text(
                 stringResource(R.string.welcome_language),

@@ -66,6 +66,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.confettikit)
     implementation("androidx.compose.material:material-icons-extended:1.7.x")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

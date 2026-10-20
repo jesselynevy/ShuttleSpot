@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,7 +22,14 @@ object RootRoute {
 /** NavHost root. Setiap graph didefinisikan di file sendiri; di sini hanya dirangkai. */
 @Composable
 fun ShuttleSpotNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = RootRoute.GATE) {
+    NavHost(
+        navController = navController,
+        startDestination = RootRoute.GATE,
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(300)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+        popExitTransition = { fadeOut(animationSpec = tween(300)) },
+    ) {
         composable(RootRoute.GATE) { SessionGate(navController) }
 
         authNavGraph(navController) { role ->

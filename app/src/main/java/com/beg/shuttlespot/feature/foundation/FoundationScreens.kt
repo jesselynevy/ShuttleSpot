@@ -321,6 +321,7 @@ fun BaseColumn(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(
         Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 16.dp, vertical = 24.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(title, style = MaterialTheme.typography.headlineMedium)
         content()

@@ -57,7 +57,8 @@ import com.beg.shuttlespot.core.ui.components.OfflineState
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 import com.beg.shuttlespot.R
 import com.beg.shuttlespot.core.model.Announcement
-import com.beg.shuttlespot.core.ui.components.GreetingHeader
+import com.beg.shuttlespot.core.ui.components.AvatarHeader
+import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.core.ui.components.LinkText
 import com.beg.shuttlespot.core.ui.components.PengumumanHomeCard
 import com.beg.shuttlespot.core.ui.components.TodayRideStatus
@@ -110,7 +111,7 @@ fun PassengerHomeContent(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        GreetingHeader(name = displayName, avatar = painterResource(R.drawable.avatar))
+        AvatarHeader(name = displayName, role = UserRole.PASSENGER, avatar = painterResource(R.drawable.avatar))
         TripSummaryCard(
             routeName = state.primaryRouteName,
             pickupStop = state.primaryPickupStopName,

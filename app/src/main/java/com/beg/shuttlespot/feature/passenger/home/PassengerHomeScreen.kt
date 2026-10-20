@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -109,7 +108,7 @@ fun PassengerHomeContent(
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ){
-            Text("Pantauan Perjalanan & Konfirmasi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Pantauan Perjalanan & Konfirmasi", style = MaterialTheme.typography.titleSmall)
             when {
                 state.isLoading -> LoadingState("Memuat status perjalanan")
                 state.errorMessage != null -> ErrorState(state.errorMessage)
@@ -131,7 +130,7 @@ fun PassengerHomeContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ){
-                Text("Pengumuman", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Pengumuman", style = MaterialTheme.typography.titleSmall)
                 LinkText("Lihat Pengumuman", onClick = onAnnouncements)
             }
 

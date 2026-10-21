@@ -27,6 +27,9 @@ import com.beg.shuttlespot.core.ui.components.ProfileDataBlockActionType
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.feature.foundation.BaseColumn
+import com.beg.shuttlespot.feature.passenger.home.PassengerHomeUiState
+import com.beg.shuttlespot.feature.passenger.home.PassengerHomeViewModel
+import com.beg.shuttlespot.feature.passenger.home.PassengerTripStatus
 import com.beg.shuttlespot.feature.theme.ThemeViewModel
 
 /** Tab Profil (plan.md layar 18). Sign-out menghapus session; shell lalu mengembalikan pengguna ke auth. */
@@ -34,9 +37,11 @@ import com.beg.shuttlespot.feature.theme.ThemeViewModel
 fun ProfileTab(
     role: UserRole,
     viewModel: SessionViewModel = hiltViewModel(),
-    themeViewModel: ThemeViewModel = hiltViewModel()
+    themeViewModel: ThemeViewModel = hiltViewModel(),
+    routeViewModel: PassengerHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val routeState by routeViewModel.state.collectAsState(initial = PassengerHomeUiState(PassengerTripStatus.NO_ACTIVE_BUS))
     val session = (state as? SessionUiState.Ready)?.session
 
     val isDarkModeOverride by themeViewModel.isDarkMode.collectAsState()
@@ -60,23 +65,15 @@ fun ProfileTab(
                 showDivider = true
             )
             ProfileDataBlock(
-                icon = Icons.Outlined.Phone,
-                informationTitle = "Nomor telepon",
-                informationData = "628888888888888",
-                actionType = ProfileDataBlockActionType.Edit,
-                onActionClick = { /* Handle edit phone */ },
-                showDivider = true
-            )
-            ProfileDataBlock(
                 icon = Icons.Outlined.Route,
                 informationTitle = "Rute Utama",
-                informationData = "Rute BSD",
+                informationData = routeState.primaryRouteName,
                 showDivider = true
             )
             ProfileDataBlock(
                 icon = Icons.Outlined.DirectionsBus,
                 informationTitle = "Halte kamu",
-                informationData = "Halte ABCD",
+                informationData = routeState.primaryPickupStopName,
                 showDivider = false
             )
         }

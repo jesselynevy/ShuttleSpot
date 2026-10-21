@@ -1,5 +1,6 @@
 package com.beg.shuttlespot.data.repository
 
+import com.beg.shuttlespot.core.model.TripStatus
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -8,6 +9,18 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class InMemoryPassengerTripRepositoryTest {
+    @Test fun bus_starts_by_heading_to_the_first_pickup_stop() = runTest {
+        val routes = InMemoryRouteRepository().apply {
+            savePrimaryRoute("bsd_umn", "bsd_umn_1", "bsd_umn_9")
+        }
+        val repository = InMemoryPassengerTripRepository(routes)
+
+        assertEquals(
+            TripStatus.EN_ROUTE,
+            repository.observeActiveTrip("bsd_umn").filterNotNull().first().status,
+        )
+    }
+
     @Test fun active_trip_is_available_only_for_its_selected_route() = runTest {
         val repository = InMemoryPassengerTripRepository(InMemoryRouteRepository())
 

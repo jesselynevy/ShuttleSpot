@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.Route
 import com.beg.shuttlespot.core.model.RouteDetails
+import com.beg.shuttlespot.core.model.RouteSelection
 import com.beg.shuttlespot.core.model.Stop
 import com.beg.shuttlespot.core.model.TimetableEntry
 import com.beg.shuttlespot.data.repository.RouteRepository
@@ -61,6 +62,7 @@ class RouteSelectionViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RouteSelectionUiState())
     val uiState: StateFlow<RouteSelectionUiState> = _uiState.asStateFlow()
+    private var primarySelection: RouteSelection? = null
 
     init {
         viewModelScope.launch {
@@ -71,6 +73,7 @@ class RouteSelectionViewModel @Inject constructor(
         }
         viewModelScope.launch {
             routeRepository.observePrimarySelection().collectLatest { saved ->
+                primarySelection = saved
                 if (saved != null && (
                         _uiState.value.selectedRoute?.route?.id != saved.routeId ||
                             _uiState.value.pickupStopId != saved.pickupStopId ||
@@ -135,6 +138,17 @@ class RouteSelectionViewModel @Inject constructor(
 
     fun beginRouteChange() {
         _uiState.update { it.copy(selectionSaved = false, showTimetable = false, errorMessage = null) }
+    }
+
+    /** Drops an unfinished replacement so the next Route-tab visit shows the saved primary route. */
+    fun discardUnconfirmedRouteChange() {
+        val saved = primarySelection ?: return
+        selectRoute(
+            routeId = saved.routeId,
+            pickupStopId = saved.pickupStopId,
+            destinationStopId = saved.destinationStopId,
+            useDefaults = false,
+        )
     }
 
     fun saveSelection() {

@@ -29,13 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
-enum class BusStatusType { PassedStops, WaitingAtStop, EnRoute, Passed, NoBusOperating, Riding }
 @Composable
 fun BusStatusCard(
-    busStatus : BusStatusType,
+    busStatus : TripStatus,
     onBoardingIntent: () -> Unit = {},
     onLiveTrip: () -> Unit = {},
     showLiveTrip : Boolean = true,
@@ -44,20 +44,26 @@ fun BusStatusCard(
     progress: Float = 0.3f,
     fromStopName: String? = null,
     toStopName: String? = null,
+    /** Konteks halte untuk [BusStatusRow]: menuju mana (EN_ROUTE) / menunggu di mana (WAITING_AT_OTHERSTOP). */
+    stopName: String? = null,
+    /** Estimasi waktu tiba. Dipakai [BusStatusRow] dan display pojok kanan. Null = pakai placeholder "5 menit". */
+    eta: String? = null,
 ){
     val (labelText, labelColor, labelStyle) = when (busStatus) {
-        BusStatusType.PassedStops -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
-        BusStatusType.WaitingAtStop -> Triple("Sudah Tiba", LabelColor.Success, LabelStyle.Solid)
-        BusStatusType.EnRoute -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
-        BusStatusType.Passed -> Triple("Sudah Berangkat", LabelColor.Failed, LabelStyle.Soft)
-        BusStatusType.Riding -> Triple("Sedang Naik", LabelColor.Blue, LabelStyle.Soft)
-        BusStatusType.NoBusOperating -> Triple("Tidak Beroperasi", LabelColor.Grey, LabelStyle.Soft)
+        TripStatus.EN_ROUTE -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
+        TripStatus.WAITING_AT_OTHERSTOP -> Triple("Sedang Menunggu", LabelColor.Pending, LabelStyle.Soft)
+        TripStatus.AT_PICKUP -> Triple("Sudah Tiba", LabelColor.Success, LabelStyle.Solid)
+        TripStatus.MISSED -> Triple("Sudah Berangkat", LabelColor.Failed, LabelStyle.Soft)
+        TripStatus.RIDING -> Triple("Sedang Naik", LabelColor.Blue, LabelStyle.Soft)
+        TripStatus.COMPLETED -> Triple("Selesai", LabelColor.Success, LabelStyle.Soft)
+        TripStatus.NO_ACTIVE_BUS, TripStatus.NOT_STARTED -> Triple("Tidak Beroperasi", LabelColor.Grey, LabelStyle.Soft)
     }
 
+    val etaDisplay = eta ?: "5 Menit"
     val (labelPojokKanan, valuePojokKanan) = when (busStatus) {
-        BusStatusType.WaitingAtStop -> "Waktu Menunggu" to "5:00"
-        BusStatusType.Riding -> "ETA ke Tujuan" to "5 Menit"
-        else -> "ETA" to "5 Menit"
+        TripStatus.AT_PICKUP -> "Waktu Menunggu" to "5:00"
+        TripStatus.RIDING -> "ETA ke Tujuan" to etaDisplay
+        else -> "ETA" to etaDisplay
     }
 
     Column(
@@ -130,7 +136,7 @@ fun BusStatusCard(
                 }
             }
 
-            if(busStatus == BusStatusType.PassedStops || busStatus == BusStatusType.EnRoute || busStatus == BusStatusType.WaitingAtStop){
+            if(busStatus == TripStatus.EN_ROUTE || busStatus == TripStatus.AT_PICKUP || busStatus == TripStatus.WAITING_AT_OTHERSTOP){
                 BusRouteProgress(
                     progress = progress,
                     fromStopName = fromStopName ?: "Halte Sebelum Sekarang",
@@ -139,9 +145,11 @@ fun BusStatusCard(
                 )
             }
 
-            if(busStatus != BusStatusType.Riding){
+            if(busStatus != TripStatus.RIDING){
                 BusStatusRow(
-                    type = busStatus
+                    type = busStatus,
+                    stopName = stopName,
+                    eta = eta,
                 )
             }
 
@@ -155,14 +163,14 @@ fun BusStatusCard(
 
 @Composable
 fun ButtonsToShow(
-    busStatus : BusStatusType,
+    busStatus : TripStatus,
     onBoardingIntent: () -> Unit = {},
     onLiveTrip: () -> Unit = {},
     boardingConfirmed: Boolean = false,
 ){
 
     when(busStatus){
-        BusStatusType.Passed -> {
+        TripStatus.MISSED -> {
             AppButton(
                 text = "Lihat Posisi Bus Realtime",
                 modifier = Modifier.fillMaxWidth(),
@@ -170,10 +178,10 @@ fun ButtonsToShow(
                 onClick = onLiveTrip
             )
         }
-        BusStatusType.NoBusOperating -> {
+        TripStatus.NO_ACTIVE_BUS, TripStatus.NOT_STARTED, TripStatus.COMPLETED -> {
             // no buttons at all
         }
-        BusStatusType.Riding -> {
+        TripStatus.RIDING -> {
             AppButton(
                 text = "Lihat Posisi Bus Realtime",
                 modifier = Modifier.fillMaxWidth(),
@@ -181,7 +189,7 @@ fun ButtonsToShow(
                 onClick = onLiveTrip
             )
         }
-        else -> {
+        else -> { // EN_ROUTE, AT_PICKUP, WAITING_AT_OTHERSTOP
             Spacer(modifier = Modifier.height(6.dp))
             AppButton(
                 text = "Konfirmasi naik Bus",
@@ -205,6 +213,6 @@ fun ButtonsToShow(
 fun BusStatusCardPreview(){
     ShuttleSpotTheme()
     {
-        BusStatusCard(busStatus = BusStatusType.EnRoute)
+        BusStatusCard(busStatus = TripStatus.EN_ROUTE)
     }
 }

@@ -23,28 +23,31 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 @Composable
 fun BusStatusRow(
-    type: BusStatusType,
-    haltCount: Int = 0,
-    eta: String = "XX:XX",
+    type: TripStatus,
+    /** Konteks halte: untuk [TripStatus.EN_ROUTE] = halte tujuan bus; untuk [TripStatus.WAITING_AT_OTHERSTOP] = halte tempat bus sedang berhenti. */
+    stopName: String? = null,
+    /** Estimasi tiba (dipakai [TripStatus.EN_ROUTE]). Null = pakai placeholder "XX:XX". */
+    eta: String? = null,
     modifier: Modifier = Modifier
 ){
     val icon = when (type) {
-        BusStatusType.NoBusOperating -> Icons.Default.Schedule
-        BusStatusType.Passed -> Icons.Default.ErrorOutline
+        TripStatus.NO_ACTIVE_BUS, TripStatus.NOT_STARTED -> Icons.Default.Schedule
+        TripStatus.MISSED -> Icons.Default.ErrorOutline
         else -> Icons.Default.Flag
     }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        color = if (type == BusStatusType.Passed) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
+        color = if (type == TripStatus.MISSED) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
         border = BorderStroke(
             1.dp,
-            if (type == BusStatusType.WaitingAtStop) LocalExtendedColors.current.secondary3.copy(alpha = 0.6f) else LocalExtendedColors.current.secondary3
+            if (type == TripStatus.AT_PICKUP) LocalExtendedColors.current.secondary3.copy(alpha = 0.6f) else LocalExtendedColors.current.secondary3
         )
     ) {
         Row(
@@ -55,39 +58,43 @@ fun BusStatusRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if(type == BusStatusType.Passed) MaterialTheme.colorScheme.onErrorContainer else LocalExtendedColors.current.secondary2,
+                tint = if(type == TripStatus.MISSED) MaterialTheme.colorScheme.onErrorContainer else LocalExtendedColors.current.secondary2,
                 modifier = Modifier.size(16.dp)
             )
 
             val emphasisColor = MaterialTheme.colorScheme.onSurface
             val text = buildAnnotatedString {
                 when (type) {
-                    BusStatusType.PassedStops -> {
-                        append("Melewati ")
-                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("$haltCount halte") }
-                        append(" lagi \u00B7 estimasi tiba ")
-                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(eta) }
+                    TripStatus.EN_ROUTE -> {
+                        append("Bus dalam perjalanan ke ")
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(stopName ?: "haltemu") }
+                        append(" \u00B7 estimasi tiba ")
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(eta ?: "XX:XX") }
                     }
-                    BusStatusType.WaitingAtStop -> {
+                    TripStatus.AT_PICKUP -> {
                         append("Segera naik, bus sedang menunggu di ")
                         withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("haltemu") }
                         append("!")
                     }
-                    BusStatusType.EnRoute -> {
-                        append("Bus dalam perjalanan ke ")
-                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("haltemu") }
-                        append(" \u00B7 estimasi tiba ")
-                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(eta) }
+                    TripStatus.WAITING_AT_OTHERSTOP -> {
+                        append("Bus sedang menunggu di ")
+                        withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append(stopName ?: "halte lain") }
                     }
-                    BusStatusType.Passed -> {
+                    TripStatus.MISSED -> {
                         withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = MaterialTheme.colorScheme.onErrorContainer)) { append("Bus sudah melewati haltemu!") }
                     }
-                    BusStatusType.NoBusOperating -> {
+                    TripStatus.RIDING -> {
+
+                    }
+                    TripStatus.COMPLETED -> {
+                        append("Perjalanan sudah selesai.")
+                    }
+                    TripStatus.NO_ACTIVE_BUS -> {
                         append("Jadwal berikutnya ")
                         withStyle(SpanStyle(fontWeight = MaterialTheme.typography.titleSmall.fontWeight, color = emphasisColor)) { append("TIME HERE") }
                     }
-                    BusStatusType.Riding -> {
-
+                    TripStatus.NOT_STARTED -> {
+                        append("Bus belum mulai beroperasi hari ini.")
                     }
                 }
             }

@@ -44,7 +44,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
 import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.components.BusStatusCard
-import com.beg.shuttlespot.core.ui.components.BusStatusType
 import com.beg.shuttlespot.core.ui.components.MapMarker
 import com.beg.shuttlespot.core.ui.components.MarkerKind
 import com.beg.shuttlespot.core.ui.components.OpenStreetMap
@@ -108,13 +107,18 @@ private fun LiveTripContent(
                     .padding(bottom = 16.dp),
             ) {
                 BusStatusCard(
-                    busStatus = trip?.status.toBusStatusType(),
+                    busStatus = trip?.status ?: TripStatus.NO_ACTIVE_BUS,
                     onBoardingIntent = onBoardingIntent,
                     boardingConfirmed = boardingConfirmed,
                     showLiveTrip = false,
                     progress = trip?.progress ?: 0f,
                     fromStopName = trip?.previousStopName,
                     toStopName = trip?.nextStopName,
+                    // Untuk EN_ROUTE = halte tujuan bus; untuk WAITING_AT_OTHERSTOP = halte tempat bus
+                    // sedang berhenti. Keduanya sama-sama trip.nextStopName karena snapshotFor()
+                    // mengisi nextStopName = stops[arrivedIndex].name saat bus berhenti di halte.
+                    stopName = trip?.nextStopName,
+                    eta = trip?.eta?.minutes?.let { "$it menit" }, // placeholder cosmetik dari ETA repository
                 )
             }
         },
@@ -220,12 +224,4 @@ private fun FloatingRouteBar(
             )
         }
     }
-}
-
-private fun TripStatus?.toBusStatusType(): BusStatusType = when (this) {
-    TripStatus.EN_ROUTE -> BusStatusType.EnRoute
-    TripStatus.AT_PICKUP -> BusStatusType.WaitingAtStop
-    TripStatus.MISSED -> BusStatusType.Passed
-    TripStatus.RIDING -> BusStatusType.Riding
-    else -> BusStatusType.NoBusOperating
 }

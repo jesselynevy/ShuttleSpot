@@ -94,7 +94,7 @@ class LiveTripViewModelTest {
     // ---- LiveTripViewModel (membaca repository -> RouteMapUiState) ----
 
     private fun TestScope.viewModelWith(routes: InMemoryRouteRepository): LiveTripViewModel {
-        val viewModel = LiveTripViewModel(InMemoryPassengerTripRepository(), routes)
+        val viewModel = LiveTripViewModel(InMemoryPassengerTripRepository(routes), routes)
         // stateIn(WhileSubscribed) baru aktif kalau ada yang mengumpulkan.
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.mapState.collect {} }
         advanceUntilIdle()

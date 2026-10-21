@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.components.AppButton
 import com.beg.shuttlespot.core.ui.components.BusStatusCard
-import com.beg.shuttlespot.core.ui.components.BusStatusType
+import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.components.ButtonVariant
 import com.beg.shuttlespot.core.ui.components.LabelColor
 import com.beg.shuttlespot.core.ui.components.StatusBadge
@@ -31,7 +31,7 @@ fun HomeTemp(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
-        BusStatusCard(busStatus = BusStatusType.Passed)
+        BusStatusCard(busStatus = TripStatus.MISSED)
 
         if(buttonText != null && onButtonClick != null){
             AppButton(

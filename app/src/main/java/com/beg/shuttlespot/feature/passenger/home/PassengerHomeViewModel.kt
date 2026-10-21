@@ -24,6 +24,25 @@ class PassengerHomeViewModel @Inject constructor(
     private val repository: PassengerTripRepository,
     routeRepository: RouteRepository
 ) : ViewModel() {
+    val trip: StateFlow<ActiveTripSnapshot?> = routeRepository.observePrimarySelection()
+        .flatMapLatest { selection ->
+            selection?.let { repository.observeActiveTrip(it.routeId) } ?: flowOf(null)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val boardingConfirmed: StateFlow<Boolean> = routeRepository.observePrimarySelection()
+        .flatMapLatest { selection ->
+            if (selection == null) flowOf(false)
+            else trip.flatMapLatest { activeTrip ->
+                activeTrip?.let {
+                    repository.observeBoardingIntent(it.tripId, selection.pickupStopId)
+                        .map { intent -> intent?.status == BoardingIntentStatus.CONFIRMED }
+                } ?: flowOf(false)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+
     val state: StateFlow<PassengerHomeUiState> = routeRepository.observePrimarySelection()
         .flatMapLatest { selection ->
             selection?.let { primarySelection ->
@@ -82,6 +101,7 @@ enum class PassengerTripStatus(val label: String) {
     NO_ACTIVE_BUS("Tidak ada perjalanan aktif"),
     EN_ROUTE("Dalam perjalanan"),
     AT_PICKUP("Tiba di halte jemput"),
+    WAITING_AT_OTHERSTOP("Bus sedang menunggu di halte lain"),
     MISSED("Bus sudah lewat"),
     RIDING("Sedang dalam perjalanan"),
     COMPLETED("Perjalanan selesai"),
@@ -106,12 +126,14 @@ internal fun toPassengerHomeUiState(
         TripStatus.NO_ACTIVE_BUS -> PassengerTripStatus.NO_ACTIVE_BUS
         TripStatus.EN_ROUTE -> PassengerTripStatus.EN_ROUTE
         TripStatus.AT_PICKUP -> PassengerTripStatus.AT_PICKUP
+        TripStatus.WAITING_AT_OTHERSTOP -> PassengerTripStatus.WAITING_AT_OTHERSTOP
         TripStatus.MISSED -> PassengerTripStatus.MISSED
         TripStatus.RIDING -> PassengerTripStatus.RIDING
         TripStatus.COMPLETED -> PassengerTripStatus.COMPLETED
         TripStatus.NOT_STARTED -> PassengerTripStatus.NOT_STARTED
     }
-    val isActive = status == PassengerTripStatus.EN_ROUTE || status == PassengerTripStatus.AT_PICKUP || status == PassengerTripStatus.RIDING
+    val isActive = status == PassengerTripStatus.EN_ROUTE || status == PassengerTripStatus.AT_PICKUP ||
+        status == PassengerTripStatus.WAITING_AT_OTHERSTOP || status == PassengerTripStatus.RIDING
     return PassengerHomeUiState(
         status = status,
         vehicleLabel = snapshot.vehicleLabel,
@@ -120,7 +142,7 @@ internal fun toPassengerHomeUiState(
         progress = snapshot.progress.coerceIn(0f, 1f),
         lastUpdatedEpochMillis = snapshot.lastUpdatedEpochMillis,
         isStale = snapshot.eta.isStale,
-        canConfirmBoarding = !hasConfirmedBoarding && (status == PassengerTripStatus.EN_ROUTE || status == PassengerTripStatus.AT_PICKUP),
+        canConfirmBoarding = !hasConfirmedBoarding && (status == PassengerTripStatus.EN_ROUTE || status == PassengerTripStatus.AT_PICKUP || status == PassengerTripStatus.WAITING_AT_OTHERSTOP),
         hasConfirmedBoarding = hasConfirmedBoarding,
         primaryRouteName = primaryRouteName,
         primaryPickupStopName = primaryPickupStopName,

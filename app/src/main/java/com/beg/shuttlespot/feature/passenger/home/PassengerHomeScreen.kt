@@ -50,12 +50,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.core.ui.components.BusStatusCard
-import com.beg.shuttlespot.core.ui.components.BusStatusType
+import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.components.ErrorState
 import com.beg.shuttlespot.core.ui.components.LoadingState
 import com.beg.shuttlespot.core.ui.components.OfflineState
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 import com.beg.shuttlespot.R
+import com.beg.shuttlespot.core.model.ActiveTripSnapshot
 import com.beg.shuttlespot.core.model.Announcement
 import com.beg.shuttlespot.core.ui.components.AvatarHeader
 import com.beg.shuttlespot.core.model.UserRole
@@ -74,10 +75,12 @@ fun PassengerHomeScreen(
     viewModel: PassengerHomeViewModel = hiltViewModel(),
     sessionViewModel: SessionViewModel = hiltViewModel(),
 ) {
+    val trip by viewModel.trip.collectAsState()
     val state by viewModel.state.collectAsState(initial = PassengerHomeUiState(PassengerTripStatus.NO_ACTIVE_BUS))
     val sessionState by sessionViewModel.state.collectAsState()
     val displayName = (sessionState as? SessionUiState.Ready)?.session?.displayName ?: "Mahasiswa"
     var showBoardingIntent by remember { mutableStateOf(false) }
+    val boardingConfirmed by viewModel.boardingConfirmed.collectAsState()
     PassengerHomeContent(
         state = state,
         displayName = displayName,
@@ -87,6 +90,8 @@ fun PassengerHomeScreen(
         onAnnouncements = onAnnouncements,
         onNotifications = onNotifications,
         onProfile = onProfile,
+        trip = trip,
+        boardingConfirmed = boardingConfirmed
     )
     if (showBoardingIntent) BoardingIntentDialog(onDismiss = { showBoardingIntent = false })
 }
@@ -101,7 +106,10 @@ fun PassengerHomeContent(
     onAnnouncements: () -> Unit,
     onNotifications: () -> Unit,
     onProfile: () -> Unit,
+    trip: ActiveTripSnapshot?,
+    boardingConfirmed: Boolean,
 ) {
+
     val previewAnnouncements = listOf(
         Announcement("1", "Sistem", "Bus baru saja jalan!", System.currentTimeMillis() - 10 * 60_000, isAutomatic = true),
         Announcement("2", "Pak Wahyu", "Hari ini Bus akan telat sekian menit karena ada yang lelet!", System.currentTimeMillis() - 10 * 60_000),
@@ -126,10 +134,17 @@ fun PassengerHomeContent(
                 state.errorMessage != null -> ErrorState(state.errorMessage)
                 else -> {
                     BusStatusCard(
-                        busStatus = BusStatusType.PassedStops,
+                        busStatus = trip?.status ?: TripStatus.NO_ACTIVE_BUS,
                         onBoardingIntent = onBoardingIntent,
-                        onLiveTrip = onLiveTrip,
-                        boardingConfirmed = state.hasConfirmedBoarding,
+                        boardingConfirmed = boardingConfirmed,
+                        progress = trip?.progress ?: 0f,
+                        fromStopName = trip?.previousStopName,
+                        toStopName = trip?.nextStopName,
+                        // Untuk EN_ROUTE = halte tujuan bus; untuk WAITING_AT_OTHERSTOP = halte tempat
+                        // bus sedang berhenti. Keduanya sama-sama trip.nextStopName (lihat snapshotFor()).
+                        stopName = trip?.nextStopName,
+                        eta = trip?.eta?.minutes?.let { "$it menit" },
+                        onLiveTrip = onLiveTrip
                     )
                 }
             }
@@ -177,6 +192,8 @@ private fun PassengerHomeContentPreview() {
             onAnnouncements = {},
             onNotifications = {},
             onProfile = {},
+            trip = null,
+            boardingConfirmed = true
         )
     }
 }
@@ -194,6 +211,8 @@ private fun PassengerHomeContentDarkPreview() {
             onAnnouncements = {},
             onNotifications = {},
             onProfile = {},
+            trip = null,
+            boardingConfirmed = true
         )
     }
 }

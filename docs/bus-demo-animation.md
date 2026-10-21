@@ -1,1 +1,307 @@
-# Bus demo animation (live trip screen)This documents the bus-moving-along-the-route animation added to the live trip screen: thebus icon sliding along the road on the map, and the progress bar in the bus status cardfilling in sync. There is no real GPS/backend behind it — it's a self-driving demo loop,built to look right while the real location feed doesn't exist yet.## Where it lives| File | Role || --- | --- || `data/repository/RoutePaths.kt` | Turns a `progress: Float` (0f..1f) into a `GeoPoint` *on the road*, not just at a stop. || `data/repository/InMemoryPassengerTripRepository.kt` | Owns the demo loop: advances `progress` on a timer and emits a new `ActiveTripSnapshot` every tick. || `core/ui/components/BusStatusCard.kt` | Takes a `progress: Float` param and forwards it to `BusRouteProgress`. || `core/ui/components/BusRouteProgress.kt` | Already animated the bar with `animateFloatAsState` — unchanged, it just needed a real `progress` value feeding it. || `feature/passenger/livetrip/LiveTripDemoScreen.kt` | Wires `trip?.progress` into `BusStatusCard`. || `core/ui/components/OpenStreetMap.kt` | Already redraws just the bus marker's `GeoJsonSource` on each `busLocation` change — unchanged, it just needed `busLocation` to actually change over time. |Nothing in the ViewModel (`LiveTripViewModel`) or the map drawing code needed to change. Bothalready reacted to `trip.progress` / `mapState.busLocation` — those values were just frozenbefore. The whole animation is "make the repository's `Flow` actually tick instead of holdingone fixed value."## 1. Point-on-the-road interpolation (`RoutePaths.kt`)The route's road geometry (`BSD_UMN`) is already a polyline of ~196 lat/lng points (from theOSRM response). To animate smoothly, the bus needs to be placed *anywhere* along thatpolyline for a given progress fraction, not jump stop-to-stop.- `cumulativeMeters(points)` walks the polyline once and returns the running distance (meters,  via Haversine) at each point — index `i` holds "distance travelled from the start up to  point `i`". Computed once and cached (`BSD_UMN_CUMULATIVE_METERS` is a `by lazy`).- `pointAt(points, cumulative, progress)` turns `progress * totalDistance` into a target  distance, finds which segment of the polyline that distance falls into (linear scan — the  list is only ~196 points, so this is cheap even at a 400ms tick), and linearly interpolates  lat/lng between that segment's two endpoints.- `bsdUmnPointAt(progress)` is the convenience entry point the repository calls.This is the same idea as the Encoded Polyline decoder already in this file: deterministic,no network calls, pure math.## 2. The demo loop (`InMemoryPassengerTripRepository.kt`)Before, `activeTrip` was a `MutableStateFlow` holding one hardcoded `ActiveTripSnapshot`forever. Now it's a `StateFlow` built from a `flow { }` that loops forever:```kotlinprivate val activeTrip: StateFlow<ActiveTripSnapshot?> = flow {    var progress = DEMO_START_PROGRESS    var direction = 1f    while (true) {        delay(DEMO_TICK_MILLIS)                                   // wait a tick        progress += direction * (DEMO_TICK_MILLIS.toFloat() / DEMO_CYCLE_MILLIS)        when {                                                    // bounce at the ends            progress >= 1f -> { progress = 1f; direction = -1f }            progress <= 0f -> { progress = 0f; direction = 1f }        }        emit(snapshotAt(progress))    }}.stateIn(repositoryScope, SharingStarted.Eagerly, snapshotAt(DEMO_START_PROGRESS))```Key points:- **Ping-pong, not loop-and-reset.** `direction` flips at `progress == 0f` or `1f`, so the bus  drives to UMN, then back to Pasar Modern BSD, forever — avoids a jarring teleport back to  the start.- **Tick rate vs. route duration are separate knobs.** `DEMO_TICK_MILLIS = 400` (how often a  new position is emitted) and `DEMO_CYCLE_MILLIS = 45_000` (how long one end-to-end traversal  takes) are independent constants, both in the `private companion object` at the bottom of  the file. Want a faster/slower bus? Change `DEMO_CYCLE_MILLIS`. Want smoother/choppier  motion? Change `DEMO_TICK_MILLIS` (smaller = smoother, but more `GeoJsonSource` updates).- **`snapshotAt(progress)` is a plain synchronous function**, not part of the coroutine. It  builds the full `ActiveTripSnapshot` (location from `RoutePaths.bsdUmnPointAt`, a cosmetic  ETA that shrinks as `progress` grows, etc.) for a given progress value. It's used both inside  the loop *and* directly as `stateIn`'s `initialValue`.- **Why `initialValue = snapshotAt(DEMO_START_PROGRESS)` and not `null`:** `stateIn` with  `SharingStarted.Eagerly` starts the producing coroutine on a background dispatcher  immediately, but a `StateFlow`'s current value is available *synchronously* the moment  `stateIn` returns. If `initialValue` had been `null`, any collector calling `.first()` right  after construction (this is exactly what the repository's existing unit test does) would be  racing against the background coroutine's first `delay(400ms)` — it could easily observe  `null` and fail, flakily, depending on scheduling. Building the first snapshot synchronously  removes that race entirely: there is never a moment where `activeTrip.value` is anything  other than a valid snapshot.- **Own `CoroutineScope`.** `InMemoryPassengerTripRepository` is a Hilt `@Singleton` with no  injected lifecycle to piggyback on, so it owns `repositoryScope = CoroutineScope(SupervisorJob()  + Dispatchers.Default)` and never cancels it — it's meant to tick for the life of the process,  same as the repository itself. `SharingStarted.Eagerly` means it starts immediately and runs  continuously (not just while someone's collecting); for a demo singleton this is simplest and  avoids subtle "first collector after a gap sees a stale value" bugs. The real cost is  negligible (one coroutine, 400ms `delay`, light Haversine math).### Swapping in a real location feed laterReplace the `flow { }` block with whatever collects from the real source (WebSocket, Supabaserealtime channel, polling), still emitting `ActiveTripSnapshot`. Nothing downstream — ViewModel,`RouteMapUiState`, `OpenStreetMap`, `BusStatusCard` — needs to change, since they only depend on`PassengerTripRepository.observeActiveTrip(routeId): Flow<ActiveTripSnapshot?>`.## 3. Progress bar (`BusStatusCard.kt`, `BusRouteProgress.kt`)Turned out `BusRouteProgress` already wraps its incoming `progress` in `animateFloatAsState(tween(800ms))` — so it was *built* to animate, but `BusStatusCard` was passing it a hardcoded`progress = 0.3f` instead of real data. The fix was just plumbing:```kotlin// BusStatusCard.ktfun BusStatusCard(    ...,    progress: Float = 0.3f,   // new param, default keeps existing previews/other call sites unchanged) {    ...    BusRouteProgress(progress = progress, ...)}``````kotlin// LiveTripDemoScreen.ktBusStatusCard(    busStatus = trip?.status.toBusStatusType(),    onBoardingIntent = onBoardingIntent,    showLiveTrip = false,    progress = trip?.progress ?: 0f,   // now driven by the live (demo) trip)```Every ~400ms tick nudges `trip.progress`, the status card recomposes with the new targetvalue, and `animateFloatAsState`'s 800ms tween eases the bar and the little bus icon toward it— since ticks arrive faster than the tween finishes, the bar reads as continuous motion ratherthan discrete jumps.Other call sites of `BusStatusCard` (`HomeTemp.kt`'s preview screen, `PassengerHomeScreen.kt`)weren't touched — they don't pass `progress`, so they keep the `0.3f` default, same as before.## 4. Bus marker on the map (`OpenStreetMap.kt`)No changes needed here at all. The existing code already:- Derives the bus marker from `markers.firstOrNull { it.kind == MarkerKind.Bus }`, which comes  from `mapState.busLocation` (now ticking).- Has `LaunchedEffect(map, bus) { source.setGeoJson(...) }` — scoped to *only* the bus marker's  `GeoJsonSource`, separate from the effect that rebuilds the route line/stop circles  (`LaunchedEffect(map, stopMarkers, routePath, busIcon)`).Why the route/stops don't redraw on every tick: `stopMarkers` is computed as`remember(markers) { markers.filter { it.kind != Bus } }`. Compose's `remember`/`LaunchedEffect`key comparison uses `equals`, not reference identity — `MapMarker` is a `data class`, so eventhough a *new* `markers` list is created every tick (because the bus entry's lat/lng changed),the *filtered* `stopMarkers` list is structurally equal to the previous tick's (the stopsthemselves didn't move), so `LaunchedEffect(..., stopMarkers, ...)` never restarts. Only thecheap `setGeoJson` on the bus source runs every tick. This was already true before this change— it just wasn't being exercised, because `busLocation` never used to change.Marker movement is a plain jump from point A to point B each tick (no in-between easing, unlikethe progress bar). At `DEMO_TICK_MILLIS = 400` this reads as smooth-enough motion for a demo. Ifit ever looks too stepped, the next improvement would be wrapping the bus's lat/lng in a Compose`Animatable` inside `OpenStreetMap` and calling `animateTo` each tick instead of snapping —deliberately left out here to keep this change small.## Known trade-offs (all fine for a demo, flagged for later)- **`nextStopName` stays static** ("Halte Jababeka II") regardless of where the bus actually is  — it's not derived from `progress` against the real stop list. Wiring it up would mean the  passenger-trip repository also knowing the route's stop sequence, which it doesn't today.- **ETA is cosmetic**, a linear `(1 - progress) * 9 minutes`, not a real time-to-arrival  calculation.- **Unit tests unaffected**: `InMemoryPassengerTripRepositoryTest` and `LiveTripViewModelTest`  both call `.first()` / read `.value` right after constructing the repository — covered by the  synchronous `initialValue` described above. No test asserts an exact `progress` or `location`  value (only route id, marker count/kind), so the dynamic position doesn't break anything. Not  run in this environment (no Android SDK here) — please run  `./gradlew testDebugUnitTest` to confirm.## Update: one leg + smoother ticksTwo follow-up changes to `data/repository/InMemoryPassengerTripRepository.kt`:1. **Scoped to a single leg, not the whole route.** The bus now loops back and forth only   between two adjacent stops (currently Halte Assobirin -> Halte Bundaran Alam Sutera),   instead of ping-ponging across all 9 stops. This also fixed a semantic bug:   `BusRouteProgress`'s UI ("Halte Sebelum Sekarang" at 0, "Halte Setelah" at 1) was always   meant to show progress across *one leg*, but it was being fed whole-route progress (0f..1f   across all ~20km), so the bar barely moved. Now there are two separate progress values:   - **`legProgress`** (0f..1f, 0 = at the leg's start stop, 1 = at its end stop) -- this is     what's stored in `ActiveTripSnapshot.progress` and read directly by `BusRouteProgress`.   - **route-global progress** -- computed inside `snapshotAt()` by interpolating between     `DEMO_LEG_START_PROGRESS` and `DEMO_LEG_END_PROGRESS` using `legProgress`, then fed to     `RoutePaths.bsdUmnPointAt()` to get the actual road coordinate for the map marker.   `DEMO_LEG_START_PROGRESS`/`DEMO_LEG_END_PROGRESS` are **not** hardcoded numbers -- they're   computed once via `RoutePaths.bsdUmnProgressNear(point)`, which finds the closest point on   the (already-simplified) `BSD_UMN` polyline to a given lat/lng and returns that point's   cumulative-distance fraction. This keeps the leg boundaries accurate against the actual   drawn line even if `RoutePaths.BSD_UMN` is re-simplified later, instead of drifting out of   sync with a hand-measured constant.   **To animate a different leg**, change three constants in the `private companion object`:   `DEMO_LEG_START_POINT`, `DEMO_LEG_END_POINT` (lat/lng of the two stops, from   `InMemoryRouteRepository`'s `bsd_umn` stop list), and `DEMO_LEG_END_STOP_NAME` (cosmetic   label shown as `nextStopName`). Everything else (progress-fraction lookup, interpolation,   point-on-road) recomputes automatically from those three. To animate the *whole* multi-stop   route later, replace the single-leg loop with one that walks the full stop list and   advances to the next leg's bounds each time `legProgress` reaches 1f.2. **Smoother motion: tick interval 400ms -> 50ms.** `DEMO_TICK_MILLIS` controls how often a   new position is emitted; `DEMO_LEG_DURATION_MILLIS` (8s) controls how long one full   traversal of the leg takes. At 50ms, each tick moves the bus a very small distance, so the   marker's plain jump-to-new-position (no easing) on the map reads as smooth continuous   motion instead of visible steps -- without needing `Animatable`-based interpolation in   `OpenStreetMap` (still a reasonable follow-up if an even smoother/variable frame rate is   wanted later). The cost is negligible: `snapshotAt()` does one linear scan over ~196   polyline points plus a Haversine calculation, 20 times/sec, which is trivial compared to a   single `setGeoJson()` call per tick.   The progress bar's existing `animateFloatAsState(tween(800ms))` in `BusRouteProgress`   still applies on top of this -- since ticks (50ms) now arrive much faster than the tween   (800ms) resolves, the bar continuously eases toward a constantly-advancing target, which   reads as smooth, accelerating/decelerating motion rather than a stepped line.`nextStopName` and the ETA are now scaled to this one leg too (`DEMO_LEG_END_STOP_NAME`,`DEMO_LEG_ETA_MINUTES = 3`) rather than being whole-route placeholders -- still purelycosmetic, not derived from a real stop-sequence lookup (same caveat as before).## To-do (not implemented yet)- [ ] **Change `status`/UI when the bus reaches a halte.** Right now `ActiveTripSnapshot.status`  stays `TripStatus.EN_ROUTE` for the whole animation, even at the exact moment `legProgress`  hits `1f` (arrival). For a more realistic demo, set it to something like  `TripStatus.AT_PICKUP` for the brief "dwelling at the stop" window (see the dwell-pause idea  below), then back to `EN_ROUTE` once it starts moving to the next leg. `BusStatusCard` /  `BusStatusType` already have matching states (`WaitingAtStop`, etc.) via  `toBusStatusType()` in `LiveTripDemoScreen.kt` -- this would just need `snapshotAt()` (or  wherever the per-tick snapshot is built) to pick the right `TripStatus` based on whether the  bus is currently dwelling at a stop or moving.- [ ] **Full multi-stop route** (first halte -> UMN, not just one leg). Replace  `DEMO_LEG_START_POINT`/`DEMO_LEG_END_POINT` (2 points) with the full ordered list of 9 stops,  precompute each stop's route-progress fraction via `RoutePaths.bsdUmnProgressNear`, and walk  leg-by-leg so `nextStopName`/`legProgress` update correctly as the bus passes each stop.- [ ] **Dwell pause at each halte** (stop moving for ~1-2s when arriving at a stop, instead of  bouncing direction immediately) -- detect crossing a stop's route-progress boundary mid-tick,  snap exactly onto it, `delay(DEMO_STOP_DWELL_MILLIS)`, then continue. This is also where the  status change above would naturally plug in.- [ ] **Progress bar lag/overshoot fix.** `BusRouteProgress`'s `animateFloatAsState(tween(800))`  chases a continuously-moving, direction-reversing target, so it never fully reaches 0f/1f and  visibly "speeds up" right as the bus turns around at a leg's end. Recommended fix: drop the  `animateFloatAsState` and use the raw `progress` value directly -- the repository already  emits fine-grained updates (every `DEMO_TICK_MILLIS`), so the motion stays smooth without  extra easing, and there's no lag to produce the overshoot artifact. This matters more once  the full multi-stop route (above) is in, since `legProgress` resets ~1 -> ~0 abruptly at each  stop crossing, which an eased animation would otherwise show as the bar sliding backwards.
+# Bus demo animation (live trip screen)
+
+This documents the bus-moving-along-the-route animation on the live trip screen: the bus
+icon travels the actual road from the first stop to UMN, pausing briefly at every stop along
+the way, while the progress bar in the bus status card tracks the current leg and the status
+label switches between "en route", "waiting at your stop", "waiting at another stop",
+"missed" and "riding" depending on where the bus is and whether the passenger has confirmed
+boarding. There is no real GPS/backend behind any of this — it's a self-driving demo loop,
+built to look right while the real location feed and SSO/driver backend don't exist yet.
+
+## Where it lives
+
+| File | Role |
+| --- | --- |
+| `data/repository/RoutePaths.kt` | Road geometry for `bsd_umn` as a polyline, plus helpers to go between a progress fraction (0f..1f) and a lat/lng on that road. |
+| `data/repository/InMemoryRouteRepository.kt` | **Single source of truth** for the route's halte list (id, name, lat/lng, sequence, scheduled time). Both the halte-picker and the animation read from here. |
+| `data/repository/InMemoryPassengerTripRepository.kt` | Owns the demo loop. Pulls halte list via `routeRepository.observeRouteDetails("bsd_umn")` (not hardcoded), walks the bus through all stops in order, pausing at each one, and works out the *per-passenger* `TripStatus` by combining bus position with the passenger's chosen pickup stop and boarding confirmation. |
+| `core/model/Trip.kt` | `TripStatus` — the single status enum used everywhere (repository + home-screen + live-trip UI). An older UI-only `BusStatusType` has been removed. |
+| `core/ui/components/BusStatusCard.kt` / `BusStatusRow.kt` | Render directly from `TripStatus` — label, color, buttons shown, and the status copy all branch on it. |
+| `core/ui/components/BusRouteProgress.kt` | Renders the bar/bus-icon straight from `progress` (no easing — see "Progress bar" below) and takes `fromStopName`/`toStopName` so the dots at each end show the real halte names for the current leg. |
+| `feature/passenger/livetrip/LiveTripDemoScreen.kt` | Wires `trip?.status`, `trip?.progress`, `trip?.previousStopName`/`trip?.nextStopName` into `BusStatusCard`. |
+| `core/ui/components/OpenStreetMap.kt` | Redraws just the bus marker's `GeoJsonSource` whenever `busLocation` changes. |
+
+Nothing in the ViewModel (`LiveTripViewModel`) or the map drawing code needs to change for
+any of this — they already react to `trip.progress` / `trip.status` / `mapState.busLocation`.
+Everything described below lives in `InMemoryPassengerTripRepository` (the data) and the
+`BusStatusCard`/`BusRouteProgress` components (how the data is drawn).
+
+## 1. Point-on-the-road interpolation (`RoutePaths.kt`)
+
+The route's road geometry (`BSD_UMN`) is a polyline of lat/lng points (simplified from an
+OSRM driving-route response). Two helpers built on it:
+
+- **`bsdUmnPointAt(progress: Float): GeoPoint`** — turns a route-wide progress fraction
+  (0f = first stop, 1f = UMN) into an actual coordinate *on the road*, by walking the
+  polyline's precomputed cumulative distance (`cumulativeMeters`, cached via `by lazy`) and
+  linearly interpolating within whichever segment the target distance falls into.
+- **`bsdUmnProgressNear(target: GeoPoint): Float`** — the reverse: given any lat/lng, finds the
+  closest point on the polyline and returns *that* point's cumulative-distance fraction.
+  This is how the repository turns "halte N's coordinate" into "halte N's progress along the
+  route" without anyone having to hand-measure or hardcode it.
+
+Both are pure math (Haversine + linear interpolation), no network calls.
+
+## 2. The demo loop (`InMemoryPassengerTripRepository.kt`)
+
+### 2a. Halte list comes from `RouteRepository`, not a constant
+
+The repository takes a `RouteRepository` via `@Inject constructor` and derives its halte list
+from it instead of carrying its own hardcoded copy:
+
+```kotlin
+private data class ResolvedStop(
+    val id: String,          // from Stop.id, so pickupStopId can match directly
+    val name: String,        // for previousStopName/nextStopName in the snapshot
+    val point: GeoPoint,     // for RoutePaths.bsdUmnPointAt() lookup
+    val routeProgress: Float // pre-computed via RoutePaths.bsdUmnProgressNear(point)
+)
+
+private val stopsFlow: Flow<List<ResolvedStop>> =
+    routeRepository.observeRouteDetails(ROUTE_ID)
+        .map { details ->
+            details?.stops.orEmpty()
+                .sortedBy { it.sequence }
+                .mapNotNull { stop ->
+                    val lat = stop.latitude ?: return@mapNotNull null
+                    val lng = stop.longitude ?: return@mapNotNull null
+                    val point = GeoPoint(lat, lng)
+                    ResolvedStop(stop.id, stop.name, point, RoutePaths.bsdUmnProgressNear(point))
+                }
+        }
+        .distinctUntilChanged()
+```
+
+Previously this repository carried its own `DEMO_STOPS` constant that duplicated the halte
+list in `InMemoryRouteRepository`'s `bsd_umn` route — same coordinates, same names, same ids.
+That duplication is now gone: edit the stops in `InMemoryRouteRepository.routeDetails[0]`
+and the animation picks up the change on the next collection (in practice: next app launch,
+since the route list is static).
+
+A few things to note:
+- Halte without coordinates (nullable `latitude`/`longitude` from `Stop`) are **skipped**,
+  not crashed on. If this makes `stops.size < 2`, the animation simply doesn't start.
+- The list is `sortedBy { it.sequence }` to guarantee the order matches the polyline's
+  direction, independent of how the `Stop` entries happen to be declared.
+- `distinctUntilChanged()` means `stopsFlow` emits once (on subscription) and then stays
+  quiet unless the halte list actually changes — which, with the current in-memory
+  repository, it never does.
+
+### 2b. Bus position (`busTickFlow(stops)`)
+
+```kotlin
+private fun busTickFlow(stops: List<ResolvedStop>): Flow<BusTick> = flow {
+    if (stops.size < 2) return@flow
+    var routeProgress = 0f
+    while (true) {
+        delay(DEMO_TICK_MILLIS)
+        val next = routeProgress + (DEMO_TICK_MILLIS.toFloat() / DEMO_FULL_ROUTE_DURATION_MILLIS)
+        val arrivedIndex = stops.indexOfFirst { routeProgress < it.routeProgress && next >= it.routeProgress }
+            .takeIf { it >= 0 }
+        if (arrivedIndex != null) {
+            routeProgress = stops[arrivedIndex].routeProgress
+            emit(BusTick(routeProgress, isAtStop = true, arrivedStopIndex = arrivedIndex))
+            delay(DEMO_STOP_DWELL_MILLIS)
+            if (routeProgress >= 1f) break
+            continue
+        }
+        routeProgress = next
+        if (routeProgress >= 1f) break
+        emit(BusTick(routeProgress, isAtStop = false, arrivedStopIndex = null))
+    }
+}
+```
+
+A `flow { }` (not a `val`, because it needs `stops` passed in) that:
+
+1. **Advances `routeProgress`** every `DEMO_TICK_MILLIS` at a rate set by
+   `DEMO_FULL_ROUTE_DURATION_MILLIS` (how long the whole one-way trip, first stop → UMN,
+   takes).
+2. **Detects crossing a stop.** Each tick checks whether the step from the current position
+   to the next would cross one of the `stops`' pre-computed `routeProgress` values. If so,
+   it snaps exactly onto that stop (no overshoot), emits a tick with `isAtStop = true`, and
+   `delay(DEMO_STOP_DWELL_MILLIS)` — the bus visually "stands still" at that stop.
+3. **Stops for good at UMN.** When the stop just arrived at is the last one, the loop
+   `break`s — the bus makes one trip, start to finish, and stays parked at UMN.
+
+`busTickFlow` only knows about the bus's own position — it has no idea which stop belongs
+to which passenger, or whether anyone has confirmed boarding. That's handled one layer up.
+
+### 2c. Per-passenger status (`snapshotFor`)
+
+```kotlin
+private val activeTrip: StateFlow<ActiveTripSnapshot?> =
+    stopsFlow.flatMapLatest { stops ->
+        if (stops.size < 2) flowOf<ActiveTripSnapshot?>(null)
+        else combine(busTickFlow(stops), primarySelectionFlow, intent) { tick, selection, boardingIntent ->
+            snapshotFor(tick, stops, selection, boardingIntent)
+        }
+    }.stateIn(repositoryScope, SharingStarted.Eagerly, null)
+```
+
+Four flows meet here:
+
+- **`stopsFlow`** (outer, `flatMapLatest`): if halte list ever changes, cancel the inner
+  pipeline and restart it with the new list — no tick ever operates on stale stops.
+- **`busTickFlow(stops)`**: new bus position.
+- **`primarySelectionFlow`** (`routeRepository.observePrimarySelection()`): user's chosen
+  pickup halte.
+- **`intent`**: user's boarding intent (same `MutableStateFlow` used by
+  `submitBoardingIntent`/`observeBoardingIntent`).
+
+Any change in those three inner flows retriggers `snapshotFor()`, which turns
+`(tick, stops, selection, boardingIntent)` into a `TripStatus` for *this* passenger:
+
+| Situation | Status |
+| --- | --- |
+| No pickup stop saved yet | `AT_PICKUP` while bus is stopped (anywhere), `EN_ROUTE` while moving — generic fallback. |
+| Bus stopped exactly at the passenger's pickup stop | `AT_PICKUP`, or straight to `RIDING` if boarding was already konfirmed. Confirming *during* the dwell also flips it to `RIDING` immediately, since `intent` changing re-fires `combine`. |
+| Bus stopped at any other halte | `WAITING_AT_OTHERSTOP`. |
+| Bus has actually left the pickup stop (`legIndex` moved past it), no confirmation | `MISSED`. |
+| Bus has left the pickup stop and boarding was confirmed | `RIDING`. |
+
+`MISSED` and `RIDING` are **sticky**: once set, `snapshotFor()` keeps returning that same
+status on every later tick, ignoring further bus movement — a passenger who missed the bus
+stays "missed" for the rest of this trip, and someone riding stays "riding" even as the bus
+continues toward later stops. The sticky value is tracked in two `@Volatile var`s
+(`stickyStatus`, `stickyForPickupStopId`) and is reset automatically if the passenger's
+saved `pickupStopId` changes to a different stop (so switching your chosen halte doesn't
+leave you stuck with a stale "missed"/"riding" from before).
+
+### 2d. Initial value trade-off
+
+Previously, `stateIn`'s `initialValue` was a synchronous `snapshotAt(0f)` — possible
+because `DEMO_STOPS` was a hardcoded constant available at construction time. Now that
+`stops` comes from a flow, there's no synchronous value to build one from, so
+`initialValue = null`.
+
+In practice this doesn't matter: `InMemoryRouteRepository` returns a `MutableStateFlow` that
+emits its current value synchronously on subscription, so `stopsFlow` emits within
+microseconds of collection starting, and the first non-null snapshot follows one
+`DEMO_TICK_MILLIS` (~25ms) later. Collectors that treat `trip?` as nullable (which every UI
+site already does) see this correctly.
+
+The one place this does show up is the repository's own unit tests: the first test now reads
+`.observeActiveTrip("bsd_umn").filterNotNull().first().routeId` instead of
+`.first()?.routeId`, to wait past the initial null emission.
+
+### Swapping in a real location/backend feed later
+
+Replace `busTickFlow` with whatever collects from the real bus-position source.
+`stopsFlow`/`primarySelectionFlow`/`intent` are already backed by real repository calls
+(`observeRouteDetails`, `observePrimarySelection`, `observeBoardingIntent`), so only
+`busTickFlow` is demo-only. Nothing downstream (ViewModel, `RouteMapUiState`,
+`OpenStreetMap`, `BusStatusCard`) needs to change — they only depend on
+`PassengerTripRepository.observeActiveTrip(routeId): Flow<ActiveTripSnapshot?>`.
+
+## 3. One status enum, not two (`TripStatus`)
+
+```kotlin
+// core/model/Trip.kt
+enum class TripStatus {
+    NO_ACTIVE_BUS, EN_ROUTE, AT_PICKUP, WAITING_AT_OTHERSTOP, MISSED, RIDING, COMPLETED, NOT_STARTED
+}
+```
+
+There used to be a second enum, `BusStatusType`, defined purely for the UI, with a
+`TripStatus?.toBusStatusType()` mapping function in `LiveTripDemoScreen.kt` that converted
+between the two. It duplicated `TripStatus` almost one-to-one and had to be kept in sync by
+hand. Both the enum and the mapping function are gone now. `BusStatusCard`, `BusStatusRow`
+and `ButtonsToShow` all take `busStatus: TripStatus` directly and branch on it exhaustively
+(including `COMPLETED`/`NOT_STARTED`, which `BusStatusType` never had equivalents for).
+`LiveTripDemoScreen.kt` just passes `trip?.status ?: TripStatus.NO_ACTIVE_BUS` straight into
+`BusStatusCard`.
+
+`PassengerHomeViewModel`'s `PassengerTripStatus` (a *third*, home-screen-only enum that also
+mirrors `TripStatus` 1:1) was left in place but given a matching `WAITING_AT_OTHERSTOP` case
+so its `when` over `TripStatus` stays exhaustive. Collapsing this one too is a possible
+future cleanup.
+
+## 4. Progress bar & halte labels (`BusStatusCard.kt`, `BusRouteProgress.kt`)
+
+`BusRouteProgress`'s bar, fill, and bus icon all read `progress.coerceIn(0f, 1f)`
+**directly** — no `animateFloatAsState`/`tween` wrapping it. An earlier version did wrap it
+in a 800ms tween to smooth per-tick jumps, which caused two visible problems once the bus's
+target position kept changing every tick and occasionally reset (new leg): the animated
+value permanently lagged the real target during a climb (so the bar never quite reached 0 or
+1), and the moment `progress` reset from ~1 back to ~0 (new leg), the eased value visibly
+"caught up" fast or seemed to slide backwards. Since the repository already emits
+fine-grained updates every `DEMO_TICK_MILLIS`, the raw value alone reads as smooth motion.
+
+`BusRouteProgress` also takes `fromStopName`/`toStopName` (with sensible defaults so other
+call sites that don't pass them stay unchanged). `BusStatusCard` forwards
+`trip?.previousStopName`/`trip?.nextStopName` through — `previousStopName` is a field on
+`ActiveTripSnapshot` filled by the repository as `stops[legIndex].name`. The two dots on the
+progress bar now show the actual names of the current leg's start/end halte (e.g. "Halte
+Assobirin" / "Halte Bundaran Alam Sutera"), updating automatically as the bus moves from
+leg to leg.
+
+## 5. Bus marker on the map (`OpenStreetMap.kt`)
+
+Unchanged by any of the above. It already:
+
+- Derives the bus marker from `markers.firstOrNull { it.kind == MarkerKind.Bus }`, sourced
+  from `mapState.busLocation`.
+- Has `LaunchedEffect(map, bus) { source.setGeoJson(...) }`, scoped to *only* the bus
+  marker's `GeoJsonSource` — separate from the effect that rebuilds the route line/stop
+  circles, which doesn't re-run on every tick because `stopMarkers` stays structurally equal
+  between ticks (only the bus entry changes).
+
+Movement is a plain jump from point A to point B each tick, no easing — at the current
+`DEMO_TICK_MILLIS` this reads as smooth enough for a demo. A Compose `Animatable` wrapping
+the bus's lat/lng inside `OpenStreetMap` would be the next step if it ever needs to look
+smoother.
+
+## 6. Tuning knobs
+
+All in `InMemoryPassengerTripRepository`'s `private companion object`:
+
+| Constant | Meaning |
+| --- | --- |
+| `ROUTE_ID` | Which route the demo animates (currently `"bsd_umn"` — the only one with road geometry wired up). |
+| `TRIP_ID` | Static trip id for the demo snapshot. Matched against `BoardingIntent.tripId` to decide if boarding is confirmed. |
+| `DEMO_TICK_MILLIS` | How often a new position is emitted. Smaller = smoother motion, more frequent recompute. |
+| `DEMO_FULL_ROUTE_DURATION_MILLIS` | How long the whole one-way trip (first stop → UMN) takes. |
+| `DEMO_STOP_DWELL_MILLIS` | How long the bus "waits" at each halte before continuing. |
+| `DEMO_LEG_ETA_MINUTES` | Cosmetic ETA ceiling shown at the start of a leg. |
+
+## Known limitations (fine for a demo, flagged for later)
+
+- **One-way only.** The bus makes a single first-stop → UMN trip and then stays parked.
+  There's no return trip or re-loop; restarting the app (or whatever eventually re-creates
+  the repository) starts it over.
+- **ETA is cosmetic** — a linear estimate scoped to the current leg, not a real
+  time-to-arrival calculation.
+- **The loop runs for the life of the process.** `repositoryScope` is a self-owned
+  `CoroutineScope` that's never cancelled (`SharingStarted.Eagerly`), so the coroutine
+  keeps running (and eventually `break`s once at UMN) regardless of whether any screen is
+  observing it. Negligible cost for a demo singleton; switch to
+  `SharingStarted.WhileSubscribed(...)` if it ever needs to pause when nothing is watching.
+- **A known geometry glitch near Halte Seberang Telkom.** The underlying OSRM road data for
+  this leg detours into a small dead-end/cul-de-sac twice (once legitimately, to reach the
+  stop; once redundantly, before continuing on), which shows up as a visible
+  loop-within-a-loop on the map in that area. Not yet cleaned up in `RoutePaths.BSD_UMN` —
+  see "To-do" below.
+- **Unit tests**: `InMemoryPassengerTripRepositoryTest` and `LiveTripViewModelTest` now
+  construct the repository with an `InMemoryRouteRepository()` instance (previously they
+  passed `null`, which no longer compiles — Hilt doesn't allow default values on `@Inject`
+  constructors). Only one assertion needed a change: the "route filter" test uses
+  `.filterNotNull().first()` to wait past the null initial value. Not run in this
+  environment (no Android SDK here) — please run `./gradlew testDebugUnitTest` to confirm.
+
+## To-do (not implemented yet)
+
+- [ ] **Clean up the Halte Seberang Telkom geometry.** Remove the redundant second dip into
+  the dead-end street in `RoutePaths.BSD_UMN`'s encoded polyline so the map doesn't show a
+  loop-within-a-loop there. (Already diagnosed — the fix is to splice out the duplicate
+  out-and-back segment and re-simplify/re-encode the polyline — just not applied yet.)
+- [ ] **Round trip / re-loop option.** Currently the bus stops for good at UMN. If a
+  looping demo is wanted again later, add a way to either restart the walk from the first
+  stop, or reverse and drive back.
+- [ ] **Smoother map marker.** Wrap the bus's lat/lng in a Compose `Animatable` inside
+  `OpenStreetMap` and `animateTo` each tick instead of snapping, if the current
+  jump-per-tick motion ever looks too stepped.
+- [ ] **Collapse `PassengerTripStatus` into `TripStatus`.** The home screen still goes
+  through its own near-identical enum rather than `TripStatus` directly, mirrored by a
+  `when` mapping. Removing it would complete the "one status enum" cleanup already done for
+  `BusStatusType`.

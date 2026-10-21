@@ -50,7 +50,7 @@ fun BusStatusCard(
     eta: String? = null,
 ){
     val (labelText, labelColor, labelStyle) = when (busStatus) {
-        TripStatus.EN_ROUTE -> Triple("Sedang Berjalan", LabelColor.Success, LabelStyle.Soft)
+        TripStatus.EN_ROUTE -> Triple("Sedang Menuju Haltemu", LabelColor.Success, LabelStyle.Soft)
         TripStatus.WAITING_AT_OTHERSTOP -> Triple("Sedang Menunggu", LabelColor.Pending, LabelStyle.Soft)
         TripStatus.AT_PICKUP -> Triple("Sudah Tiba", LabelColor.Success, LabelStyle.Solid)
         TripStatus.MISSED -> Triple("Sudah Berangkat", LabelColor.Failed, LabelStyle.Soft)

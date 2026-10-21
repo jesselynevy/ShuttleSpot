@@ -77,6 +77,12 @@ class InMemoryPassengerTripRepository @Inject constructor(
     private fun busTickFlow(stops: List<ResolvedStop>): Flow<BusTick> = flow {
         if (stops.size < 2) return@flow // tidak ada yang bisa dianimasikan
         var routeProgress = 0f
+        // Fase pembuka demo: bus masih menuju halte pertama, lalu tiba dan menunggu
+        // sebelum berangkat. Ini menjaga urutan status penumpang tetap jelas.
+        emit(BusTick(routeProgress, isAtStop = false, arrivedStopIndex = null))
+        delay(DEMO_INITIAL_APPROACH_MILLIS)
+        emit(BusTick(routeProgress, isAtStop = true, arrivedStopIndex = 0))
+        delay(DEMO_STOP_DWELL_MILLIS)
         while (true) {
             delay(DEMO_TICK_MILLIS)
             val next = routeProgress + (DEMO_TICK_MILLIS.toFloat() / DEMO_FULL_ROUTE_DURATION_MILLIS)
@@ -171,6 +177,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
             tick.isAtStop && tick.arrivedStopIndex == pickupIndex ->
                 if (confirmed) TripStatus.RIDING.also { stickyStatus = it } else TripStatus.AT_PICKUP
             tick.isAtStop -> TripStatus.WAITING_AT_OTHERSTOP
+            tick.routeProgress <= stops.first().routeProgress -> TripStatus.EN_ROUTE
             legIndex >= pickupIndex ->
                 (if (confirmed) TripStatus.RIDING else TripStatus.MISSED).also { stickyStatus = it }
             else -> TripStatus.EN_ROUTE
@@ -250,6 +257,8 @@ class InMemoryPassengerTripRepository @Inject constructor(
         const val DEMO_FULL_ROUTE_DURATION_MILLIS = 70_000L
         /** Lama bus "berhenti" tiap kali sampai di satu halte sebelum lanjut jalan. */
         const val DEMO_STOP_DWELL_MILLIS = 2_000L
+        /** Lama bus tampak menuju halte pertama sebelum tiba, untuk membuka demo. */
+        const val DEMO_INITIAL_APPROACH_MILLIS = 8_000L
         /** ETA kosmetik dalam ruas yang sedang dilalui (legProgress = 0 -> nilai ini, 1 -> 1 menit). */
         const val DEMO_LEG_ETA_MINUTES = 3
     }

@@ -1,6 +1,7 @@
 package com.beg.shuttlespot.feature.passenger.route
 
 import com.beg.shuttlespot.data.repository.InMemoryRouteRepository
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -32,5 +33,22 @@ class RouteSelectionViewModelTest {
         assertEquals("07.30", viewModel.uiState.value.timetableSummary?.destinationTime)
         viewModel.openTimetable()
         assertTrue(viewModel.uiState.value.showTimetable)
+    }
+
+    @Test fun `discarding an unconfirmed replacement restores the saved primary route`() = runBlocking {
+        val repository = InMemoryRouteRepository()
+        repository.savePrimaryRoute("bsd_umn", "bsd_umn_3", "bsd_umn_9")
+        val viewModel = RouteSelectionViewModel(repository)
+
+        viewModel.selectRoute("grogol_umn", useDefaults = false)
+        viewModel.selectOnboardingStop("grogol_umn_1")
+        viewModel.selectOnboardingStop("grogol_umn_7")
+        assertEquals("grogol_umn", viewModel.uiState.value.selectedRoute?.route?.id)
+
+        viewModel.discardUnconfirmedRouteChange()
+
+        assertEquals("bsd_umn", viewModel.uiState.value.selectedRoute?.route?.id)
+        assertEquals("bsd_umn_3", viewModel.uiState.value.pickupStopId)
+        assertEquals("bsd_umn_9", viewModel.uiState.value.destinationStopId)
     }
 }

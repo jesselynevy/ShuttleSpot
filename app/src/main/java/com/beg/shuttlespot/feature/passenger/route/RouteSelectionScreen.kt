@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,11 @@ fun RouteSelectionScreen(
     val state by viewModel.uiState.collectAsState()
     var choosingStops by remember { mutableStateOf(false) }
     var editingRoute by remember { mutableStateOf(false) }
+    if (!showOnboardingProgress) {
+        DisposableEffect(viewModel) {
+            onDispose(viewModel::discardUnconfirmedRouteChange)
+        }
+    }
     if (showOnboardingProgress && !state.selectionSaved) {
         BackHandler {
             when {

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
@@ -37,14 +39,14 @@ fun BusRouteProgress(
     /** Nama halte asal ruas yang sedang berjalan (ditampilkan di ujung kiri). */
     fromStopName: String = "Halte Sebelum Sekarang",
     /** Nama halte tujuan ruas yang sedang berjalan (ditampilkan di ujung kanan). */
-    toStopName: String = "Halte Setelah",
+    toStopName: String = "Halte Setelah ",
     modifier: Modifier = Modifier
 ){
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(46.dp)
+            .padding(bottom = 6.dp)
     ) {
         val trackWidth = maxWidth
 
@@ -85,6 +87,7 @@ fun BusRouteProgress(
                     .background(MaterialTheme.colorScheme.background)
             )
             Text(text = fromStopName,
+                modifier = Modifier.widthIn(max = 120.dp),
                 style = MaterialTheme.typography.labelMedium,
                 color = LocalExtendedColors.current.secondary2)
         }
@@ -106,9 +109,10 @@ fun BusRouteProgress(
                     .background(MaterialTheme.colorScheme.background)
             )
             Text(text = toStopName,
+                modifier = Modifier.widthIn(max = 120.dp),
                 style = MaterialTheme.typography.labelMedium,
-                color = LocalExtendedColors.current.secondary2
-
+                color = LocalExtendedColors.current.secondary2,
+                textAlign = TextAlign.End
             )
         }
 

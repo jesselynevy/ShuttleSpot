@@ -1,6 +1,6 @@
 package com.beg.shuttlespot.core.model
 
-enum class TripStatus { NO_ACTIVE_BUS, EN_ROUTE, AT_PICKUP, MISSED, RIDING, COMPLETED, NOT_STARTED }
+enum class TripStatus { NO_ACTIVE_BUS, EN_ROUTE, AT_PICKUP, WAITING_AT_OTHERSTOP, MISSED, RIDING, COMPLETED, NOT_STARTED }
 
 data class LiveLocation(
     val latitude: Double,

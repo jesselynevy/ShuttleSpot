@@ -1,11 +1,13 @@
 package com.beg.shuttlespot.feature.shell
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
@@ -25,12 +27,20 @@ import com.beg.shuttlespot.core.ui.components.ProfileDataBlockActionType
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.feature.foundation.BaseColumn
+import com.beg.shuttlespot.feature.theme.ThemeViewModel
 
 /** Tab Profil (plan.md layar 18). Sign-out menghapus session; shell lalu mengembalikan pengguna ke auth. */
 @Composable
-fun ProfileTab(role: UserRole, viewModel: SessionViewModel = hiltViewModel()) {
+fun ProfileTab(
+    role: UserRole,
+    viewModel: SessionViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
     val session = (state as? SessionUiState.Ready)?.session
+
+    val isDarkModeOverride by themeViewModel.isDarkMode.collectAsState()
+    val isDarkMode = isDarkModeOverride ?: isSystemInDarkTheme()
 
     BaseColumn("Profil") {
         AvatarHeader(
@@ -75,27 +85,13 @@ fun ProfileTab(role: UserRole, viewModel: SessionViewModel = hiltViewModel()) {
 
         ProfileBlockGroup("Pengaturan") {
             ProfileDataBlock(
-                icon = Icons.Outlined.AccessTime,
-                informationTitle = "Notifikasi ETA",
-                informationData = "10 menit · Sen Sel Kam",
-                actionType = ProfileDataBlockActionType.Chevron,
-                onClick = { /* Handle ETA notification settings */ },
+                icon = Icons.Outlined.DarkMode,
+                informationTitle = "Dark Mode",
+                informationData = if (isDarkMode) "Aktif (Mode Gelap)" else "Nonaktif (Mode Terang)",
+                actionType = ProfileDataBlockActionType.Switch,
+                switchChecked = isDarkMode,
+                onSwitchChange = { enabled -> themeViewModel.setDarkMode(enabled) },
                 showDivider = true
-            )
-            ProfileDataBlock(
-                icon = Icons.Outlined.Language,
-                informationTitle = "Bahasa",
-                informationData = "Bahasa Indonesia",
-                actionType = ProfileDataBlockActionType.Chevron,
-                onClick = { /* Handle language settings */ },
-                showDivider = true
-            )
-            ProfileDataBlock(
-                icon = Icons.AutoMirrored.Outlined.HelpOutline,
-                informationTitle = "Bantuan",
-                actionType = ProfileDataBlockActionType.Chevron,
-                onClick = { /* Handle help */ },
-                showDivider = false
             )
         }
 

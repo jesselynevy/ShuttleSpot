@@ -1,11 +1,14 @@
 package com.beg.shuttlespot.feature.passenger.boarding
 
+// Overview: Defines boarding intent dialog for the passenger boarding area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.beg.shuttlespot.core.model.BoardingIntentStatus
 import com.beg.shuttlespot.core.ui.components.AppButton
 import com.beg.shuttlespot.core.ui.components.ButtonVariant
@@ -16,12 +19,13 @@ import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
  * tidak ada route baru, cukup tampilkan saat state `showBoardingIntent` true.
  */
 @Composable
+// Renders the boarding intent dialog UI section.
 fun BoardingIntentDialog(
     onDismiss: () -> Unit,
     viewModel: BoardingIntentViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    val confirmed = state.intent?.status == BoardingIntentStatus.CONFIRMED
+    val confirmed = state.intent?.status in setOf(BoardingIntentStatus.CONFIRMED, BoardingIntentStatus.PENDING_SYNC)
     val containerColor = LocalExtendedColors.current.groupingColor
 
     when {
@@ -37,7 +41,7 @@ fun BoardingIntentDialog(
             onDismissRequest = onDismiss,
             containerColor = containerColor,
             title = { Text("Sudah dikonfirmasi") },
-            text = { Text("Minat naik Anda sudah dikonfirmasi untuk bus ini.") },
+            text = { Text(if (state.intent?.status == BoardingIntentStatus.PENDING_SYNC) "Minat naik tersimpan di perangkat dan akan dikirim saat terhubung." else "Minat naik Anda sudah dikonfirmasi untuk bus ini.") },
             confirmButton = {
                 AppButton(text = "Batalkan konfirmasi", onClick = { viewModel.cancel(); onDismiss() })
             },

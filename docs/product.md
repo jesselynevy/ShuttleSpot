@@ -57,7 +57,7 @@ In the current passenger-focused build, selecting `Supir Bus` highlights the rol
 - A distinct general-announcement preview and personal notification surface.
 - Passenger P0 screens sufficient for the capture-ready MVP flow; driver UI is P1 after passenger P0.
 
-Current implementation uses deterministic in-memory data. Supabase, FCM, Room/WorkManager sync, real driver GPS publishing, and real authentication remain planned integrations, not completed MVP claims.
+Current implementation uses deterministic demo route/trip data which seeds the Room cache. Non-secret sessions, cached route data, saved primary route selection, latest trip state, boarding intents, and the personal notification inbox persist in Room. Route selection and boarding intents queue outbox mutations, while the worker remains disabled in demo mode. Supabase, FCM delivery, real driver GPS publishing, remote sync, and real authentication remain planned integrations, not completed MVP claims.
 
 ## Native-device requirements
 

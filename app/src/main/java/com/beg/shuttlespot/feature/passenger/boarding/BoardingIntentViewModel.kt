@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.boarding
 
+// Overview: Defines boarding intent view model for the passenger boarding area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.BoardingIntent
@@ -20,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+// Defines the boarding intent ui state type.
 data class BoardingIntentUiState(
     val tripId: String? = null,
     val pickupStopId: String? = null,
@@ -30,6 +34,7 @@ data class BoardingIntentUiState(
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
+// Defines the boarding intent view model type.
 class BoardingIntentViewModel @Inject constructor(
     private val repository: PassengerTripRepository,
     routeRepository: RouteRepository
@@ -56,10 +61,12 @@ class BoardingIntentViewModel @Inject constructor(
         selection.copy(isSubmitting = isSubmitting, errorMessage = errorMessage)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BoardingIntentUiState())
 
+    // Handles the confirm action.
     fun confirm() {
         val tripId = state.value.tripId ?: return
         val pickupStopId = state.value.pickupStopId ?: return
-        if (state.value.intent?.status == BoardingIntentStatus.CONFIRMED || submitting.value) return
+        if (state.value.intent?.status in setOf(BoardingIntentStatus.CONFIRMED, BoardingIntentStatus.PENDING_SYNC) || submitting.value) return
+        // Performs this state update asynchronously in the ViewModel scope.
         viewModelScope.launch {
             submitting.value = true
             error.value = null
@@ -70,6 +77,7 @@ class BoardingIntentViewModel @Inject constructor(
         }
     }
 
+    // Handles the cancel responsibility.
     fun cancel() {
         val tripId = state.value.tripId ?: return
         val pickupStopId = state.value.pickupStopId ?: return

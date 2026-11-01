@@ -32,10 +32,11 @@ For the current UI-first milestone, the approved Flow ShuttleSpot document defin
 ## Implemented foundation
 
 - The current app remains a single Gradle module, organized into `core`, `data`, `feature`, and `navigation` packages.
-- `SessionRepository`, `RouteRepository`, `PassengerTripRepository`, and `DriverTripRepository` are the public seams used by ViewModels. Hilt binds deterministic in-memory adapters by default so UI work does not depend on Supabase credentials.
+- `SessionRepository`, `RouteRepository`, `PassengerTripRepository`, `DriverTripRepository`, and `NotificationRepository` are the public seams used by ViewModels. The app persists the non-secret local session, route catalogue/stops/geometry/timetables, primary route selection, latest trip snapshot, boarding intents, and personal notification inbox in Room. Static demo sources seed route and trip cache data until remote adapters are configured.
 - `LocationPublisher` is an isolated seam; its current no-op adapter is intentionally replaced later by the driver foreground-service implementation.
 - ConfettiKit provides the short Compose confetti animation on passenger registration completion.
-- Room contains cache/outbox scaffolding for routes, stops, selections, trip snapshots, announcements, and retryable passenger mutations. WorkManager is available for the future network-constrained sync worker, but no worker is scheduled until a Supabase adapter is configured.
+- Room contains cache/outbox support for routes, stops, geometry, timetables, selections, trip snapshots, boarding intents, announcements, persisted sessions, personal notifications, and retryable passenger mutations. Route selection and boarding intents update Room first and enqueue an idempotent outbox mutation. A network-constrained outbox worker and Supabase data-source contracts are implemented, but the worker is deliberately not scheduled in demo mode because no remote mutation transport is configured.
+- `data.remote` is the only intended home for Supabase SDK DTOs and calls. UI and ViewModels consume domain models through repositories only.
 - Supabase schema is versioned under `supabase/migrations/`; URL and anonymous-key values stay in untracked `local.properties` and are validated through `SupabaseConfig`.
 
 ## Data model (initial)

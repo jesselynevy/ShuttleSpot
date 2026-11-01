@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.route
 
+// Overview: Defines route selection view model for the passenger route area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.Route
@@ -8,6 +11,7 @@ import com.beg.shuttlespot.core.model.RouteSelection
 import com.beg.shuttlespot.core.model.Stop
 import com.beg.shuttlespot.core.model.TimetableEntry
 import com.beg.shuttlespot.data.repository.RouteRepository
+// Dependencies used by this file.
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +20,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+// Dependencies used by this file.
 import javax.inject.Inject
 
+// Defines the route selection ui state type.
 data class RouteSelectionUiState(
     val routes: List<Route> = emptyList(),
     val isLoading: Boolean = true,
@@ -44,11 +50,13 @@ data class RouteSelectionUiState(
     }
 }
 
+// Defines the timetable summary type.
 data class TimetableSummary(
     val pickupTime: String?,
     val destinationTime: String?,
 )
 
+// Handles the list responsibility.
 private fun List<TimetableEntry>.timeFor(stopName: String, isPickup: Boolean): String? {
     val matchingEntries = filter { entry -> entry.description.contains(stopName, ignoreCase = true) }
     val entry = (if (isPickup) matchingEntries.firstOrNull() else matchingEntries.lastOrNull()) ?: return null
@@ -57,6 +65,7 @@ private fun List<TimetableEntry>.timeFor(stopName: String, isPickup: Boolean): S
 }
 
 @HiltViewModel
+// Defines the route selection view model type.
 class RouteSelectionViewModel @Inject constructor(
     private val routeRepository: RouteRepository
 ) : ViewModel() {
@@ -64,13 +73,20 @@ class RouteSelectionViewModel @Inject constructor(
     val uiState: StateFlow<RouteSelectionUiState> = _uiState.asStateFlow()
     private var primarySelection: RouteSelection? = null
 
+    // Initializes the component state.
     init {
+        // Performs this state update asynchronously in the ViewModel scope.
+        viewModelScope.launch {
+            runCatching { routeRepository.refreshRoutes() }
+                .onFailure { error -> _uiState.update { it.copy(isLoading = false, errorMessage = error.message ?: "Rute belum dapat diperbarui.") } }
+        }
         viewModelScope.launch {
             routeRepository.observeRoutes().collectLatest { routes ->
                 _uiState.update { state -> state.copy(routes = routes, isLoading = false) }
                 if (_uiState.value.selectedRoute == null && routes.isNotEmpty()) selectRoute(routes.first().id)
             }
         }
+        // Performs this state update asynchronously in the ViewModel scope.
         viewModelScope.launch {
             routeRepository.observePrimarySelection().collectLatest { saved ->
                 primarySelection = saved
@@ -87,10 +103,12 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
+    // Handles the select route action.
     fun selectRoute(routeId: String, pickupStopId: String? = null, destinationStopId: String? = null, useDefaults: Boolean = true) {
         if (!useDefaults) {
             _uiState.update { it.copy(selectedRoute = null, pickupStopId = null, destinationStopId = null, errorMessage = null) }
         }
+        // Performs this state update asynchronously in the ViewModel scope.
         viewModelScope.launch {
             val details = routeRepository.observeRouteDetails(routeId).first() ?: return@launch
             // Tanpa pilihan tersimpan, pilih halte pertama (jemput) dan terakhir (tujuan) supaya pilihan awal selalu valid.
@@ -102,6 +120,7 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
+    // Handles the select onboarding stop action.
     fun selectOnboardingStop(stopId: String) {
         val state = _uiState.value
         if (state.pickupStop == null || state.destinationStop != null) {
@@ -111,6 +130,7 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
+    // Handles the select pickup action.
     fun selectPickup(stopId: String) {
         val destination = _uiState.value.destinationStop
         val pickup = _uiState.value.selectedRoute?.stops?.find { it.id == stopId }
@@ -119,6 +139,7 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
+    // Handles the select destination action.
     fun selectDestination(stopId: String) {
         val pickup = _uiState.value.pickupStop
         val destination = _uiState.value.selectedRoute?.stops?.find { it.id == stopId }
@@ -127,6 +148,7 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
+    // Handles the open timetable responsibility.
     fun openTimetable() {
         _uiState.update { state ->
             if (state.canReview) state.copy(showTimetable = true, errorMessage = null)
@@ -134,8 +156,10 @@ class RouteSelectionViewModel @Inject constructor(
         }
     }
 
+    // Handles the close timetable responsibility.
     fun closeTimetable() = _uiState.update { it.copy(showTimetable = false) }
 
+    // Handles the begin route change responsibility.
     fun beginRouteChange() {
         _uiState.update { it.copy(selectionSaved = false, showTimetable = false, errorMessage = null) }
     }
@@ -151,6 +175,7 @@ class RouteSelectionViewModel @Inject constructor(
         )
     }
 
+    // Handles the save selection action.
     fun saveSelection() {
         val state = _uiState.value
         val route = state.selectedRoute ?: return
@@ -160,6 +185,7 @@ class RouteSelectionViewModel @Inject constructor(
             _uiState.update { it.copy(errorMessage = "Tujuan harus berada setelah halte jemput.") }
             return
         }
+        // Performs this state update asynchronously in the ViewModel scope.
         viewModelScope.launch {
             runCatching { routeRepository.savePrimaryRoute(route.route.id, pickup.id, destination.id) }
                 .onSuccess { _uiState.update { it.copy(showTimetable = false, selectionSaved = true, errorMessage = null) } }

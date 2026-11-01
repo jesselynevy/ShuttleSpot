@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.livetrip
 
+// Overview: Defines live trip view model for the passenger livetrip area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import com.beg.shuttlespot.core.model.GeoPoint
 
+// Defines the route map ui state type.
 data class RouteMapUiState(
     val routeName: String = "",
     val stops: List<Stop> = emptyList(),
@@ -59,6 +63,7 @@ data class RouteMapUiState(
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
+// Defines the live trip view model type.
 class LiveTripViewModel @Inject constructor(
     private val repository: PassengerTripRepository,
     private val routeRepository: RouteRepository,
@@ -75,7 +80,7 @@ class LiveTripViewModel @Inject constructor(
             else trip.flatMapLatest { activeTrip ->
                 activeTrip?.let {
                     repository.observeBoardingIntent(it.tripId, selection.pickupStopId)
-                        .map { intent -> intent?.status == BoardingIntentStatus.CONFIRMED }
+                        .map { intent -> intent?.status in setOf(BoardingIntentStatus.CONFIRMED, BoardingIntentStatus.PENDING_SYNC) }
                 } ?: flowOf(false)
             }
         }

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines filter dropdown for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

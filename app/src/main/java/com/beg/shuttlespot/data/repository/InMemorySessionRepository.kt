@@ -1,8 +1,12 @@
 package com.beg.shuttlespot.data.repository
 
+// Overview: Defines in memory session repository for the data repository area of ShuttleSpot.
+
+// Dependencies used by this file.
 import com.beg.shuttlespot.core.model.AppSession
 import com.beg.shuttlespot.core.model.SignInResult
 import com.beg.shuttlespot.core.model.UserRole
+import com.beg.shuttlespot.core.common.Validation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,6 +14,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
+// Defines the in memory session repository type.
 class InMemorySessionRepository @Inject constructor() : SessionRepository {
     private val session = MutableStateFlow<AppSession?>(null)
     private val registeredDrivers = setOf("+6281234567890", "+6289530000000")
@@ -18,10 +23,15 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
     )
     private val demoStudentPassword = "enterpassword"
 
+    // Implements framework behavior for observe session.
     override fun observeSession(): Flow<AppSession?> = session.asStateFlow()
 
+    // Implements framework behavior for sign in passenger.
     override suspend fun signInPassenger(email: String, password: String): SignInResult {
         val normalizedEmail = email.trim().lowercase()
+        if (!Validation.isStudentEmail(normalizedEmail)) {
+            return SignInResult.Rejected("Gunakan email dengan domain student.umn.ac.id.")
+        }
         if (normalizedEmail !in demoStudentEmails || password != demoStudentPassword) {
             return SignInResult.Rejected("Email atau password SSO tidak sesuai.")
         }
@@ -30,8 +40,9 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
             .let(SignInResult::Success)
     }
 
+    // Implements framework behavior for sign in driver.
     override suspend fun signInDriver(phoneNumber: String): SignInResult {
-        val normalized = normalizePhone(phoneNumber)
+        val normalized = Validation.normalizeIndonesianPhone(phoneNumber)
         if (normalized !in registeredDrivers) {
             return SignInResult.Rejected("Nomor belum terdaftar. Hubungi koordinator shuttle.")
         }
@@ -40,14 +51,7 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
             .let(SignInResult::Success)
     }
 
+    // Implements framework behavior for sign out.
     override suspend fun signOut() { session.value = null }
 
-    private fun normalizePhone(value: String): String {
-        val digits = value.filter(Char::isDigit)
-        return when {
-            digits.startsWith("62") -> "+$digits"
-            digits.startsWith("0") -> "+62${digits.drop(1)}"
-            else -> "+$digits"
-        }
-    }
 }

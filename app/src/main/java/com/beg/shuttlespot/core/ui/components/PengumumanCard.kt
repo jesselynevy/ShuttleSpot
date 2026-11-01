@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines pengumuman card for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.text.format.DateUtils
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -7,7 +10,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +26,8 @@ import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
 @Composable
-fun PengumumanInsideCard(item: Announcement,  modifier: Modifier = Modifier){
+// Renders the pengumuman inside card UI section.
+fun PengumumanInsideCard(item: Announcement, modifier: Modifier = Modifier) {
     val senderLabel = if (item.isAutomatic) "[Pesan Otomatis]" else item.sender
     val timeLabel = DateUtils.getRelativeTimeSpanString(
         item.postedAtEpochMillis,
@@ -55,41 +58,39 @@ fun PengumumanInsideCard(item: Announcement,  modifier: Modifier = Modifier){
                     modifier = Modifier.alignByBaseline(),
                 )
             }
-            Text(
-                text = item.message,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Text(text = item.message, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
+
 @Composable
-fun PengumumanHomeCard(showedList : List<Announcement>){
+// Renders the pengumuman home card UI section.
+fun PengumumanHomeCard(showedList: List<Announcement>) {
     Column(
-        modifier = Modifier.background(LocalExtendedColors.current.groupingColor)
-        .border(border = BorderStroke(1.dp,
-        color=(LocalExtendedColors.current.secondary3) ),
-        shape= MaterialTheme.shapes.medium)
-        .fillMaxWidth()
-        .padding(12.dp),
-    ){
+        modifier = Modifier
+            .background(LocalExtendedColors.current.groupingColor)
+            .border(
+                border = BorderStroke(1.dp, color = LocalExtendedColors.current.secondary3),
+                shape = MaterialTheme.shapes.medium,
+            )
+            .fillMaxWidth()
+            .padding(12.dp),
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            showedList.forEach { item ->
-                PengumumanInsideCard(item)
-            }
+            showedList.forEach { item -> PengumumanInsideCard(item) }
         }
-
     }
 }
 
-val previewAnnouncements = listOf(
+// File-level constants and shared definitions.
+private val previewAnnouncements = listOf(
     Announcement("1", "Sistem", "Bus baru saja jalan!", System.currentTimeMillis() - 10 * 60_000, isAutomatic = true),
     Announcement("2", "Pak Wahyu", "Hari ini Bus akan telat sekian menit karena ada yang lelet!", System.currentTimeMillis() - 10 * 60_000),
 )
 
 @Preview(showBackground = true)
 @Composable
-fun PengumumanCardPreview() {
-    ShuttleSpotTheme(darkTheme = false) {
-        PengumumanHomeCard(previewAnnouncements)
-    }
+// Renders the pengumuman card preview UI section.
+private fun PengumumanCardPreview() {
+    ShuttleSpotTheme(darkTheme = false) { PengumumanHomeCard(previewAnnouncements) }
 }

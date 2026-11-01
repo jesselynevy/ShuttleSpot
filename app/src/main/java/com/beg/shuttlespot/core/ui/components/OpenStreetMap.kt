@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines open street map for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.graphics.Color as AndroidColor
 import android.graphics.RectF
 import androidx.compose.foundation.layout.Box
@@ -57,6 +60,7 @@ import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
 import kotlin.math.roundToInt
 
+// File-level constants and shared definitions.
 private const val OPEN_STREET_MAP_STYLE = """
 {
   "version": 8,
@@ -134,6 +138,7 @@ private fun createBusMarkerBitmap(
     return image.asAndroidBitmap()
 }
 
+// Handles the map marker responsibility.
 private fun MapMarker.toFeature(): Feature =
     Feature.fromGeometry(Point.fromLngLat(longitude, latitude)).apply {
         addStringProperty("id", id)
@@ -146,6 +151,7 @@ private fun MapMarker.toFeature(): Feature =
  * Pop up ditampilkan untuk [selectedMarkerId].
  */
 @Composable
+// Renders the open street map UI section.
 fun OpenStreetMap(
     modifier: Modifier = Modifier,
     latitude: Double = -6.2561,
@@ -306,6 +312,7 @@ fun OpenStreetMap(
             anchor = null
             return@LaunchedEffect
         }
+        // Prepares or returns refresh.
         fun refresh() {
             val p = m.projection.toScreenLocation(LatLng(selected.latitude, selected.longitude))
             anchor = Offset(p.x, p.y)

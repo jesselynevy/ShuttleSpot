@@ -1,13 +1,17 @@
 package com.beg.shuttlespot.navigation
 
+// Overview: Defines main nav graph for the shuttlespot navigation area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.beg.shuttlespot.feature.auth.SessionUiState
+// Dependencies used by this file.
 import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.feature.shell.MainShell
 
@@ -17,6 +21,7 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
         val viewModel: SessionViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
+        // Handles the current state branch.
         when (val s = state) {
             SessionUiState.Loading -> Unit
             is SessionUiState.Ready -> {

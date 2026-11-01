@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines bus status card for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,6 +37,7 @@ import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
 @Composable
+// Renders the bus status card UI section.
 fun BusStatusCard(
     busStatus : TripStatus,
     onBoardingIntent: () -> Unit = {},
@@ -162,6 +166,7 @@ fun BusStatusCard(
 }
 
 @Composable
+// Renders the buttons to show UI section.
 fun ButtonsToShow(
     busStatus : TripStatus,
     onBoardingIntent: () -> Unit = {},
@@ -210,6 +215,7 @@ fun ButtonsToShow(
 
 @Preview(showBackground = true)
 @Composable
+// Renders the bus status card preview UI section.
 fun BusStatusCardPreview(){
     ShuttleSpotTheme()
     {

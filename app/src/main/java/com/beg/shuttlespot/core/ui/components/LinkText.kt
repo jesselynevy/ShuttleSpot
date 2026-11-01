@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines link text for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +15,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 
 @Composable
+// Renders the link text UI section.
 fun LinkText(
     text: String,
     onClick: () -> Unit,

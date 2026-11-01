@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.data.repository
 
+// Overview: Defines in memory passenger trip repository for the data repository area of ShuttleSpot.
+
+// Dependencies used by this file.
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
 import com.beg.shuttlespot.core.model.BoardingIntent
 import com.beg.shuttlespot.core.model.BoardingIntentStatus
@@ -29,6 +32,7 @@ import javax.inject.Singleton
 
 @Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
+// Defines the in memory passenger trip repository type.
 class InMemoryPassengerTripRepository @Inject constructor(
     private val routeRepository: RouteRepository,
 ) : PassengerTripRepository {
@@ -40,6 +44,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
      * via [RoutePaths.bsdUmnProgressNear] supaya [busTickFlow] bisa langsung mendeteksi
      * "crossing a stop" tanpa menghitung ulang setiap tick.
      */
+    // Defines the resolved stop type.
     private data class ResolvedStop(
         val id: String,
         val name: String,
@@ -64,6 +69,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
                     }
             }
             .distinctUntilChanged()
+    // Defines the bus tick type.
     private data class BusTick(val routeProgress: Float, val isAtStop: Boolean, val arrivedStopIndex: Int?)
 
     /**
@@ -74,6 +80,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
      * berasal dari [RouteRepository])
      * Ganti seluruh blok ini dengan collector dari sumber posisi bus sesungguhnya (WebSocket/polling) saat sudah ada.
      */
+    // Handles the bus tick flow responsibility.
     private fun busTickFlow(stops: List<ResolvedStop>): Flow<BusTick> = flow {
         if (stops.size < 2) return@flow // tidak ada yang bisa dianimasikan
         var routeProgress = 0f
@@ -149,6 +156,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
      *   user konfirmasi -> MISSED, dan status ini "nempel" (sticky) seterusnya.
      * - Bus sudah lewat halte user DAN user sudah konfirmasi -> RIDING, juga sticky seterusnya.
      */
+    // Handles the snapshot for responsibility.
     private fun snapshotFor(
         tick: BusTick,
         stops: List<ResolvedStop>,
@@ -194,6 +202,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
      * [routeProgress] (fraksi SEPANJANG SELURUH RUTE, bukan cuma satu ruas) dicari langsung
      * titik jalannya lewat [RoutePaths.bsdUmnPointAt].
      */
+    // Prepares or returns build snapshot.
     private fun buildSnapshot(
         routeProgress: Float,
         legIndex: Int,
@@ -220,6 +229,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
         )
     }
 
+    // Handles the current leg index responsibility.
     private fun currentLegIndex(routeProgress: Float, stops: List<ResolvedStop>): Int {
         for (i in 0 until stops.lastIndex) {
             if (routeProgress <= stops[i + 1].routeProgress) return i
@@ -227,11 +237,14 @@ class InMemoryPassengerTripRepository @Inject constructor(
         return (stops.lastIndex - 1).coerceAtLeast(0)
     }
 
+    // Implements framework behavior for observe active trip.
     override fun observeActiveTrip(routeId: String): Flow<ActiveTripSnapshot?> =
         activeTrip.map { trip -> trip?.takeIf { it.routeId == routeId } }
+    // Implements framework behavior for observe boarding intent.
     override fun observeBoardingIntent(tripId: String, stopId: String): Flow<BoardingIntent?> =
         intent.map { current -> current?.takeIf { it.tripId == tripId && it.stopId == stopId } }
 
+    // Implements framework behavior for submit boarding intent.
     override suspend fun submitBoardingIntent(tripId: String, stopId: String, idempotencyKey: String): BoardingIntent {
         val existing = intent.value
         // One passenger can have only one intent for a trip and pickup stop. This makes
@@ -241,6 +254,7 @@ class InMemoryPassengerTripRepository @Inject constructor(
             .also { intent.value = it }
     }
 
+    // Implements framework behavior for cancel boarding intent.
     override suspend fun cancelBoardingIntent(tripId: String, stopId: String) {
         if (intent.value?.tripId == tripId && intent.value?.stopId == stopId) {
             intent.value = intent.value?.copy(status = BoardingIntentStatus.CANCELLED)

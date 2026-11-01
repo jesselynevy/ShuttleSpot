@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines profile data block for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
+// Defines the profile data block action type type.
 enum class ProfileDataBlockActionType {
     None,
     Edit,
@@ -39,6 +43,7 @@ enum class ProfileDataBlockActionType {
 }
 
 @Composable
+// Renders the profile data block UI section.
 fun ProfileDataBlock(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
@@ -172,6 +177,7 @@ fun ProfileDataBlock(
 
 @Preview(showBackground = true)
 @Composable
+// Renders the profile data block preview UI section.
 fun ProfileDataBlockPreview() {
     ShuttleSpotTheme {
         Column {

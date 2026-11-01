@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.location
 
+// Overview: Defines location assistance screen for the passenger location area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,6 +50,7 @@ import com.beg.shuttlespot.core.ui.components.WaveStyle
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 @Composable
+// Renders the location assistance screen UI section.
 fun LocationAssistanceScreen(onLocationGranted: () -> Unit, onChooseManually: () -> Unit) {
     var permissionDenied by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -114,6 +118,7 @@ fun LocationAssistanceScreen(onLocationGranted: () -> Unit, onChooseManually: ()
 }
 
 @Composable
+// Renders the location benefits card UI section.
 private fun LocationBenefitsCard() {
     val colors = MaterialTheme.colorScheme
     Card(
@@ -138,6 +143,7 @@ private fun LocationBenefitsCard() {
 }
 
 @Composable
+// Renders the location benefit UI section.
 private fun LocationBenefit(icon: ImageVector, title: String, description: String) {
     val extended = LocalExtendedColors.current
     Row(

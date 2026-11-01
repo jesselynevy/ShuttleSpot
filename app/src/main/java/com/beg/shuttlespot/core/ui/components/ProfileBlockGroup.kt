@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines profile block group for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -27,6 +30,7 @@ import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
 @Composable
+// Renders the profile block group UI section.
 fun ProfileBlockGroup(
     titleHeader: String,
     modifier: Modifier = Modifier,
@@ -61,6 +65,7 @@ fun ProfileBlockGroup(
 
 @Preview(showBackground = true)
 @Composable
+// Renders the profile block group demo UI section.
 fun ProfileBlockGroupDemo() {
     ShuttleSpotTheme {
         Column(modifier = Modifier.padding(16.dp)) {

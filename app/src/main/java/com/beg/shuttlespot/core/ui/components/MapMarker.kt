@@ -1,7 +1,10 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines map marker for the ui components area of ShuttleSpot.
+
 enum class MarkerKind { Stop, Pickup, Destination, Bus }
 
+// Defines the map marker type.
 data class MapMarker(
     val id: String,
     val latitude: Double,

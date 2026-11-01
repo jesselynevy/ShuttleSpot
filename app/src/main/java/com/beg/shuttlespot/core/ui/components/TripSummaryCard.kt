@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines trip summary card for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +41,7 @@ enum class TodayRideStatus(val label: String, val color: LabelColor) {
  * Stateless: semua data dikirim dari pemanggil.
  */
 @Composable
+// Renders the trip summary card UI section.
 fun TripSummaryCard(
     routeName: String,
     pickupStop: String,
@@ -72,6 +76,7 @@ fun TripSummaryCard(
 }
 
 @Composable
+// Renders the summary column UI section.
 private fun SummaryColumn(title: String, modifier: Modifier, value: @Composable () -> Unit) {
     Column(
         modifier = modifier.padding(horizontal = 8.dp),
@@ -88,6 +93,7 @@ private fun SummaryColumn(title: String, modifier: Modifier, value: @Composable 
 }
 
 @Composable
+// Renders the summary divider UI section.
 private fun SummaryDivider() {
     Box(
         Modifier
@@ -99,6 +105,7 @@ private fun SummaryDivider() {
 
 @Preview(showBackground = true)
 @Composable
+// Renders the trip summary card preview UI section.
 private fun TripSummaryCardPreview() {
     ShuttleSpotTheme {
         TripSummaryCard(

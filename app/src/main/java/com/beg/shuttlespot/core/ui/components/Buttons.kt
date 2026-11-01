@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines buttons for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.view.RoundedCorner
 import android.widget.Button
 import androidx.compose.foundation.BorderStroke
@@ -16,12 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+// Defines the button variant type.
 enum class ButtonVariant {
     Primary,
     Secondary
 }
 
 @Composable
+// Renders the app button UI section.
 fun AppButton(
     text : String,
     variant: ButtonVariant = ButtonVariant.Primary,

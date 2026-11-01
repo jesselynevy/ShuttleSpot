@@ -1,18 +1,23 @@
 package com.beg.shuttlespot.core.model
 
+// Overview: Defines trip for the core model area of ShuttleSpot.
+
 enum class TripStatus { NO_ACTIVE_BUS, EN_ROUTE, AT_PICKUP, WAITING_AT_OTHERSTOP, MISSED, RIDING, COMPLETED, NOT_STARTED }
 
+// Defines the live location type.
 data class LiveLocation(
     val latitude: Double,
     val longitude: Double,
     val capturedAtEpochMillis: Long
 )
 
+// Defines the eta estimate type.
 data class EtaEstimate(
     val minutes: Int?,
     val isStale: Boolean = false
 )
 
+// Defines the active trip snapshot type.
 data class ActiveTripSnapshot(
     val tripId: String,
     val routeId: String,
@@ -27,8 +32,10 @@ data class ActiveTripSnapshot(
     val location: LiveLocation?
 )
 
+// Defines the boarding intent status type.
 enum class BoardingIntentStatus { NONE, PENDING_SYNC, CONFIRMED, CANCELLED, UNAVAILABLE }
 
+// Defines the boarding intent type.
 data class BoardingIntent(
     val tripId: String,
     val stopId: String,
@@ -36,6 +43,7 @@ data class BoardingIntent(
     val idempotencyKey: String
 )
 
+// Defines the driver trip snapshot type.
 data class DriverTripSnapshot(
     val tripId: String,
     val routeId: String,

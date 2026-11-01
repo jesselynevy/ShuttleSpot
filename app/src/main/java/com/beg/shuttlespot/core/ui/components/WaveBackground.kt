@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines wave background for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -15,9 +18,11 @@ import com.beg.shuttlespot.R
 import com.beg.shuttlespot.core.ui.theme.DarkestColor
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
+// Defines the wave style type.
 enum class WaveStyle { None, Auth, Main, Profile, Splash }
 
 @Composable
+// Renders the wave background UI section.
 fun WaveBackground(style: WaveStyle, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val dark = LocalExtendedColors.current.backgroundColor == DarkestColor
 

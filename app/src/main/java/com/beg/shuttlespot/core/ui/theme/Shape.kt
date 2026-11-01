@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.theme
 
+// Overview: Defines shape for the ui theme area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
@@ -7,6 +10,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 /** Shared component geometry. Screens must consume these tokens through MaterialTheme. */
+// File-level constants and shared definitions.
 val ShuttleSpotShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
     small = RoundedCornerShape(8.dp),

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines bus icon with status for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -17,6 +20,7 @@ import com.beg.shuttlespot.core.ui.theme.AvatarShape
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 @Composable
+// Renders the bus icon with status UI section.
 fun BusIconWithStatus(
     modifier : Modifier = Modifier,
     showStatusDot : Boolean = true
@@ -42,6 +46,7 @@ fun BusIconWithStatus(
 
 @Preview(showBackground = true)
 @Composable
+// Renders the bus icon with status preview UI section.
 fun BusIconWithStatusPreview(){
     BusIconWithStatus();
 }

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.navigation
 
+// Overview: Defines passenger onboarding nav graph for the shuttlespot navigation area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.os.Build
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -8,8 +11,10 @@ import androidx.navigation.navigation
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.feature.passenger.location.LocationAssistanceScreen
 import com.beg.shuttlespot.feature.passenger.notification.NotificationPermissionScreen
+// Dependencies used by this file.
 import com.beg.shuttlespot.feature.passenger.route.RouteSelectionScreen
 
+// Defines the onboarding route type.
 object OnboardingRoute {
     const val GRAPH = "onboarding"
 
@@ -24,6 +29,7 @@ object OnboardingRoute {
  * RouteSelectionScreen saat ini sudah memuat pilih rute, halte, review, dan layar "tersimpan".
  * Kalau nanti dipecah (Nearby Stops, Manual, Route Results, Route Detail), tambahkan destinasi di sini.
  */
+// Handles the nav graph builder responsibility.
 fun NavGraphBuilder.passengerOnboardingNavGraph(
     navController: NavHostController,
     onCompleted: () -> Unit,

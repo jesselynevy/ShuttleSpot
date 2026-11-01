@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.shell
 
+// Overview: Defines profile tab for the feature shell area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -8,6 +11,7 @@ import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.DarkMode
+// Dependencies used by this file.
 import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
@@ -16,17 +20,19 @@ import androidx.compose.material.icons.outlined.Route
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+// Dependencies used by this file.
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.core.ui.components.AvatarHeader
 import com.beg.shuttlespot.core.ui.components.ProfileBlockGroup
 import com.beg.shuttlespot.core.ui.components.ProfileDataBlock
 import com.beg.shuttlespot.core.ui.components.ProfileDataBlockActionType
+// Dependencies used by this file.
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
-import com.beg.shuttlespot.feature.foundation.BaseColumn
+import com.beg.shuttlespot.core.ui.components.SimpleScreenColumn
 import com.beg.shuttlespot.feature.passenger.home.PassengerHomeUiState
 import com.beg.shuttlespot.feature.passenger.home.PassengerHomeViewModel
 import com.beg.shuttlespot.feature.passenger.home.PassengerTripStatus
@@ -34,6 +40,7 @@ import com.beg.shuttlespot.feature.theme.ThemeViewModel
 
 /** Tab Profil (plan.md layar 18). Sign-out menghapus session; shell lalu mengembalikan pengguna ke auth. */
 @Composable
+// Renders the profile tab UI section.
 fun ProfileTab(
     role: UserRole,
     viewModel: SessionViewModel = hiltViewModel(),
@@ -47,7 +54,7 @@ fun ProfileTab(
     val isDarkModeOverride by themeViewModel.isDarkMode.collectAsState()
     val isDarkMode = isDarkModeOverride ?: isSystemInDarkTheme()
 
-    BaseColumn("Profil") {
+    SimpleScreenColumn("Profil") {
         AvatarHeader(
             name = session?.displayName ?: "-",
             role = role,

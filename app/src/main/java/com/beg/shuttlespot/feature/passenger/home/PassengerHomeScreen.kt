@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.home
 
+// Overview: Defines passenger home screen for the passenger home area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +49,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.beg.shuttlespot.feature.auth.SessionUiState
 import com.beg.shuttlespot.feature.auth.SessionViewModel
 import com.beg.shuttlespot.core.ui.components.BusStatusCard
@@ -66,6 +69,7 @@ import com.beg.shuttlespot.core.ui.components.TodayRideStatus
 import com.beg.shuttlespot.core.ui.components.TripSummaryCard
 
 @Composable
+// Renders the passenger home screen UI section.
 fun PassengerHomeScreen(
     onLiveTrip: () -> Unit,
     onRoutes: () -> Unit,
@@ -97,6 +101,7 @@ fun PassengerHomeScreen(
 }
 
 @Composable
+// Renders the passenger home content UI section.
 fun PassengerHomeContent(
     state: PassengerHomeUiState,
     displayName: String,
@@ -169,6 +174,7 @@ fun PassengerHomeContent(
     }
 }
 
+// File-level constants and shared definitions.
 private val previewState = PassengerHomeUiState(
     status = PassengerTripStatus.EN_ROUTE,
     vehicleLabel = "B 1234 XYZ",
@@ -181,6 +187,7 @@ private val previewState = PassengerHomeUiState(
 
 @Preview(showBackground = true, name = "Light")
 @Composable
+// Renders the passenger home content preview UI section.
 private fun PassengerHomeContentPreview() {
     ShuttleSpotTheme(darkTheme = false) {
         PassengerHomeContent(
@@ -200,6 +207,7 @@ private fun PassengerHomeContentPreview() {
 
 @Preview(showBackground = true, name = "Dark")
 @Composable
+// Renders the passenger home content dark preview UI section.
 private fun PassengerHomeContentDarkPreview() {
     ShuttleSpotTheme(darkTheme = true) {
         PassengerHomeContent(

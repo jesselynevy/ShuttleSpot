@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.route
 
+// Overview: Defines the passenger route-selection screens and their supporting UI sections.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.clickable
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.border
@@ -41,7 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.beg.shuttlespot.core.model.Route
 import com.beg.shuttlespot.core.model.Stop
 import com.beg.shuttlespot.core.ui.components.EmptyState
@@ -50,6 +53,7 @@ import com.beg.shuttlespot.core.ui.components.StudentOnboardingProgressHeader
 import com.beg.shuttlespot.core.ui.components.StudentOnboardingStep
 
 @Composable
+// Coordinates route setup, stop selection, review, and saved-route states.
 fun RouteSelectionScreen(
     onFinished: () -> Unit,
     showOnboardingProgress: Boolean = false,
@@ -118,6 +122,7 @@ fun RouteSelectionScreen(
 }
 
 @Composable
+// Renders the onboarding list of available shuttle routes.
 private fun OnboardingRouteList(
     state: RouteSelectionUiState,
     onBack: () -> Unit,
@@ -139,6 +144,7 @@ private fun OnboardingRouteList(
 }
 
 @Composable
+// Renders pickup and destination choices for the selected route.
 private fun OnboardingStopList(
     state: RouteSelectionUiState,
     onBack: () -> Unit,
@@ -167,7 +173,6 @@ private fun OnboardingStopList(
                         else RouteSecondaryButton(text = "Pilih", onClick = { onSelect(stop.id) })
                     }
                 }
-//                item { TimetableCard(details.timetableEntries, details.serviceNotice) }
             }
         } ?: run { Spacer(Modifier.weight(1f)); Text("Memuat halte...") }
         state.errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 4.dp)) }
@@ -177,6 +182,7 @@ private fun OnboardingStopList(
 }
 
 @Composable
+// Shows timetable details for the passenger's current route choices.
 private fun TimetableDetailsScreen(
     state: RouteSelectionUiState,
     onBack: () -> Unit,
@@ -271,6 +277,7 @@ private fun TimetableDetailsScreen(
 }
 
 @Composable
+// Renders the empty Route tab when no primary route is saved.
 private fun RouteTabEmptyScreen(onChooseRoute: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
@@ -290,6 +297,7 @@ private fun RouteTabEmptyScreen(onChooseRoute: () -> Unit) {
 }
 
 @Composable
+// Summarizes the saved route and offers a route-replacement action.
 private fun RouteTabSummaryScreen(state: RouteSelectionUiState, onChooseOtherRoute: (String) -> Unit) {
     val route = state.selectedRoute ?: return
     LazyColumn(
@@ -326,6 +334,7 @@ private fun RouteTabSummaryScreen(state: RouteSelectionUiState, onChooseOtherRou
 }
 
 @Composable
+// Lets the passenger choose a route, pickup stop, and later destination.
 private fun RoutePickerScreen(state: RouteSelectionUiState, onRouteSelected: (String) -> Unit, onPickupSelected: (String) -> Unit, onDestinationSelected: (String) -> Unit, onReview: () -> Unit, showOnboardingProgress: Boolean) {
     Column(
         Modifier
@@ -366,6 +375,7 @@ private fun RoutePickerScreen(state: RouteSelectionUiState, onRouteSelected: (St
 }
 
 @Composable
+// Renders a selectable summary card for one shuttle route.
 private fun RouteCard(route: Route, selected: Boolean, onClick: () -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -376,6 +386,7 @@ private fun RouteCard(route: Route, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
+// Renders a compact route option for the picker.
 private fun RouteChoiceCard(route: Route, onClick: () -> Unit) {
     Row(
         modifier = Modifier
@@ -401,6 +412,7 @@ private fun RouteChoiceCard(route: Route, onClick: () -> Unit) {
 }
 
 @Composable
+// Renders one selectable stop in the ordered route-stop list.
 private fun StopChoice(stop: Stop, selected: Boolean, onSelected: (String) -> Unit) {
     Row(Modifier.fillMaxWidth().clickable { onSelected(stop.id) }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         RadioButton(selected = selected, onClick = { onSelected(stop.id) })
@@ -409,6 +421,7 @@ private fun StopChoice(stop: Stop, selected: Boolean, onSelected: (String) -> Un
 }
 
 @Composable
+// Displays a labeled schedule time for the selected stop.
 private fun ScheduleTime(label: String, time: String?, stopName: String, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(label, style = MaterialTheme.typography.labelMedium)
@@ -418,6 +431,7 @@ private fun ScheduleTime(label: String, time: String?, stopName: String, modifie
 }
 
 @Composable
+// Confirms that the passenger's primary route has been saved.
 private fun RouteSavedScreen(onFinished: () -> Unit, showOnboardingProgress: Boolean) {
     Column(
         Modifier
@@ -478,6 +492,7 @@ internal fun RouteSecondaryButton(
 }
 
 @Composable
+// Renders the reusable text action that returns to the previous step.
 private fun BackTextButton(onClick: () -> Unit) {
     TextButton(onClick = onClick,
         colors = ButtonDefaults.textButtonColors(

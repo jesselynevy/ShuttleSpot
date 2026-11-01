@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.navigation
 
+// Overview: Defines auth nav graph for the shuttlespot navigation area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -7,26 +10,25 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.beg.shuttlespot.core.model.UserRole
-import com.beg.shuttlespot.feature.foundation.RoleSelectionScreen
-import com.beg.shuttlespot.feature.foundation.SignInScreen
+import com.beg.shuttlespot.feature.auth.RoleSelectionScreen
+// Dependencies used by this file.
+import com.beg.shuttlespot.feature.auth.SignInScreen
 import com.beg.shuttlespot.feature.foundation.WelcomeScreen
 
+// Defines the auth route type.
 object AuthRoute {
-    const val GRAPH = "auth"                         // route induk (pintu masuk)
+    const val GRAPH = "auth" // parent route
 
     const val WELCOME = "auth/welcome"
     const val ROLE_SELECTION = "auth/role_selection"
     const val SIGN_IN = "auth/sign_in/{role}"
 
     const val ARG_ROLE = "role"
+    // Handles the sign in responsibility.
     fun signIn(role: UserRole) = "auth/sign_in/${role.name}"
 }
 
-/**
- * Alur (plan.md layar 1-3 dan 19): Welcome -> RoleSelection -> SignIn(role).
- * Setelah sign-in berhasil, graph ini memanggil [onSignedIn]; tujuan berikutnya
- * (onboarding penumpang atau langsung shell driver) diputuskan oleh pemanggil.
- */
+// Handles the nav graph builder responsibility.
 fun NavGraphBuilder.authNavGraph(
     navController: NavHostController,
     onSignedIn: (UserRole) -> Unit,

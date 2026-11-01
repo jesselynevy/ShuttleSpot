@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.data.repository
 
+// Overview: Defines theme repository for the data repository area of ShuttleSpot.
+
+// Dependencies used by this file.
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,12 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// Defines the theme repository type.
 interface ThemeRepository {
     val isDarkMode: StateFlow<Boolean?>
+    // Handles the set dark mode responsibility.
     fun setDarkMode(enabled: Boolean?)
 }
 
 @Singleton
+// Defines the app theme repository type.
 class AppThemeRepository @Inject constructor(
     @ApplicationContext context: Context
 ) : ThemeRepository {
@@ -24,6 +30,7 @@ class AppThemeRepository @Inject constructor(
     )
     override val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
 
+    // Implements framework behavior for set dark mode.
     override fun setDarkMode(enabled: Boolean?) {
         _isDarkMode.value = enabled
         if (enabled != null) {

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines screen feedback for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +28,7 @@ import androidx.compose.ui.unit.dp
 
 /** Shared, accessible feedback states for data-dependent passenger screens. */
 @Composable
+// Renders the loading state UI section.
 fun LoadingState(label: String = "Memuat data") {
     Column(
         Modifier.fillMaxWidth().padding(vertical = 32.dp).semantics { liveRegion = LiveRegionMode.Polite },
@@ -38,21 +42,25 @@ fun LoadingState(label: String = "Memuat data") {
 }
 
 @Composable
+// Renders the empty state UI section.
 fun EmptyState(title: String, description: String) = FeedbackState(title, description) {
     Icon(Icons.Default.Info, contentDescription = null)
 }
 
 @Composable
+// Renders the error state UI section.
 fun ErrorState(description: String) = FeedbackState("Data belum dapat dimuat", description) {
     Icon(Icons.Default.ErrorOutline, contentDescription = null)
 }
 
 @Composable
+// Renders the offline state UI section.
 fun OfflineState(description: String = "Menampilkan data tersimpan yang mungkin belum terbaru.") = FeedbackState("Anda sedang offline", description) {
     Icon(Icons.Default.WifiOff, contentDescription = null)
 }
 
 @Composable
+// Renders the feedback state UI section.
 private fun FeedbackState(title: String, description: String, icon: @Composable () -> Unit) {
     Column(
         Modifier.fillMaxWidth().padding(vertical = 24.dp).semantics { liveRegion = LiveRegionMode.Polite },

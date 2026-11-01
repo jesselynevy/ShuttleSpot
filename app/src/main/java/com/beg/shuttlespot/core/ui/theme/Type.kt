@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.theme
 
+// Overview: Defines type for the ui theme area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -8,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.beg.shuttlespot.R
 
+// File-level constants and shared definitions.
 val Inter = FontFamily(
     Font(R.font.inter_18pt_regular, FontWeight.Normal),
     Font(R.font.inter_18pt_semibold, FontWeight.SemiBold),

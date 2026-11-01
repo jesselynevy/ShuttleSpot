@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.announcement
 
+// Overview: Defines announcement view model for the passenger announcement area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.Announcement
@@ -18,6 +21,7 @@ import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
+// Defines the announcement view model type.
 class AnnouncementViewModel @Inject constructor(
     repository: AnnouncementRepository,
 ) : ViewModel() {
@@ -38,11 +42,15 @@ class AnnouncementViewModel @Inject constructor(
         .catch { emit(AnnouncementUiState(errorMessage = "Pengumuman belum dapat dimuat.")) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AnnouncementUiState(isLoading = true))
 
+    // Handles the on query change action.
     fun onQueryChange(value: String) = query.update { value }
+    // Handles the on topic change action.
     fun onTopicChange(value: AnnouncementTopicFilter) = topic.update { value }
+    // Handles the on time change action.
     fun onTimeChange(value: AnnouncementTimeFilter) = time.update { value }
 }
 
+// Defines the announcement ui state type.
 data class AnnouncementUiState(
     val items: List<Announcement> = emptyList(),
     val query: String = "",
@@ -52,6 +60,7 @@ data class AnnouncementUiState(
     val errorMessage: String? = null,
 )
 
+// Defines the announcement topic filter type.
 enum class AnnouncementTopicFilter(val label: String) {
     All("Semua"),
     General("Umum"),
@@ -59,12 +68,14 @@ enum class AnnouncementTopicFilter(val label: String) {
     MainRoute("Rute Utama"),
 }
 
+// Defines the announcement time filter type.
 enum class AnnouncementTimeFilter(val label: String) {
     Today("Hari ini"),
     Week("7 hari"),
     All("Semua"),
 }
 
+// Handles the announcement responsibility.
 private fun Announcement.matches(
     query: String,
     topic: AnnouncementTopicFilter,

@@ -1,9 +1,13 @@
 package com.beg.shuttlespot.core.ui.theme
 
+// Overview: Defines extended colors for the ui theme area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.runtime.staticCompositionLocalOf
 
+// Defines the extended colors type.
 data class ExtendedColors(
     val secondary1 : Color,
     val secondary2 : Color,
@@ -22,6 +26,7 @@ data class ExtendedColors(
     val onGreyContainer : Color
     )
 
+// File-level constants and shared definitions.
 val LocalExtendedColors = staticCompositionLocalOf {
     ExtendedColors (
         secondary1 = Color.Unspecified,

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines status badge for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.graphics.Color
@@ -12,16 +15,19 @@ import androidx.compose.ui.unit.dp
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 import com.beg.shuttlespot.core.ui.theme.StatusPillShape
 
+// Defines the label color type.
 enum class LabelColor{
     Success, Pending, Failed, Blue, Purple, Grey
 }
 
+// Defines the label style type.
 enum class LabelStyle{
     Soft,
     Solid
 }
 
 @Composable
+// Renders the status badge UI section.
 fun StatusBadge(text: String, color : LabelColor, style : LabelStyle = LabelStyle.Soft){
     val (containerColor, contentColor) = getLabelColors(color, style)
     Surface(
@@ -41,6 +47,7 @@ fun StatusBadge(text: String, color : LabelColor, style : LabelStyle = LabelStyl
 }
 
 @Composable
+// Renders the get label colors UI section.
 private fun getLabelColors(color : LabelColor, style : LabelStyle) : Pair<Color, Color> {
     val extended = LocalExtendedColors.current
     val scheme = MaterialTheme.colorScheme

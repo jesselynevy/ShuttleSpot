@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines marker callout for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +30,7 @@ import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
  * Penempatannya diatur oleh pemanggil (lihat OpenStreetMap).
  */
 @Composable
+// Renders the marker callout UI section.
 fun MarkerCallout(
     title: String,
     schedule: String?,
@@ -67,6 +71,7 @@ fun MarkerCallout(
 
 @Preview(showBackground = true)
 @Composable
+// Renders the marker callout preview UI section.
 private fun MarkerCalloutPreview() {
     ShuttleSpotTheme(darkTheme = false) {
         MarkerCallout(title = "Halte Pasar Modern BSD", schedule = "06.15", modifier = Modifier.padding(16.dp))

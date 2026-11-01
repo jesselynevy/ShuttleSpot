@@ -1,7 +1,10 @@
 package com.beg.shuttlespot.core.model
 
+// Overview: Defines session for the core model area of ShuttleSpot.
+
 enum class UserRole { PASSENGER, DRIVER }
 
+// Defines the app session type.
 data class AppSession(
     val profileId: String,
     val role: UserRole,
@@ -9,7 +12,10 @@ data class AppSession(
     val contact: String
 )
 
+// Defines the sign in result type.
 sealed interface SignInResult {
+    // Defines the success type.
     data class Success(val session: AppSession) : SignInResult
+    // Defines the rejected type.
     data class Rejected(val message: String) : SignInResult
 }

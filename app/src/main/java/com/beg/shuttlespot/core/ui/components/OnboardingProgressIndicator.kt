@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines onboarding progress indicator for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +40,7 @@ enum class StudentOnboardingStep(val label: String) {
  * to an earlier screen.
  */
 @Composable
+// Renders the student onboarding progress indicator UI section.
 fun StudentOnboardingProgressIndicator(
     currentStep: StudentOnboardingStep,
     modifier: Modifier = Modifier,
@@ -101,6 +105,7 @@ fun StudentOnboardingProgressIndicator(
 
 /** Places every onboarding progress indicator at the shared screen position. */
 @Composable
+// Renders the student onboarding progress header UI section.
 fun StudentOnboardingProgressHeader(
     currentStep: StudentOnboardingStep,
     modifier: Modifier = Modifier,

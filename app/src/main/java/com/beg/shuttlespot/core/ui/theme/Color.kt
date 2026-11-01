@@ -1,8 +1,12 @@
 package com.beg.shuttlespot.core.ui.theme
 
+// Overview: Defines color for the ui theme area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.ui.graphics.Color
 
 //primaries
+// File-level constants and shared definitions.
 val SpringSky = Color(0xFF30AFF4)
 val UMNBlue = Color(0xFF015696)
 

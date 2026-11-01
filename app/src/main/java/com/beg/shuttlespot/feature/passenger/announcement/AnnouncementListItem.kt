@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.announcement
 
+// Overview: Defines announcement list item for the passenger announcement area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +38,7 @@ import kotlin.math.abs
 
 /** Satu baris pengumuman: label, judul + titik belum-dibaca + jam, lalu cuplikan isi. */
 @Composable
+// Renders the announcement list item UI section.
 fun AnnouncementListItem(
     item: Announcement,
     onClick: () -> Unit,
@@ -99,6 +103,7 @@ private fun AnnouncementTag.badgeColor(): LabelColor = when (kind) {
     AnnouncementTagKind.Route -> if (abs(label.hashCode()) % 2 == 0) LabelColor.Success else LabelColor.Purple
 }
 
+// File-level constants and shared definitions.
 private val timeFormatter = DateTimeFormatter.ofPattern("HH.mm")
 private val dateFormatter = DateTimeFormatter.ofPattern("d MMM")
 

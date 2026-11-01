@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.livetrip
 
+// Overview: Defines live trip demo screen for the passenger livetrip area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -40,7 +43,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
 import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.components.BusStatusCard
@@ -56,6 +59,7 @@ import kotlinx.coroutines.launch
  * dan kartu status bus ada di bottom sheet yang bisa ditarik naik/turun (sampai tersembunyi).
  */
 @Composable
+// Renders the live trip demo screen UI section.
 fun LiveTripDemoScreen(
     onBack: () -> Unit,
     viewModel: LiveTripViewModel = hiltViewModel(),
@@ -77,6 +81,7 @@ fun LiveTripDemoScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+// Renders the live trip content UI section.
 private fun LiveTripContent(
     trip: ActiveTripSnapshot?,
     boardingConfirmed: Boolean,
@@ -197,6 +202,7 @@ private fun LiveTripContent(
 
 /** Kotak melayang di atas peta: tombol kembali di kiri, nama rute di tengah. */
 @Composable
+// Renders the floating route bar UI section.
 private fun FloatingRouteBar(
     title: String,
     onBack: () -> Unit,

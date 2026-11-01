@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.announcement
 
+// Overview: Defines announcement screen for the passenger announcement area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.beg.shuttlespot.core.model.Announcement
 import com.beg.shuttlespot.core.model.AnnouncementTag
 import com.beg.shuttlespot.core.model.AnnouncementTagKind
@@ -44,6 +47,7 @@ import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
  * [onAnnouncementClick] menerima id pengumuman; saat halaman detail ada, sambungkan di nav graph.
  */
 @Composable
+// Renders the announcement screen UI section.
 fun AnnouncementScreen(
     onBack: () -> Unit,
     onAnnouncementClick: (String) -> Unit = {},
@@ -61,6 +65,7 @@ fun AnnouncementScreen(
 }
 
 @Composable
+// Renders the announcement content UI section.
 fun AnnouncementContent(
     state: AnnouncementUiState,
     onBack: () -> Unit,
@@ -127,6 +132,7 @@ fun AnnouncementContent(
     }
 }
 
+// File-level constants and shared definitions.
 private val previewItems = listOf(
     Announcement(
         "1", "Admin", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ...",
@@ -148,6 +154,7 @@ private val previewItems = listOf(
 
 @Preview(showBackground = true, name = "Berisi")
 @Composable
+// Renders the announcement content preview UI section.
 private fun AnnouncementContentPreview() {
     ShuttleSpotTheme(darkTheme = false) {
         WaveBackground(WaveStyle.Main) {
@@ -158,6 +165,7 @@ private fun AnnouncementContentPreview() {
 
 @Preview(showBackground = true, name = "Kosong")
 @Composable
+// Renders the announcement content empty preview UI section.
 private fun AnnouncementContentEmptyPreview() {
     ShuttleSpotTheme(darkTheme = false) {
         WaveBackground(WaveStyle.Main) {

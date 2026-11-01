@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.data.repository
 
+// Overview: Defines in memory announcement repository for the data repository area of ShuttleSpot.
+
+// Dependencies used by this file.
 import com.beg.shuttlespot.core.model.Announcement
 import com.beg.shuttlespot.core.model.AnnouncementTag
 import com.beg.shuttlespot.core.model.AnnouncementTagKind
@@ -11,6 +14,7 @@ import javax.inject.Singleton
 
 /** Data demo sampai pengumuman tersambung ke backend. */
 @Singleton
+// Defines the in memory announcement repository type.
 class InMemoryAnnouncementRepository @Inject constructor() : AnnouncementRepository {
     private val now = System.currentTimeMillis()
     private val lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
@@ -48,6 +52,7 @@ class InMemoryAnnouncementRepository @Inject constructor() : AnnouncementReposit
         )
     )
 
+    // Implements framework behavior for observe announcements.
     override fun observeAnnouncements(): Flow<List<Announcement>> = announcements.asStateFlow()
 
     private companion object {

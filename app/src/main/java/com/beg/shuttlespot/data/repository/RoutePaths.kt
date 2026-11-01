@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.data.repository
 
+// Overview: Defines route paths for the data repository area of ShuttleSpot.
+
+// Dependencies used by this file.
 import com.beg.shuttlespot.core.model.GeoPoint
 
 /**
@@ -21,6 +24,7 @@ internal object RoutePaths {
      * antar titik terdekat. Dipakai untuk mengamimasikan posisi bus demo di sepanjang jalan,
      * bukan hanya di titik-titik halte.
      */
+    // Handles the bsd umn point at responsibility.
     fun bsdUmnPointAt(progress: Float): GeoPoint = pointAt(BSD_UMN, BSD_UMN_CUMULATIVE_METERS, progress)
 
     /** Jarak Haversine (meter) antar dua titik. */
@@ -72,6 +76,7 @@ internal object RoutePaths {
      * [target]. Dipakai supaya kode pemanggil bisa bilang "progress di koordinat halte sekian"
      * tanpa perlu tahu indeksnya di polyline yang sudah disederhanakan.
      */
+    // Handles the bsd umn progress near responsibility.
     fun bsdUmnProgressNear(target: GeoPoint): Float {
         if (BSD_UMN.isEmpty()) return 0f
         var bestIndex = 0

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines avatar header for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +43,7 @@ fun timeOfDayGreeting(now: LocalTime = LocalTime.now()): String = when (now.hour
  * Bila [centerContent] false, avatar di kiri dan teks mengisi sisa ruang (contoh: di Dashboard).
  */
 @Composable
+// Renders the avatar header UI section.
 fun AvatarHeader(
     name: String,
     role: UserRole,
@@ -100,6 +104,7 @@ fun AvatarHeader(
 
 @Preview(showBackground = true, backgroundColor = 0xFF2BB5DD)
 @Composable
+// Renders the avatar header preview UI section.
 private fun AvatarHeaderPreview() {
     ShuttleSpotTheme {
         AvatarHeader(

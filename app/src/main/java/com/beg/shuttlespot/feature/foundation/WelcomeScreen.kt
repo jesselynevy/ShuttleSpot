@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.foundation
 
+// Overview: Defines welcome screen for the feature foundation area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -35,6 +38,7 @@ import com.beg.shuttlespot.R
  * passenger and driver access remain available in the approved onboarding flow.
  */
 @Composable
+// Renders the welcome screen UI section.
 fun WelcomeScreen(onEnter: () -> Unit) {
     val isLandscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     BoxWithConstraints(

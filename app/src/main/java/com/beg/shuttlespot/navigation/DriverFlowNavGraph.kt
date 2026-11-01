@@ -1,12 +1,16 @@
 package com.beg.shuttlespot.navigation
 
+// Overview: Defines driver flow nav graph for the shuttlespot navigation area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.core.ui.components.PlaceholderScreen
-import com.beg.shuttlespot.feature.foundation.DriverActiveTripScreen
+import com.beg.shuttlespot.feature.driver.trip.DriverActiveTripScreen
 
+// Defines the driver flow route type.
 object DriverFlowRoute {
     const val ACTIVE_TRIP = "driver/active_trip"
     const val TRIP_COMPLETE = "driver/trip_complete"

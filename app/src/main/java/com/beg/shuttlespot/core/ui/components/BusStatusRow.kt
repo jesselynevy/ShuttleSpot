@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines bus status row for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -27,6 +30,7 @@ import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 @Composable
+// Renders the bus status row UI section.
 fun BusStatusRow(
     type: TripStatus,
     /** Konteks halte: untuk [TripStatus.EN_ROUTE] = halte tujuan bus; untuk [TripStatus.WAITING_AT_OTHERSTOP] = halte tempat bus sedang berhenti. */

@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines bus route progress for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.estimateAnimationDurationMillis
 import androidx.compose.animation.core.tween
@@ -34,6 +37,7 @@ import com.beg.shuttlespot.core.ui.theme.CircularShape
 import com.beg.shuttlespot.core.ui.theme.ShuttleSpotTheme
 
 @Composable
+// Renders the bus route progress UI section.
 fun BusRouteProgress(
     progress: Float,
     /** Nama halte asal ruas yang sedang berjalan (ditampilkan di ujung kiri). */
@@ -138,6 +142,7 @@ fun BusRouteProgress(
 
 @Preview(showBackground = true)
 @Composable
+// Renders the bus route progress preview UI section.
 fun BusRouteProgressPreview() {
     ShuttleSpotTheme()
     {

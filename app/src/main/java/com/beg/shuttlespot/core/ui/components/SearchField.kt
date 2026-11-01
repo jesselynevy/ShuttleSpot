@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.core.ui.components
 
+// Overview: Defines search field for the ui components area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -14,6 +17,7 @@ import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 /** Kolom pencarian satu baris dengan ikon kaca pembesar. */
 @Composable
+// Renders the search field UI section.
 fun SearchField(
     value: String,
     onValueChange: (String) -> Unit,

@@ -1,13 +1,17 @@
 package com.beg.shuttlespot.core.model
 
+// Overview: Defines announcement for the core model area of ShuttleSpot.
+
 /** Jenis label pada pengumuman; warna chip ditentukan di lapisan UI. */
 enum class AnnouncementTagKind { Route, MainRoute, General }
 
+// Defines the announcement tag type.
 data class AnnouncementTag(
     val label: String,
     val kind: AnnouncementTagKind,
 )
 
+// Defines the announcement type.
 data class Announcement(
     val id: String,
     val sender: String,

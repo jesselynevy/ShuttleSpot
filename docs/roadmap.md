@@ -4,7 +4,7 @@
 
 The approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing), summarized in `docs/source-of-truth.md`, is the authoritative passenger MVP flow. The current milestone delivers that journey as a deterministic in-memory UI prototype.
 
-The Supabase/Room/Realtime/FCM content below is the **planned online-storage roadmap and proposal explanation**. It is not evidence that those backend capabilities are implemented in the current app. Use `Planned Supabase` and a dashed planned-integration connector in flowcharts until a remote adapter has been implemented and tested.
+The Supabase/Room/Realtime/FCM content below is the **planned online-storage roadmap and proposal explanation**. The app now has Room-persisted session, route, trip, boarding-intent, and notification foundations plus a network-constrained outbox-worker boundary, but it has no configured remote Supabase transport, FCM delivery, or GPS publisher. Use `Planned Supabase` and a dashed planned-integration connector in flowcharts until a remote adapter has been implemented and tested.
 
 ## Proposal requirement
 

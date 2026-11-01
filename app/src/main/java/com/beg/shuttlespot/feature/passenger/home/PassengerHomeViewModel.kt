@@ -1,5 +1,8 @@
 package com.beg.shuttlespot.feature.passenger.home
 
+// Overview: Defines passenger home view model for the passenger home area of ShuttleSpot.
+
+// Dependencies used by this file.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
@@ -20,6 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
+// Defines the passenger home view model type.
 class PassengerHomeViewModel @Inject constructor(
     private val repository: PassengerTripRepository,
     routeRepository: RouteRepository
@@ -36,7 +40,7 @@ class PassengerHomeViewModel @Inject constructor(
             else trip.flatMapLatest { activeTrip ->
                 activeTrip?.let {
                     repository.observeBoardingIntent(it.tripId, selection.pickupStopId)
-                        .map { intent -> intent?.status == BoardingIntentStatus.CONFIRMED }
+                        .map { intent -> intent?.status in setOf(BoardingIntentStatus.CONFIRMED, BoardingIntentStatus.PENDING_SYNC) }
                 } ?: flowOf(false)
             }
         }
@@ -59,7 +63,7 @@ class PassengerHomeViewModel @Inject constructor(
                                 .map { intent ->
                                     toPassengerHomeUiState(
                                         snapshot = activeTrip,
-                                        hasConfirmedBoarding = intent?.status == BoardingIntentStatus.CONFIRMED,
+                                        hasConfirmedBoarding = intent?.status in setOf(BoardingIntentStatus.CONFIRMED, BoardingIntentStatus.PENDING_SYNC),
                                         primaryRouteName = routeName,
                                         primaryPickupStopName = pickupStopName,
                                     )
@@ -80,6 +84,7 @@ class PassengerHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PassengerHomeUiState(PassengerTripStatus.NO_ACTIVE_BUS, isLoading = true))
 }
 
+// Defines the passenger home ui state type.
 data class PassengerHomeUiState(
     val status: PassengerTripStatus,
     val vehicleLabel: String? = null,
@@ -97,6 +102,7 @@ data class PassengerHomeUiState(
     val errorMessage: String? = null
 )
 
+// Defines the passenger trip status type.
 enum class PassengerTripStatus(val label: String) {
     NO_ACTIVE_BUS("Tidak ada perjalanan aktif"),
     EN_ROUTE("Dalam perjalanan"),
@@ -108,6 +114,7 @@ enum class PassengerTripStatus(val label: String) {
     NOT_STARTED("Belum beroperasi")
 }
 
+// Prepares or returns to passenger home ui state.
 internal fun toPassengerHomeUiState(
     snapshot: ActiveTripSnapshot?,
     hasConfirmedBoarding: Boolean = false,

@@ -32,3 +32,19 @@ internal fun Throwable.toSafeAuthMessage(): String {
             "Operasi autentikasi gagal. Silakan coba lagi."
     }
 }
+
+internal fun Throwable.toSafeDriverAuthMessage(): String {
+    val rawMessage = message.orEmpty().lowercase()
+    return when {
+        "driver account inactive" in rawMessage ->
+            "Akun driver dinonaktifkan. Hubungi koordinator shuttle."
+
+        "driver account required" in rawMessage ->
+            "Akun ini bukan akun driver."
+
+        "invalid login credentials" in rawMessage ->
+            "Nomor telepon atau password salah."
+
+        else -> toSafeAuthMessage()
+    }
+}

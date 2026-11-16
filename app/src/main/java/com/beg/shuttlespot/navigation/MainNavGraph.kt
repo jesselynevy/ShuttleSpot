@@ -26,7 +26,13 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
             SessionUiState.Loading -> Unit
             is SessionUiState.Ready -> {
                 val session = s.session
-                if (session != null) {
+                if (session?.mustChangePassword == true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(AuthRoute.DRIVER_PASSWORD_CHANGE) {
+                            popUpTo(MainRoute.SHELL) { inclusive = true }
+                        }
+                    }
+                } else if (session != null) {
                     MainShell(role = session.role, rootNav = navController)
                 } else {
                     LaunchedEffect(Unit) {

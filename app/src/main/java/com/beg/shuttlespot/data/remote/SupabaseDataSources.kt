@@ -6,8 +6,11 @@ package com.beg.shuttlespot.data.remote
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
 import com.beg.shuttlespot.core.model.Announcement
 import com.beg.shuttlespot.core.model.AppSession
+import com.beg.shuttlespot.core.model.AuthActionResult
 import com.beg.shuttlespot.core.model.BoardingIntent
 import com.beg.shuttlespot.core.model.RouteDetails
+import com.beg.shuttlespot.core.model.SignInResult
+import com.beg.shuttlespot.core.model.SignUpResult
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -37,12 +40,30 @@ interface SupabaseAnnouncementDataSource {
 
 // Defines the supabase auth data source type.
 interface SupabaseAuthDataSource {
-    // Prepares or returns observe session.
     fun observeSession(): Flow<AppSession?>
-    // Handles the sign in passenger responsibility.
-    suspend fun signInPassenger(email: String, password: String): AppSession
-    // Handles the sign in driver responsibility.
-    suspend fun signInDriver(phoneE164: String, password: String): AppSession
-    // Handles the sign out responsibility.
+    suspend fun currentSession(): AppSession?
+    suspend fun signUpPassenger(
+        displayName: String,
+        email: String,
+        password: String,
+    ): SignUpResult
+
+    suspend fun signInPassenger(
+        email: String,
+        password: String,
+    ): SignInResult
+
+    suspend fun resendConfirmation(
+        email: String,
+    ): AuthActionResult
+
+    suspend fun sendPasswordReset(
+        email: String,
+    ): AuthActionResult
+
+    suspend fun updatePassword(
+        newPassword: String,
+    ): AuthActionResult
+
     suspend fun signOut()
 }

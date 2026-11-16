@@ -4,7 +4,7 @@
 
 Use a single Android app with role-gated navigation. Build a vertical slice for the passenger journey first, then the driver location publisher. The cloud is authoritative, while Room provides a usable local cache and an outbox for offline writes.
 
-For the current passenger-first milestone, the approved Flow ShuttleSpot document defines the passenger journey. Student authentication and route catalogue refresh use Supabase adapters; live trip, location, notification delivery, and remote mutation adapters remain deterministic or deferred until their integrations are deliberately scheduled.
+For the current passenger-first milestone, the approved Flow ShuttleSpot document defines the passenger journey. Student authentication, route catalogue refresh, and passenger preference/boarding outbox delivery have Supabase adapters. Live trip, location, Realtime, and notification delivery remain deterministic or deferred until their integrations are deliberately scheduled.
 
 ## Planned Android stack
 
@@ -35,20 +35,23 @@ For the current passenger-first milestone, the approved Flow ShuttleSpot documen
 - `SessionRepository`, `RouteRepository`, `PassengerTripRepository`, `DriverTripRepository`, and `NotificationRepository` are the public seams used by ViewModels. The app persists the non-secret local session, route catalogue/stops/geometry/timetables, primary route selection, latest trip snapshot, boarding intents, and personal notification inbox in Room. Static demo sources seed route and trip cache data until remote adapters are configured.
 - `LocationPublisher` is an isolated seam; its current no-op adapter is intentionally replaced later by the driver foreground-service implementation.
 - ConfettiKit provides the short Compose confetti animation on passenger registration completion.
-- Room contains cache/outbox support for routes, stops, geometry, timetables, selections, trip snapshots, boarding intents, announcements, persisted sessions, personal notifications, and retryable passenger mutations. Route selection and boarding intents update Room first and enqueue an idempotent outbox mutation. A network-constrained outbox worker and Supabase data-source contracts are implemented, but the worker is deliberately not scheduled in demo mode because no remote mutation transport is configured.
+- Room contains cache/outbox support for routes, stops, geometry, timetables, selections, trip snapshots, boarding intents, announcements, persisted sessions, personal notifications, and retryable passenger mutations. Route selection and boarding intents update Room first and enqueue a versioned, idempotent outbox mutation. In connected builds, network-constrained WorkManager work is enqueued immediately after a mutation and again on startup. Retryable failures stop ordered processing and retry at most five times; invalid payloads and rejected mutations are retained with a permanent-failure reason for diagnosis. Demo builds do not schedule remote sync.
+- Passenger mutations call security-definer Postgres RPCs that derive ownership only from `auth.uid()`. Clients cannot supply a passenger/profile ID. Direct writes to preferences and boarding intents are revoked; RLS continues to scope reads to the owner. The boarding RPC validates the active trip and route stop and treats the idempotency key as a stable retry identity.
 - `data.remote` is the only intended home for Supabase SDK DTOs and calls. UI and ViewModels consume domain models through repositories only.
 - Supabase schema is versioned under `supabase/migrations/`; URL and anonymous-key values stay in untracked `local.properties` and are validated through `SupabaseConfig`.
 - Passenger self-signup is restricted server-side by a Supabase Before User Created Postgres hook to the exact `student.umn.ac.id` domain. A database trigger creates the matching passenger profile, while authenticated clients can read only their own profile and cannot write role-bearing profile rows directly.
 - With email confirmation enabled, Supabase returns an obfuscated user with no identities when an already-confirmed email signs up again. The auth data source maps that response to an explicit domain result; navigation returns the passenger to sign-in without waiting for an email that Supabase will not send.
 - Session restoration refreshes Room from a valid Supabase session, clears a stale cached session when Supabase definitively reports no session, and retains the cache when the remote/profile lookup fails so an offline launch does not incorrectly sign the passenger out.
+- Driver accounts are created only through a local administrator command using the Supabase Admin API; the service-role key never enters Android. Drivers enter phone/password in the UI, while the auth adapter deterministically maps the normalized phone to a confirmed `@shuttlespot.internal` email alias. The real phone remains in `profiles.phone_e164`, and no SMS provider is required. Login reads role, active state, and the first-login password flag from `profiles`, with the non-secret flag cached in Room for process restoration.
+- Driver trip mutations use security-definer RPCs that derive the driver from `auth.uid()`, validate assignment and lifecycle transitions, and return an immutable trip snapshot. Direct authenticated updates to `trips` are revoked. Driver trip caching, Realtime, and foreground location publishing remain deferred.
 
 ## Data model (initial)
 
 | Table/entity | Important fields |
 | --- | --- |
-| `profiles` | `id`, `role` (`passenger`, `driver`, `admin`), name, contact metadata |
+| `profiles` | `id`, `role` (`passenger`, `driver`, `admin`), name, contact metadata, active, must-change-password |
 | `routes` | `id`, name, direction, service notice, active, timestamps |
-| `stops` | `id`, `route_id`, name, sequence, latitude, longitude |
+| `stops` | `id`, `route_id`, name, sequence, nullable latitude/longitude until verified map data exists |
 | `route_geometry_points` | `route_id`, sequence, latitude, longitude; ordered MapLibre route line |
 | `route_timetable_entries` | `route_id`, sequence, period, departure time, description |
 | `vehicles` | `id`, plate number, display label, capacity, active |
@@ -57,7 +60,7 @@ For the current passenger-first milestone, the approved Flow ShuttleSpot documen
 | `boarding_intents` | passenger, trip, stop, status, idempotency key, timestamps |
 | `announcements` | author, route nullable, title, body, published timestamp |
 | `notification_subscriptions` | profile, route, FCM token, preferences |
-| Room outbox | operation type, payload, idempotency key, retry metadata |
+| Room outbox | operation type, payload version, idempotency key, retry count, last error, permanent-failure flag |
 
 Use UUIDs. Model route assignments through `trips`; do not put mutable live-trip fields on `routes` or `vehicles`.
 
@@ -84,4 +87,4 @@ Live location is the best effort, not a guarantee. UI must expose stale/offline 
 
 - Choose whether ETA is calculated client-side from simplified route progress for the demo, or by an Edge Function. Start with a transparent heuristic and document it.
 - Confirm UMN route/stops and access approval; otherwise ship explicit demo data.
-- Driver authentication/provisioning remains a demo lookup. Decide whether production driver access uses OTP, administrator-issued credentials, or another verified identity flow before enabling driver operations.
+- Decide how operations staff create trips for provisioned drivers; the current MVP uses explicit `trips.driver_id` assignment and intentionally has no Android admin surface.

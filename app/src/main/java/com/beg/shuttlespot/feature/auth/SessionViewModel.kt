@@ -26,6 +26,12 @@ sealed interface SessionUiState {
 @HiltViewModel
 // Defines the session view model type.
 class SessionViewModel @Inject constructor(private val repository: SessionRepository) : ViewModel() {
+    init {
+        viewModelScope.launch {
+            repository.restoreSession()
+        }
+    }
+
     val state: StateFlow<SessionUiState> = repository.observeSession()
         .map { SessionUiState.Ready(it) as SessionUiState }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SessionUiState.Loading)

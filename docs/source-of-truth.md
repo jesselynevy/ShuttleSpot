@@ -53,7 +53,7 @@ The PDF is the authoritative source for existing ShuttleSpot research and protot
 
 Use the deck to preserve the scope presented to the lecturer. It confirms the research-backed passenger and driver journeys and makes these proposal commitments explicit:
 
-- The proposal visual shows UMN SSO for passengers and registered-phone OTP for drivers. The current MVP decisions replace passenger SSO with a student-email domain gate (accept only a valid address in the form `name@student.umn.ac.id`) and replace driver OTP with a registered-phone lookup. Driver demo access is allowed only when the normalized phone number matches a pre-registered driver profile; it does not prove ownership of the number.
+- The proposal visual shows UMN SSO for passengers and registered-phone OTP for drivers. The current MVP decisions replace passenger SSO with a student-email domain gate (accept only a valid address in the form `name@student.umn.ac.id`) and replace driver OTP with administrator-issued phone/password credentials. Android maps the normalized phone to an internal confirmed email alias for Supabase Auth, so the MVP does not require SMS or Twilio; the alias is never shown to the driver.
 - Passengers select pickup and destination stops, inspect route stops and departure schedules, then track the bus and confirm boarding intent.
 - Drivers view waiting-passenger demand, follow their route, update trip status, move to the next stop, and finish the trip.
 - Operations-staff features, including fleet monitoring, schedule management, and central announcements, are good-to-have rather than part of the first passenger-and-driver MVP.

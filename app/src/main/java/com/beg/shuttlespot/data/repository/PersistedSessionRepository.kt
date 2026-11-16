@@ -30,6 +30,7 @@ class PersistedSessionRepository @Inject constructor(
                     role = UserRole.valueOf(it.role),
                     displayName = it.displayName,
                     contact = it.contact,
+                    mustChangePassword = it.mustChangePassword,
                 )
             }
         }
@@ -77,9 +78,14 @@ class PersistedSessionRepository @Inject constructor(
 
     override suspend fun signInDriver(
         phoneNumber: String,
+        password: String,
     ): SignInResult {
-        // Driver provisioning belum diimplementasikan.
-        return persist(demo.signInDriver(phoneNumber))
+        val result = if (BuildConfig.USE_DEMO_DATA) {
+            demo.signInDriver(phoneNumber, password)
+        } else {
+            remoteProvider.get().signInDriver(phoneNumber, password)
+        }
+        return persist(result)
     }
 
     override suspend fun resendConfirmation(
@@ -118,6 +124,32 @@ class PersistedSessionRepository @Inject constructor(
         return remoteProvider.get().updatePassword(newPassword)
     }
 
+    override suspend fun updateDriverPassword(
+        currentPassword: String,
+        newPassword: String,
+    ): AuthActionResult {
+        if (BuildConfig.USE_DEMO_DATA) {
+            return demo.updateDriverPassword(currentPassword, newPassword)
+        }
+
+        val remote = remoteProvider.get()
+        val result = remote.updateDriverPassword(currentPassword, newPassword)
+        if (result != AuthActionResult.Success) return result
+
+        return runCatching {
+            val refreshed = requireNotNull(remote.currentSession())
+            check(!refreshed.mustChangePassword)
+            saveSession(refreshed)
+            AuthActionResult.Success
+        }.getOrElse {
+            runCatching { remote.signOut() }
+            dao.clearSession()
+            AuthActionResult.Rejected(
+                "Password berubah, tetapi profil belum dapat dimuat ulang. Silakan masuk kembali.",
+            )
+        }
+    }
+
     override suspend fun signOut() {
         if (!BuildConfig.USE_DEMO_DATA) {
             runCatching {
@@ -148,6 +180,7 @@ class PersistedSessionRepository @Inject constructor(
                 role = session.role.name,
                 displayName = session.displayName,
                 contact = session.contact,
+                mustChangePassword = session.mustChangePassword,
                 updatedAtEpochMillis = System.currentTimeMillis(),
             ),
         )

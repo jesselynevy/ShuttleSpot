@@ -13,11 +13,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 // Dependencies used by this file.
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 // Dependencies used by this file.
@@ -34,27 +35,61 @@ import com.beg.shuttlespot.navigation.RootRoute
 import com.beg.shuttlespot.navigation.ShuttleSpotNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 import org.maplibre.android.MapLibre
+import android.content.Intent
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.handleDeeplinks
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
+import javax.inject.Inject
+import javax.inject.Provider
 
 @AndroidEntryPoint
-// Defines the main activity type.
 class MainActivity : ComponentActivity() {
-    // Implements framework behavior for on create.
+
+    @Inject
+    lateinit var supabaseClientProvider: Provider<SupabaseClient>
+
+    private val authDeepLinks = MutableSharedFlow<Intent>(
+        replay = 1,
+        extraBufferCapacity = 1,
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleAuthDeepLink(intent)
         MapLibre.getInstance(applicationContext)
         enableEdgeToEdge()
         setContent {
-            ShuttleSpotApp()
+            ShuttleSpotApp(authDeepLinks = authDeepLinks)
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleAuthDeepLink(intent)
+    }
+
+    private fun handleAuthDeepLink(intent: Intent?) {
+        if (intent?.data?.scheme != "shuttlespot") return
+        if (intent.data?.host != "auth") return
+
+        if (!BuildConfig.USE_DEMO_DATA) {
+            supabaseClientProvider.get().handleDeeplinks(intent)
+        }
+
+        authDeepLinks.tryEmit(intent)
     }
 }
 
 @Composable
 // Renders the shuttle spot app UI section.
 private fun ShuttleSpotApp(
+    authDeepLinks: Flow<Intent> = emptyFlow(),
     themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
-    val isDarkModeOverride by themeViewModel.isDarkMode.collectAsState()
+    val isDarkModeOverride by themeViewModel.isDarkMode.collectAsStateWithLifecycle()
     val darkTheme = isDarkModeOverride ?: isSystemInDarkTheme()
 
     ShuttleSpotTheme(darkTheme = darkTheme) {
@@ -73,6 +108,12 @@ private fun ShuttleSpotApp(
                 else -> WaveStyle.Main
             }
             WaveBackground(style) { ShuttleSpotNavGraph(navController = navController) }
+
+            LaunchedEffect(navController, authDeepLinks) {
+                authDeepLinks.collect { deepLinkIntent ->
+                    navController.handleDeepLink(deepLinkIntent)
+                }
+            }
         }
     }
 }

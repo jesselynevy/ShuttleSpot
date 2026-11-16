@@ -15,4 +15,9 @@ data class RemoteProfileDto(
 
     @SerialName("phone_e164")
     val phoneE164: String? = null,
+
+    val active: Boolean = true,
+
+    @SerialName("must_change_password")
+    val mustChangePassword: Boolean = false,
 )

@@ -46,7 +46,10 @@ import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
 
 @Composable
 // Renders the role selection screen UI section.
-fun RoleSelectionScreen(onPassenger: () -> Unit) {
+fun RoleSelectionScreen(
+    onPassenger: () -> Unit,
+    onDriver: () -> Unit,
+) {
     var selectedRole by remember { mutableStateOf<UserRole?>(null) }
     val colors = MaterialTheme.colorScheme
     val scrollState = rememberScrollState()
@@ -77,34 +80,23 @@ fun RoleSelectionScreen(onPassenger: () -> Unit) {
                 tags = listOf(stringResource(R.string.role_driver_tag_route), stringResource(R.string.role_driver_tag_schedule), stringResource(R.string.role_driver_tag_passengers)),
                 onClick = { selectedRole = UserRole.DRIVER },
             )
-            if (selectedRole == UserRole.DRIVER) {
-                Spacer(Modifier.height(8.dp))
-                DriverUnavailableTooltip()
-            }
             Spacer(Modifier.height(28.dp))
             Button(
-                onClick = { if (selectedRole == UserRole.PASSENGER) onPassenger() },
+                onClick = {
+                    when (selectedRole) {
+                        UserRole.PASSENGER -> onPassenger()
+                        UserRole.DRIVER -> onDriver()
+                        null -> Unit
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = colors.primary, contentColor = colors.onPrimary),
-                enabled = selectedRole == UserRole.PASSENGER,
+                enabled = selectedRole != null,
             ) { Text(stringResource(R.string.role_continue), style = MaterialTheme.typography.labelLarge) }
             Spacer(Modifier.height(24.dp))
             Spacer(Modifier.height(32.dp))
             Text(stringResource(R.string.welcome_language), Modifier.align(Alignment.CenterHorizontally), style = MaterialTheme.typography.labelMedium)
         }
-    }
-}
-
-@Composable
-// Renders the driver unavailable tooltip UI section.
-private fun DriverUnavailableTooltip() {
-    Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text("Fitur Supir Bus belum tersedia.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp))
     }
 }
 

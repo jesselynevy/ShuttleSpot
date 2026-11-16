@@ -32,6 +32,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import com.beg.shuttlespot.BuildConfig
 import com.beg.shuttlespot.data.remote.SupabaseRouteDataSource
+import com.beg.shuttlespot.data.sync.OutboxSyncTrigger
 
 /** Room is the read model; demo data only refreshes that cache until Supabase is installed. */
 @Singleton
@@ -42,6 +43,7 @@ class PersistedRouteRepository @Inject constructor(
     private val remote: SupabaseRouteDataSource,
     private val sessions: SessionRepository,
     private val dao: ShuttleSpotDao,
+    private val outboxSyncTrigger: OutboxSyncTrigger = OutboxSyncTrigger {},
 ) : RouteRepository {
     // Implements framework behavior for observe routes.
     override fun observeRoutes(): Flow<List<Route>> = dao.observeRoutes()
@@ -134,6 +136,7 @@ class PersistedRouteRepository @Inject constructor(
                 createdAtEpochMillis = System.currentTimeMillis(),
             )
         )
+        if (!BuildConfig.USE_DEMO_DATA) outboxSyncTrigger.enqueue()
     }
 
     // Handles the cached stop entity responsibility.

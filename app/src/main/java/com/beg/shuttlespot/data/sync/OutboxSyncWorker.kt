@@ -4,6 +4,7 @@ package com.beg.shuttlespot.data.sync
 
 // Dependencies used by this file.
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -16,6 +17,8 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -35,15 +38,24 @@ class OutboxSyncWorker(context: Context, params: WorkerParameters) : CoroutineWo
     }
 }
 
-// Defines the outbox sync scheduler type.
-object OutboxSyncScheduler {
-    private const val UNIQUE_WORK_NAME = "shuttlespot-outbox-sync"
+fun interface OutboxSyncTrigger {
+    fun enqueue()
+}
 
+// Defines the outbox sync scheduler type.
+@Singleton
+class OutboxSyncScheduler @Inject constructor(
+    @ApplicationContext private val context: Context,
+) : OutboxSyncTrigger {
     // Handles the enqueue responsibility.
-    fun enqueue(context: Context) {
+    override fun enqueue() {
         val request = OneTimeWorkRequestBuilder<OutboxSyncWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(UNIQUE_WORK_NAME, ExistingWorkPolicy.KEEP, request)
+    }
+
+    private companion object {
+        const val UNIQUE_WORK_NAME = "shuttlespot-outbox-sync"
     }
 }

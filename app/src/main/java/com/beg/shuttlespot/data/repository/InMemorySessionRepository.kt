@@ -4,7 +4,9 @@ package com.beg.shuttlespot.data.repository
 
 // Dependencies used by this file.
 import com.beg.shuttlespot.core.model.AppSession
+import com.beg.shuttlespot.core.model.AuthActionResult
 import com.beg.shuttlespot.core.model.SignInResult
+import com.beg.shuttlespot.core.model.SignUpResult
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.core.common.Validation
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +27,16 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
 
     // Implements framework behavior for observe session.
     override fun observeSession(): Flow<AppSession?> = session.asStateFlow()
+
+    override suspend fun restoreSession() = Unit
+
+    override suspend fun signUpPassenger(
+        displayName: String,
+        email: String,
+        password: String,
+    ): SignUpResult = SignUpResult.Rejected(
+        "Pendaftaran akun tidak tersedia dalam mode demo.",
+    )
 
     // Implements framework behavior for sign in passenger.
     override suspend fun signInPassenger(email: String, password: String): SignInResult {
@@ -50,6 +62,21 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
             .also { session.value = it }
             .let(SignInResult::Success)
     }
+
+    override suspend fun resendConfirmation(email: String): AuthActionResult =
+        AuthActionResult.Rejected(
+            "Konfirmasi email tidak tersedia dalam mode demo.",
+        )
+
+    override suspend fun sendPasswordReset(email: String): AuthActionResult =
+        AuthActionResult.Rejected(
+            "Reset password tidak tersedia dalam mode demo.",
+        )
+
+    override suspend fun updatePassword(newPassword: String): AuthActionResult =
+        AuthActionResult.Rejected(
+            "Pembaruan password tidak tersedia dalam mode demo.",
+        )
 
     // Implements framework behavior for sign out.
     override suspend fun signOut() { session.value = null }

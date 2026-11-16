@@ -55,6 +55,28 @@
     <string name="auth_password_confirmation_mismatch">Konfirmasi password tidak sama.</string>
     <string name="auth_student_email_required">Gunakan email mahasiswa @student.umn.ac.id.</string>
     <string name="auth_account_already_registered">Akun ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.</string>
+    <string name="driver_login_title">Login Driver</string>
+    <string name="driver_login_description">Masukkan nomor dan password yang sudah terdaftar.</string>
+    <string name="driver_phone">Nomor telepon</string>
+    <string name="driver_password_change_title">Ganti password driver</string>
+    <string name="driver_password_change_description">Ganti password sementara sebelum menjalankan trip.</string>
+    <string name="driver_temporary_password">Password sementara</string>
+    <string name="driver_dashboard_title">Dashboard Driver</string>
+    <string name="driver_no_assignment">Tidak ada trip yang ditugaskan hari ini.</string>
+    <string name="driver_retry">Coba lagi</string>
+    <string name="driver_start_trip">Mulai perjalanan</string>
+    <string name="driver_starting_trip">Memulai…</string>
+    <string name="driver_active_trip_title">Trip aktif</string>
+    <string name="driver_active_trip_missing">Trip aktif tidak ditemukan.</string>
+    <string name="driver_next_stop">Halte berikutnya: %1$s</string>
+    <string name="driver_final_stop">Bus berada di halte terakhir</string>
+    <string name="driver_progress">Progress: %1$d/%2$d</string>
+    <plurals name="driver_waiting_count">
+        <item quantity="one">Menunggu: %1$d mahasiswa</item>
+        <item quantity="other">Menunggu: %1$d mahasiswa</item>
+    </plurals>
+    <string name="driver_advance_stop">Tiba di halte berikutnya</string>
+    <string name="driver_finish_trip">Selesaikan perjalanan</string>
     <string name="registration_complete_message">Terima kasih telah\nregistrasi di ShuttleSpot!</string>
     <string name="registration_complete_action">Oke!</string>
 </resources>

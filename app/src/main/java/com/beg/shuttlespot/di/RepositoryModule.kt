@@ -3,6 +3,7 @@ package com.beg.shuttlespot.di
 // Overview: Defines repository module for the shuttlespot di area of ShuttleSpot.
 
 // Dependencies used by this file.
+import com.beg.shuttlespot.BuildConfig
 import com.beg.shuttlespot.data.location.LocationPublisher
 import com.beg.shuttlespot.data.location.NoOpLocationPublisher
 import com.beg.shuttlespot.data.repository.AnnouncementRepository
@@ -21,12 +22,11 @@ import com.beg.shuttlespot.data.repository.PersistedRouteRepository
 import com.beg.shuttlespot.data.repository.SessionRepository
 import com.beg.shuttlespot.data.repository.ThemeRepository
 // Dependencies used by this file.
-import com.beg.shuttlespot.data.sync.RemoteMutationSink
-import com.beg.shuttlespot.data.local.OutboxEntity
 import com.beg.shuttlespot.data.demo.DemoRouteDataSource
 import com.beg.shuttlespot.data.demo.StaticDemoRouteDataSource
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 // Dependencies used by this file.
@@ -35,6 +35,13 @@ import com.beg.shuttlespot.data.remote.SupabaseRouteDataSource
 import com.beg.shuttlespot.data.remote.SupabaseRouteDataSourceImpl
 import com.beg.shuttlespot.data.remote.SupabaseAuthDataSource
 import com.beg.shuttlespot.data.remote.SupabaseAuthDataSourceImpl
+import com.beg.shuttlespot.data.remote.PassengerMutationRemote
+import com.beg.shuttlespot.data.remote.SupabaseOutboxRemoteDataSource
+import com.beg.shuttlespot.data.remote.SupabasePassengerMutationRemote
+import com.beg.shuttlespot.data.remote.SupabaseDriverTripRepository
+import com.beg.shuttlespot.data.sync.RemoteMutationSink
+import com.beg.shuttlespot.data.sync.OutboxSyncScheduler
+import com.beg.shuttlespot.data.sync.OutboxSyncTrigger
 
 @Module // marks this class as a Hilt configuration file.
 @InstallIn(SingletonComponent::class) //Installs its bindings in the app-wide Hilt container.
@@ -57,9 +64,6 @@ abstract class RepositoryModule {
     abstract fun bindPassengerTripRepository(implementation: RoomPassengerTripRepository): PassengerTripRepository
 
     @Binds @Singleton
-    abstract fun bindDriverTripRepository(implementation: InMemoryDriverTripRepository): DriverTripRepository
-
-    @Binds @Singleton
     abstract fun bindAnnouncementRepository(implementation: InMemoryAnnouncementRepository): AnnouncementRepository
 
     @Binds @Singleton
@@ -76,17 +80,28 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindSupabaseAuthDataSource(implementation: SupabaseAuthDataSourceImpl): SupabaseAuthDataSource
-}
 
-@Module
-@InstallIn(SingletonComponent::class)
-// Defines the sync module type.
-object SyncModule {
-    @dagger.Provides @Singleton
-    // Prepares or returns provide remote mutation sink.
-    fun provideRemoteMutationSink(): RemoteMutationSink = object : RemoteMutationSink {
-        // No production transport is configured yet. The worker is intentionally
-        // not scheduled while demo mode is active.
-        override suspend fun deliver(operation: OutboxEntity): Boolean = false
+    @Binds @Singleton
+    abstract fun bindPassengerMutationRemote(
+        implementation: SupabasePassengerMutationRemote,
+    ): PassengerMutationRemote
+
+    @Binds @Singleton
+    abstract fun bindRemoteMutationSink(
+        implementation: SupabaseOutboxRemoteDataSource,
+    ): RemoteMutationSink
+
+    @Binds @Singleton
+    abstract fun bindOutboxSyncTrigger(
+        implementation: OutboxSyncScheduler,
+    ): OutboxSyncTrigger
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideDriverTripRepository(
+            demo: InMemoryDriverTripRepository,
+            remote: SupabaseDriverTripRepository,
+        ): DriverTripRepository = if (BuildConfig.USE_DEMO_DATA) demo else remote
     }
 }

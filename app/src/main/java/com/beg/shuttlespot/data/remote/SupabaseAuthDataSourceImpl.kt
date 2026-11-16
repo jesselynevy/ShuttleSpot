@@ -5,6 +5,7 @@ import com.beg.shuttlespot.core.model.AuthActionResult
 import com.beg.shuttlespot.core.model.SignInResult
 import com.beg.shuttlespot.core.model.SignUpResult
 import com.beg.shuttlespot.core.model.UserRole
+import com.beg.shuttlespot.core.common.Validation
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -141,6 +142,39 @@ class SupabaseAuthDataSourceImpl @Inject constructor(
         }
     }
 
+    override suspend fun signInDriver(
+        phone: String,
+        password: String,
+    ): SignInResult {
+        val normalizedPhone = Validation.normalizeIndonesianPhone(phone)
+        if (!normalizedPhone.matches(Regex("^\\+628[0-9]{8,12}$"))) {
+            return SignInResult.Rejected(
+                "Gunakan nomor Indonesia yang valid.",
+            )
+        }
+
+        return runCatching {
+            // Supabase sees an internal email credential; drivers still enter their phone number.
+            client.auth.signInWith(Email) {
+                email = driverAliasForPhone(normalizedPhone)
+                this.password = password
+            }
+
+            val session = currentSession()
+                ?: error("Profil driver belum tersedia.")
+            if (session.role != UserRole.DRIVER) {
+                client.auth.signOut()
+                error("Driver account required")
+            }
+
+            SignInResult.Success(session)
+        }.getOrElse { error ->
+            // A rejected driver profile must not leave a usable Auth session behind.
+            runCatching { client.auth.signOut() }
+            SignInResult.Rejected(error.toSafeDriverAuthMessage())
+        }
+    }
+
     override suspend fun resendConfirmation(
         email: String,
     ): AuthActionResult {
@@ -211,6 +245,28 @@ class SupabaseAuthDataSourceImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateDriverPassword(
+        currentPassword: String,
+        newPassword: String,
+    ): AuthActionResult {
+        if (newPassword.length < 8) {
+            return AuthActionResult.Rejected("Password minimal 8 karakter.")
+        }
+        if (!newPassword.hasLetterAndDigit()) {
+            return AuthActionResult.Rejected(PASSWORD_COMPLEXITY_MESSAGE)
+        }
+
+        return runCatching {
+            client.auth.updateUser {
+                password = newPassword
+                this.currentPassword = currentPassword
+            }
+            AuthActionResult.Success
+        }.getOrElse { error ->
+            AuthActionResult.Rejected(error.toSafeDriverAuthMessage())
+        }
+    }
+
     override suspend fun signOut() {
         client.auth.signOut()
     }
@@ -227,6 +283,8 @@ class SupabaseAuthDataSourceImpl @Inject constructor(
                     "display_name",
                     "email",
                     "phone_e164",
+                    "active",
+                    "must_change_password",
                 ),
             ) {
                 filter {
@@ -241,11 +299,16 @@ class SupabaseAuthDataSourceImpl @Inject constructor(
             else -> error("Role ${profile.role} tidak didukung aplikasi.")
         }
 
+        if (role == UserRole.DRIVER && !profile.active) {
+            error("Driver account inactive")
+        }
+
         return AppSession(
             profileId = profile.id,
             role = role,
             displayName = profile.displayName,
             contact = profile.email ?: profile.phoneE164.orEmpty(),
+            mustChangePassword = profile.mustChangePassword,
         )
     }
 
@@ -264,3 +327,6 @@ class SupabaseAuthDataSourceImpl @Inject constructor(
 
 internal fun UserInfo?.isObfuscatedExistingUser(): Boolean =
     this?.identities?.isEmpty() == true
+
+internal fun driverAliasForPhone(normalizedPhone: String): String =
+    "driver.${normalizedPhone.removePrefix("+")}@shuttlespot.internal"

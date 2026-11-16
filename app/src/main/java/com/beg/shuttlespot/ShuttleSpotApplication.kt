@@ -6,14 +6,17 @@ package com.beg.shuttlespot
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import com.beg.shuttlespot.data.sync.OutboxSyncScheduler
+import javax.inject.Inject
 
 @HiltAndroidApp
 // Defines the shuttle spot application type.
 class ShuttleSpotApplication : Application(){
+    @Inject lateinit var outboxSyncScheduler: OutboxSyncScheduler
+
     // Implements framework behavior for on create.
     override fun onCreate() {
         super.onCreate()
-        if (!BuildConfig.USE_DEMO_DATA) OutboxSyncScheduler.enqueue(this)
+        if (!BuildConfig.USE_DEMO_DATA) outboxSyncScheduler.enqueue()
     }
 }
 

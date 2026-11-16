@@ -143,7 +143,7 @@ private fun OnboardingRouteList(
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 32.dp)) {
         if (showProgress) StudentOnboardingProgressHeader(StudentOnboardingStep.ROUTE)
         Text("Mari kita cari rute yang cocok dengan Anda!", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp))
-        Text("Jadwal dan rute demo", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+        Text("Jadwal dan rute shuttle", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             if (state.isLoading) item { LoadingState("Memuat rute") }
             else if (state.routes.isEmpty()) item { EmptyState("Belum ada rute", "Rute belum tersedia.") }
@@ -270,11 +270,13 @@ private fun TimetableDetailsScreen(
                     }
                 }
             }
-            item {
-                Text(
-                    text = "*Untuk waktu tiba dititik drop off dapat berubah sesuai kondisi kepadatan lalu lintas",
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            route.serviceNotice?.let { notice ->
+                item {
+                    Text(
+                        text = notice,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
         RoutePrimaryButton(
@@ -377,7 +379,6 @@ private fun RoutePickerScreen(state: RouteSelectionUiState, onRouteSelected: (St
                 items(details.stops, key = { "pickup_${it.id}" }) { stop -> StopChoice(stop, state.pickupStopId == stop.id, onPickupSelected) }
                 item { Text("Tujuan", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp)) }
                 items(details.stops, key = { "destination_${it.id}" }) { stop -> StopChoice(stop, state.destinationStopId == stop.id, onDestinationSelected) }
-//                item { TimetableCard(details.timetableEntries, details.serviceNotice) }
             }
         }
         state.errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 8.dp)) }
@@ -391,7 +392,7 @@ private fun RouteCard(route: Route, selected: Boolean, onClick: () -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             RadioButton(selected = selected, onClick = onClick)
-            Column(Modifier.padding(start = 8.dp)) { Text(route.name, style = MaterialTheme.typography.titleMedium); Text("Data jadwal demo", style = MaterialTheme.typography.bodySmall) }
+            Column(Modifier.padding(start = 8.dp)) { Text(route.name, style = MaterialTheme.typography.titleMedium); Text("Jadwal shuttle tersedia", style = MaterialTheme.typography.bodySmall) }
         }
     }
 }

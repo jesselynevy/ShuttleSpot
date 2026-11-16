@@ -9,7 +9,8 @@ data class AppSession(
     val profileId: String,
     val role: UserRole,
     val displayName: String,
-    val contact: String
+    val contact: String,
+    val mustChangePassword: Boolean = false,
 )
 
 // Defines the sign in result type.

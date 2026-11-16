@@ -30,6 +30,8 @@ import org.json.JSONObject
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.beg.shuttlespot.BuildConfig
+import com.beg.shuttlespot.data.remote.SupabaseRouteDataSource
 
 /** Room is the read model; demo data only refreshes that cache until Supabase is installed. */
 @Singleton
@@ -37,6 +39,7 @@ import javax.inject.Singleton
 // Defines the persisted route repository type.
 class PersistedRouteRepository @Inject constructor(
     private val demo: DemoRouteDataSource,
+    private val remote: SupabaseRouteDataSource,
     private val sessions: SessionRepository,
     private val dao: ShuttleSpotDao,
 ) : RouteRepository {
@@ -73,19 +76,38 @@ class PersistedRouteRepository @Inject constructor(
     // Implements framework behavior for refresh routes.
     override suspend fun refreshRoutes() {
         val fetchedAt = System.currentTimeMillis()
-        val details = demo.getRoutes()
+
+        val details = if (BuildConfig.USE_DEMO_DATA) {
+            demo.getRoutes()
+        } else {
+            remote.fetchRoutes()
+        }
+
         dao.upsertRoutes(details.map {
             CachedRouteEntity(it.route.id, it.route.name, it.serviceNotice, fetchedAt)
         })
-        dao.upsertStops(details.flatMap { detail -> detail.stops.map { it.toEntity() } })
+        dao.upsertStops(details.flatMap { detail ->
+            detail.stops.map { it.toEntity() }
+        })
         dao.upsertTimetableEntries(details.flatMap { detail ->
             detail.timetableEntries.mapIndexed { index, entry ->
-                CachedTimetableEntryEntity(detail.route.id, index, entry.period, entry.time, entry.description)
+                CachedTimetableEntryEntity(
+                    routeId = detail.route.id,
+                    sequence = index,
+                    period = entry.period,
+                    time = entry.time,
+                    description = entry.description,
+                )
             }
         })
         dao.upsertRoutePoints(details.flatMap { detail ->
             detail.path.mapIndexed { index, point ->
-                CachedRoutePointEntity(detail.route.id, index, point.latitude, point.longitude)
+                CachedRoutePointEntity(
+                    routeId = detail.route.id,
+                    sequence = index,
+                    latitude = point.latitude,
+                    longitude = point.longitude,
+                )
             }
         })
     }

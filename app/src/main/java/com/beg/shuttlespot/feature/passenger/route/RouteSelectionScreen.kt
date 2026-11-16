@@ -63,9 +63,20 @@ fun RouteSelectionScreen(
     val state by viewModel.uiState.collectAsState()
     var choosingStops by remember { mutableStateOf(false) }
     var editingRoute by remember { mutableStateOf(false) }
+    val cancelRouteChange = {
+        viewModel.discardUnconfirmedRouteChange()
+        choosingStops = false
+        editingRoute = false
+    }
     if (!showOnboardingProgress) {
         DisposableEffect(viewModel) {
             onDispose(viewModel::discardUnconfirmedRouteChange)
+        }
+    }
+    if (!showOnboardingProgress && editingRoute) {
+        BackHandler {
+            if (state.showTimetable) viewModel.closeTimetable()
+            else cancelRouteChange()
         }
     }
     if (showOnboardingProgress && !state.selectionSaved) {
@@ -112,11 +123,11 @@ fun RouteSelectionScreen(
             choosingStops = true
         }
         showOnboardingProgress -> OnboardingStopList(state, { choosingStops = false }, viewModel::selectOnboardingStop, viewModel::openTimetable, showProgress = true)
-        editingRoute && !choosingStops -> OnboardingRouteList(state, onBack = { editingRoute = false }, showProgress = false) { id ->
+        editingRoute && !choosingStops -> OnboardingRouteList(state, onBack = cancelRouteChange, showProgress = false) { id ->
             viewModel.selectRoute(id, useDefaults = false)
             choosingStops = true
         }
-        editingRoute -> OnboardingStopList(state, { choosingStops = false }, viewModel::selectOnboardingStop, viewModel::openTimetable, showProgress = false)
+        editingRoute -> OnboardingStopList(state, cancelRouteChange, viewModel::selectOnboardingStop, viewModel::openTimetable, showProgress = false)
         else -> RoutePickerScreen(state, { viewModel.selectRoute(it) }, viewModel::selectPickup, viewModel::selectDestination, viewModel::openTimetable, showOnboardingProgress)
     }
 }

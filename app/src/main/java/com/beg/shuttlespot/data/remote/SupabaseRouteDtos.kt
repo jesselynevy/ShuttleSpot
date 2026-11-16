@@ -18,8 +18,8 @@ internal data class RemoteStopDto(
     val routeId: String,
     val name: String,
     val sequence: Int,
-    val latitude: Double,
-    val longitude: Double,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 @Serializable

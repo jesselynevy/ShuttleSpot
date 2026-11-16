@@ -4,7 +4,7 @@
 
 The approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing), summarized in `docs/source-of-truth.md`, is the authoritative passenger MVP flow. Passenger Supabase Auth and remote route-catalogue refresh are implemented; the live-trip portion of the journey still uses deterministic demo data.
 
-The Supabase/Room/Realtime/FCM content below is the **online-storage roadmap and proposal explanation**. Supabase Auth and read-only route refresh are configured. Room-persisted route, trip, boarding-intent, and notification foundations plus a network-constrained outbox-worker boundary are implemented, but remote mutations, Realtime trip delivery, FCM delivery, and the GPS publisher are not. Mark only those remaining integrations as planned in flowcharts.
+The Supabase/Room/Realtime/FCM content below is the **online-storage roadmap and proposal explanation**. Supabase Auth and route refresh are configured. Passenger preference and boarding mutations now have versioned Room outbox delivery, authenticated Postgres RPCs, bounded retry, idempotency, and pgTAP RLS coverage in the repository. The migrations and eight-route catalogue are deployed to `shuttlespot-dev`; remote schema lint passes. Running the pgTAP file remains a CI/environment checkpoint because the current machine has no Docker/Podman runner. Realtime trip delivery, FCM delivery, and the GPS publisher remain planned.
 
 ## Proposal requirement
 
@@ -12,7 +12,7 @@ The proposal must explicitly state an online data-storage plan; this is a pass/f
 
 ## Supabase role in the app
 
-- **Supabase Auth:** manages verified passenger email/password accounts and restored sessions; production driver provisioning remains planned.
+- **Supabase Auth:** manages verified passenger accounts. Driver phone/password input is mapped internally to administrator-created confirmed email aliases, so no SMS provider is required; provisioning and its first-login gate await hosted migration deployment.
 - **Supabase Postgres:** the online source of truth for profiles, routes, stops, trips, GPS updates, boarding intent, announcements, and notification subscriptions.
 - **Supabase Realtime:** sends active-trip, bus-location, and boarding-intent updates to subscribed passengers and assigned drivers.
 - **Supabase RLS:** passengers access their own profile/intents and public active-route data; drivers update only their assigned trip and location.
@@ -40,9 +40,9 @@ The proposal must explicitly state an online data-storage plan; this is a pass/f
     - The driver receives the updated waiting-passenger count through Realtime.
 
 5. **Driver trip**
-    - Starting a trip updates `trips.status` to active and starts foreground GPS sharing.
-    - Marking a stop complete updates the trip’s current stop sequence and status.
-    - Finishing the trip writes its end time/status, stops location publication, and returns the passenger dashboard to an unavailable or next-schedule state.
+    - Pending hosted migrations add secure RPCs that load the authenticated driver's assignment and validate start, next-stop, and finish transitions.
+    - Direct driver updates to `trips` are denied; assignment comes from `trips.driver_id` and identity comes from `auth.uid()`.
+    - Foreground GPS sharing and passenger Realtime delivery remain the next driver milestone.
 
 6. **Announcements and notifications**
     - Route-wide/general announcements are stored in `announcements`.

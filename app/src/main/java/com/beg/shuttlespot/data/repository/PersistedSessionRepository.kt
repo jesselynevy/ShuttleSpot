@@ -1,62 +1,173 @@
 package com.beg.shuttlespot.data.repository
 
-// Overview: Defines persisted session repository for the data repository area of ShuttleSpot.
-
-// Dependencies used by this file.
+import com.beg.shuttlespot.BuildConfig
 import com.beg.shuttlespot.core.model.AppSession
+import com.beg.shuttlespot.core.model.AuthActionResult
 import com.beg.shuttlespot.core.model.SignInResult
+import com.beg.shuttlespot.core.model.SignUpResult
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.data.local.CachedSessionEntity
 import com.beg.shuttlespot.data.local.ShuttleSpotDao
+import com.beg.shuttlespot.data.remote.SupabaseAuthDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
-/**
- * Local session source used by the app. It deliberately delegates demo credential
- * checking to the demo adapter, but persists the resulting non-secret session so
- * navigation can restore after process recreation. A Supabase auth adapter can
- * replace the credential check without changing UI callers.
- */
 @Singleton
-// Defines the persisted session repository type.
 class PersistedSessionRepository @Inject constructor(
     private val dao: ShuttleSpotDao,
     private val demo: InMemorySessionRepository,
+    private val remoteProvider: Provider<SupabaseAuthDataSource>,
 ) : SessionRepository {
-    // Implements framework behavior for observe session.
-    override fun observeSession(): Flow<AppSession?> = dao.observeSession().map { stored ->
-        stored?.let {
-            AppSession(it.profileId, UserRole.valueOf(it.role), it.displayName, it.contact)
+
+    override fun observeSession(): Flow<AppSession?> =
+        dao.observeSession().map { stored ->
+            stored?.let {
+                AppSession(
+                    profileId = it.profileId,
+                    role = UserRole.valueOf(it.role),
+                    displayName = it.displayName,
+                    contact = it.contact,
+                )
+            }
         }
+
+    override suspend fun restoreSession() {
+        if (BuildConfig.USE_DEMO_DATA) return
+
+        restoreRemoteSession(
+            loadSession = { remoteProvider.get().currentSession() },
+            saveSession = ::saveSession,
+            clearSession = dao::clearSession,
+        )
     }
 
-    // Implements framework behavior for sign in passenger.
-    override suspend fun signInPassenger(email: String, password: String): SignInResult =
-        persist(demo.signInPassenger(email, password))
-
-    // Implements framework behavior for sign in driver.
-    override suspend fun signInDriver(phoneNumber: String): SignInResult =
-        persist(demo.signInDriver(phoneNumber))
-
-    // Implements framework behavior for sign out.
-    override suspend fun signOut() = dao.clearSession()
-
-    // Handles the persist responsibility.
-    private suspend fun persist(result: SignInResult): SignInResult {
-        if (result is SignInResult.Success) {
-            val session = result.session
-            dao.saveSession(
-                CachedSessionEntity(
-                    profileId = session.profileId,
-                    role = session.role.name,
-                    displayName = session.displayName,
-                    contact = session.contact,
-                    updatedAtEpochMillis = System.currentTimeMillis(),
-                )
+    override suspend fun signUpPassenger(
+        displayName: String,
+        email: String,
+        password: String,
+    ): SignUpResult {
+        if (BuildConfig.USE_DEMO_DATA) {
+            return SignUpResult.Rejected(
+                "Signup Supabase tidak tersedia pada demo mode.",
             )
         }
+
+        return remoteProvider.get().signUpPassenger(
+            displayName = displayName,
+            email = email,
+            password = password,
+        )
+    }
+
+    override suspend fun signInPassenger(
+        email: String,
+        password: String,
+    ): SignInResult {
+        val result = if (BuildConfig.USE_DEMO_DATA) {
+            demo.signInPassenger(email, password)
+        } else {
+            remoteProvider.get().signInPassenger(email, password)
+        }
+
+        return persist(result)
+    }
+
+    override suspend fun signInDriver(
+        phoneNumber: String,
+    ): SignInResult {
+        // Driver provisioning belum diimplementasikan.
+        return persist(demo.signInDriver(phoneNumber))
+    }
+
+    override suspend fun resendConfirmation(
+        email: String,
+    ): AuthActionResult {
+        if (BuildConfig.USE_DEMO_DATA) {
+            return AuthActionResult.Rejected(
+                "Email confirmation tidak tersedia pada demo mode.",
+            )
+        }
+
+        return remoteProvider.get().resendConfirmation(email)
+    }
+
+    override suspend fun sendPasswordReset(
+        email: String,
+    ): AuthActionResult {
+        if (BuildConfig.USE_DEMO_DATA) {
+            return AuthActionResult.Rejected(
+                "Password reset tidak tersedia pada demo mode.",
+            )
+        }
+
+        return remoteProvider.get().sendPasswordReset(email)
+    }
+
+    override suspend fun updatePassword(
+        newPassword: String,
+    ): AuthActionResult {
+        if (BuildConfig.USE_DEMO_DATA) {
+            return AuthActionResult.Rejected(
+                "Password update tidak tersedia pada demo mode.",
+            )
+        }
+
+        return remoteProvider.get().updatePassword(newPassword)
+    }
+
+    override suspend fun signOut() {
+        if (!BuildConfig.USE_DEMO_DATA) {
+            runCatching {
+                remoteProvider.get().signOut()
+            }
+        }
+
+        // Local session harus selalu dibersihkan.
+        dao.clearSession()
+    }
+
+    private suspend fun persist(
+        result: SignInResult,
+    ): SignInResult {
+        if (result is SignInResult.Success) {
+            saveSession(result.session)
+        }
+
         return result
+    }
+
+    private suspend fun saveSession(
+        session: AppSession,
+    ) {
+        dao.saveSession(
+            CachedSessionEntity(
+                profileId = session.profileId,
+                role = session.role.name,
+                displayName = session.displayName,
+                contact = session.contact,
+                updatedAtEpochMillis = System.currentTimeMillis(),
+            ),
+        )
+    }
+}
+
+internal suspend fun restoreRemoteSession(
+    loadSession: suspend () -> AppSession?,
+    saveSession: suspend (AppSession) -> Unit,
+    clearSession: suspend () -> Unit,
+) {
+    try {
+        val session = loadSession()
+        if (session != null) {
+            saveSession(session)
+        } else {
+            clearSession()
+        }
+    } catch (_: Exception) {
+        // A network/profile lookup failure is not proof that the authenticated
+        // session expired, so retain the cached session for offline rendering.
     }
 }

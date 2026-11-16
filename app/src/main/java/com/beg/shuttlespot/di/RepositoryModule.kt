@@ -31,6 +31,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 // Dependencies used by this file.
 import javax.inject.Singleton
+import com.beg.shuttlespot.data.remote.SupabaseRouteDataSource
+import com.beg.shuttlespot.data.remote.SupabaseRouteDataSourceImpl
+import com.beg.shuttlespot.data.remote.SupabaseAuthDataSource
+import com.beg.shuttlespot.data.remote.SupabaseAuthDataSourceImpl
 
 @Module // marks this class as a Hilt configuration file.
 @InstallIn(SingletonComponent::class) //Installs its bindings in the app-wide Hilt container.
@@ -66,6 +70,12 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindThemeRepository(implementation: AppThemeRepository): ThemeRepository
+
+    @Binds @Singleton
+    abstract fun bindSupabaseRouteDataSource(implementation: SupabaseRouteDataSourceImpl): SupabaseRouteDataSource
+
+    @Binds @Singleton
+    abstract fun bindSupabaseAuthDataSource(implementation: SupabaseAuthDataSourceImpl): SupabaseAuthDataSource
 }
 
 @Module

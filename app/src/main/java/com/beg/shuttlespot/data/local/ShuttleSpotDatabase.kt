@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [CachedRouteEntity::class, CachedStopEntity::class, CachedRoutePointEntity::class, CachedTimetableEntryEntity::class, PrimarySelectionEntity::class, TripSnapshotEntity::class, CachedAnnouncementEntity::class, OutboxEntity::class, CachedSessionEntity::class, CachedNotificationEntity::class, CachedBoardingIntentEntity::class],
-    version = 3,
+    version = 5,
     exportSchema = false
 )
 // Defines the shuttle spot database type.

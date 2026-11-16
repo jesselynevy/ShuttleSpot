@@ -7,8 +7,14 @@ import com.beg.shuttlespot.core.model.AppSession
 import com.beg.shuttlespot.core.model.SignInResult
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.core.model.BoardingIntentStatus
+import com.beg.shuttlespot.core.model.AuthActionResult
+import com.beg.shuttlespot.core.model.SignUpResult
 import com.beg.shuttlespot.data.demo.StaticDemoRouteDataSource
 import com.beg.shuttlespot.data.local.ShuttleSpotDatabase
+import com.beg.shuttlespot.data.remote.SupabaseRouteDataSource
+import com.beg.shuttlespot.data.sync.MutationDeliveryResult
+import com.beg.shuttlespot.data.sync.OutboxProcessor
+import com.beg.shuttlespot.data.sync.RemoteMutationSink
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -30,8 +36,12 @@ class PersistedRouteRepositoryInstrumentedTest {
             InstrumentationRegistry.getInstrumentation().targetContext,
             ShuttleSpotDatabase::class.java,
         ).allowMainThreadQueries().build()
+        val demo = StaticDemoRouteDataSource()
         repository = PersistedRouteRepository(
-            StaticDemoRouteDataSource(),
+            demo,
+            object : SupabaseRouteDataSource {
+                override suspend fun fetchRoutes() = demo.getRoutes()
+            },
             SessionFake(),
             database.shuttleSpotDao(),
         )
@@ -64,13 +74,83 @@ class PersistedRouteRepositoryInstrumentedTest {
         assertEquals(BoardingIntentStatus.PENDING_SYNC, first.status)
         assertEquals(first, retry)
         assertEquals(1, database.shuttleSpotDao().observeOutbox().first().size)
+
+        val processor = OutboxProcessor(
+            database.shuttleSpotDao(),
+            object : RemoteMutationSink {
+                override suspend fun deliver(operation: com.beg.shuttlespot.data.local.OutboxEntity) =
+                    MutationDeliveryResult.Delivered
+            },
+        )
+        processor.processAll()
+
+        assertEquals(
+            BoardingIntentStatus.CONFIRMED,
+            trips.observeBoardingIntent("trip-bsd-1", "bsd_umn_1").first()?.status,
+        )
+        assertEquals(0, database.shuttleSpotDao().observeOutbox().first().size)
+    }
+
+    @Test fun offline_mutation_is_retried_then_removed_after_reconnection() = runBlocking {
+        repository.refreshRoutes()
+        repository.savePrimaryRoute("bsd_umn", "bsd_umn_1", "bsd_umn_9")
+        var online = false
+        val processor = OutboxProcessor(
+            database.shuttleSpotDao(),
+            object : RemoteMutationSink {
+                override suspend fun deliver(operation: com.beg.shuttlespot.data.local.OutboxEntity) =
+                    if (online) MutationDeliveryResult.Delivered
+                    else MutationDeliveryResult.RetryableFailure("offline")
+            },
+        )
+
+        assertEquals(false, processor.processAll())
+        assertEquals(1, database.shuttleSpotDao().observeOutbox().first().single().retryCount)
+
+        online = true
+        assertEquals(true, processor.processAll())
+        assertEquals(0, database.shuttleSpotDao().observeOutbox().first().size)
+    }
+
+    @Test fun cancelling_before_sync_keeps_local_intent_cancelled_after_delivery() = runBlocking {
+        val trips = RoomPassengerTripRepository(database.shuttleSpotDao(), SessionFake())
+        trips.submitBoardingIntent("trip-bsd-1", "bsd_umn_1", "cancelled-intent-key")
+        trips.cancelBoardingIntent("trip-bsd-1", "bsd_umn_1")
+        val processor = OutboxProcessor(
+            database.shuttleSpotDao(),
+            object : RemoteMutationSink {
+                override suspend fun deliver(operation: com.beg.shuttlespot.data.local.OutboxEntity) =
+                    MutationDeliveryResult.Delivered
+            },
+        )
+
+        processor.processAll()
+
+        assertEquals(
+            BoardingIntentStatus.CANCELLED,
+            trips.observeBoardingIntent("trip-bsd-1", "bsd_umn_1").first()?.status,
+        )
+        assertEquals(0, database.shuttleSpotDao().observeOutbox().first().size)
     }
 
     private class SessionFake : SessionRepository {
         private val session = MutableStateFlow<AppSession?>(AppSession("passenger-test", UserRole.PASSENGER, "Test", "test@student.umn.ac.id"))
         override fun observeSession(): Flow<AppSession?> = session
+        override suspend fun restoreSession() = Unit
+        override suspend fun signUpPassenger(displayName: String, email: String, password: String): SignUpResult =
+            SignUpResult.Rejected("unused")
         override suspend fun signInPassenger(email: String, password: String): SignInResult = SignInResult.Success(requireNotNull(session.value))
-        override suspend fun signInDriver(phoneNumber: String): SignInResult = SignInResult.Rejected("unused")
+        override suspend fun signInDriver(
+            phoneNumber: String,
+            password: String,
+        ): SignInResult = SignInResult.Rejected("unused")
+        override suspend fun resendConfirmation(email: String): AuthActionResult = AuthActionResult.Success
+        override suspend fun sendPasswordReset(email: String): AuthActionResult = AuthActionResult.Success
+        override suspend fun updatePassword(newPassword: String): AuthActionResult = AuthActionResult.Success
+        override suspend fun updateDriverPassword(
+            currentPassword: String,
+            newPassword: String,
+        ): AuthActionResult = AuthActionResult.Success
         override suspend fun signOut() { session.value = null }
     }
 }

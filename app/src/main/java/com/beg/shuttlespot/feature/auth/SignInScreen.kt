@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.beg.shuttlespot.R
+import com.beg.shuttlespot.core.model.AppSession
 import com.beg.shuttlespot.core.ui.components.StudentOnboardingProgressHeader
 import com.beg.shuttlespot.core.ui.components.StudentOnboardingStep
 import com.beg.shuttlespot.core.ui.components.SimpleScreenColumn
@@ -53,14 +54,16 @@ import com.beg.shuttlespot.core.ui.components.SimpleScreenColumn
 fun SignInScreen(
     isDriver: Boolean,
     accountAlreadyRegistered: Boolean = false,
-    onSuccess: () -> Unit,
+    onSuccess: (AppSession) -> Unit,
     onCreateAccount: () -> Unit,
     onForgotPassword: () -> Unit,
     showPassengerOnboardingProgress: Boolean = false,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LaunchedEffect(state.signedIn) { if (state.signedIn) onSuccess() }
+    LaunchedEffect(state.signedInSession) {
+        state.signedInSession?.let(onSuccess)
+    }
     if (isDriver) {
         DriverSignInContent(state, viewModel::signInDriver)
     } else {
@@ -77,14 +80,59 @@ fun SignInScreen(
 
 @Composable
 // Renders the driver sign in content UI section.
-private fun DriverSignInContent(state: AuthUiState, onLogin: (String) -> Unit) {
+private fun DriverSignInContent(
+    state: AuthUiState,
+    onLogin: (String, String) -> Unit,
+) {
     var phoneNumber by remember { mutableStateOf("") }
-    SimpleScreenColumn("Login Driver") {
-        Text("Masukkan nomor yang sudah terdaftar.")
-        OutlinedTextField(phoneNumber, { phoneNumber = it }, Modifier.fillMaxWidth(), label = { Text("Nomor telepon") }, singleLine = true)
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    SimpleScreenColumn(stringResource(R.string.driver_login_title)) {
+        Text(stringResource(R.string.driver_login_description))
+        OutlinedTextField(
+            value = phoneNumber,
+            onValueChange = { phoneNumber = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(stringResource(R.string.driver_phone)) },
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(stringResource(R.string.auth_password)) },
+            singleLine = true,
+            visualTransformation = if (passwordVisible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) {
+                            Icons.Filled.Visibility
+                        } else {
+                            Icons.Filled.VisibilityOff
+                        },
+                        contentDescription = stringResource(
+                            if (passwordVisible) {
+                                R.string.sso_hide_password
+                            } else {
+                                R.string.sso_show_password
+                            },
+                        ),
+                    )
+                }
+            },
+        )
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(onClick = { onLogin(phoneNumber) }, enabled = !state.loading, modifier = Modifier.fillMaxWidth()) {
-            Text(if (state.loading) "Memeriksa…" else "Lanjut")
+        Button(
+            onClick = { onLogin(phoneNumber, password) },
+            enabled = !state.loading && phoneNumber.isNotBlank() && password.isNotBlank(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(if (state.loading) "Memeriksa…" else stringResource(R.string.sso_login))
         }
     }
 }

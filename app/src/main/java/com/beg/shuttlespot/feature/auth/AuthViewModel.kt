@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.beg.shuttlespot.R
 import com.beg.shuttlespot.core.common.Validation
 import com.beg.shuttlespot.core.model.AuthActionResult
+import com.beg.shuttlespot.core.model.AppSession
 import com.beg.shuttlespot.core.model.SignInResult
 import com.beg.shuttlespot.core.model.SignUpResult
 import com.beg.shuttlespot.data.repository.SessionRepository
@@ -20,7 +21,7 @@ data class AuthUiState(
     val loading: Boolean = false,
     val error: String? = null,
     @param:StringRes val errorRes: Int? = null,
-    val signedIn: Boolean = false,
+    val signedInSession: AppSession? = null,
     val confirmationEmail: String? = null,
     val accountAlreadyRegistered: Boolean = false,
     val resetEmailSent: Boolean = false,
@@ -78,7 +79,10 @@ class AuthViewModel @Inject constructor(
         password: String,
     ) = signIn { sessions.signInPassenger(email, password) }
 
-    fun signInDriver(phone: String) = signIn { sessions.signInDriver(phone) }
+    fun signInDriver(
+        phone: String,
+        password: String,
+    ) = signIn { sessions.signInDriver(phone, password) }
 
     fun resendConfirmation(email: String) {
         runAction(
@@ -138,6 +142,30 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun updateDriverPassword(
+        currentPassword: String,
+        newPassword: String,
+        confirmation: String,
+    ) {
+        if (newPassword != confirmation) {
+            _state.value = AuthUiState(
+                errorRes = R.string.auth_password_confirmation_mismatch,
+            )
+            return
+        }
+
+        runAction(
+            successState = {
+                AuthUiState(
+                    passwordUpdated = true,
+                    messageRes = R.string.auth_password_updated,
+                )
+            },
+        ) {
+            sessions.updateDriverPassword(currentPassword, newPassword)
+        }
+    }
+
     fun clearTransientState() {
         _state.value = AuthUiState()
     }
@@ -146,7 +174,9 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = AuthUiState(loading = true)
             _state.value = when (val result = block()) {
-                is SignInResult.Success -> AuthUiState(signedIn = true)
+                is SignInResult.Success -> AuthUiState(
+                    signedInSession = result.session,
+                )
                 is SignInResult.Rejected -> AuthUiState(error = result.message)
             }
         }

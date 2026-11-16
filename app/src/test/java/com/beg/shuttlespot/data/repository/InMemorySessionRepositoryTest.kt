@@ -19,12 +19,15 @@ class InMemorySessionRepositoryTest {
     }
 
     @Test fun registered_driver_phone_creates_driver_session() = runTest {
-        val result = repository.signInDriver("081234567890")
+        val result = repository.signInDriver("081234567890", "driverpassword1")
         assertTrue(result is SignInResult.Success)
         assertEquals(UserRole.DRIVER, (result as SignInResult.Success).session.role)
     }
 
     @Test fun unknown_driver_phone_is_rejected() = runTest {
-        assertTrue(repository.signInDriver("081111111111") is SignInResult.Rejected)
+        assertTrue(
+            repository.signInDriver("081111111111", "driverpassword1")
+                is SignInResult.Rejected,
+        )
     }
 }

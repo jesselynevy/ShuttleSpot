@@ -19,3 +19,23 @@ sealed interface SignInResult {
     // Defines the rejected type.
     data class Rejected(val message: String) : SignInResult
 }
+
+sealed interface SignUpResult {
+    data class ConfirmationRequired(
+        val email: String,
+    ) : SignUpResult
+
+    data object AlreadyRegistered : SignUpResult
+
+    data class Rejected(
+        val message: String,
+    ) : SignUpResult
+}
+
+sealed interface AuthActionResult {
+    data object Success : AuthActionResult
+
+    data class Rejected(
+        val message: String,
+    ) : AuthActionResult
+}

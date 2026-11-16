@@ -13,6 +13,7 @@ fun localValue(name: String): String =
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
@@ -44,7 +45,12 @@ android {
         )
         // Demo is deliberate: production adapters are enabled only after the
         // corresponding Supabase/Firebase configuration has been supplied.
-        buildConfigField("boolean", "USE_DEMO_DATA", "true")
+        // buildConfigField("boolean", "USE_DEMO_DATA", "true")
+        buildConfigField(
+            "boolean",
+            "USE_DEMO_DATA",
+            localValue("USE_DEMO_DATA").ifBlank { "true" },
+        )
     }
 
     buildTypes {
@@ -79,8 +85,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.maplibre.android.sdk)
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.auth)
+    implementation(libs.ktor.client.android)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)

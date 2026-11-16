@@ -24,6 +24,7 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
         "jimmy.donaldson@student.umn.ac.id"
     )
     private val demoStudentPassword = "enterpassword"
+    private val demoDriverPassword = "driverpassword1"
 
     // Implements framework behavior for observe session.
     override fun observeSession(): Flow<AppSession?> = session.asStateFlow()
@@ -53,10 +54,13 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
     }
 
     // Implements framework behavior for sign in driver.
-    override suspend fun signInDriver(phoneNumber: String): SignInResult {
+    override suspend fun signInDriver(
+        phoneNumber: String,
+        password: String,
+    ): SignInResult {
         val normalized = Validation.normalizeIndonesianPhone(phoneNumber)
-        if (normalized !in registeredDrivers) {
-            return SignInResult.Rejected("Nomor belum terdaftar. Hubungi koordinator shuttle.")
+        if (normalized !in registeredDrivers || password != demoDriverPassword) {
+            return SignInResult.Rejected("Nomor telepon atau password salah.")
         }
         return AppSession("driver-demo", UserRole.DRIVER, "Pak Wahyu", normalized)
             .also { session.value = it }
@@ -77,6 +81,17 @@ class InMemorySessionRepository @Inject constructor() : SessionRepository {
         AuthActionResult.Rejected(
             "Pembaruan password tidak tersedia dalam mode demo.",
         )
+
+    override suspend fun updateDriverPassword(
+        currentPassword: String,
+        newPassword: String,
+    ): AuthActionResult {
+        if (currentPassword != demoDriverPassword) {
+            return AuthActionResult.Rejected("Password sementara salah.")
+        }
+        session.value = session.value?.copy(mustChangePassword = false)
+        return AuthActionResult.Success
+    }
 
     // Implements framework behavior for sign out.
     override suspend fun signOut() { session.value = null }

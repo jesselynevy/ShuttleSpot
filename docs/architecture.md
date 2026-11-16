@@ -4,7 +4,7 @@
 
 Use a single Android app with role-gated navigation. Build a vertical slice for the passenger journey first, then the driver location publisher. The cloud is authoritative, while Room provides a usable local cache and an outbox for offline writes.
 
-For the current UI-first milestone, the approved Flow ShuttleSpot document defines the passenger journey. Student email/password fields, notification permission, location permission, route/time selection, map review, profile review, route replacement, and tracker states are UI requirements. Repository adapters remain deterministic in-memory implementations until the corresponding real integration is deliberately scheduled.
+For the current passenger-first milestone, the approved Flow ShuttleSpot document defines the passenger journey. Student authentication and route catalogue refresh use Supabase adapters; live trip, location, notification delivery, and remote mutation adapters remain deterministic or deferred until their integrations are deliberately scheduled.
 
 ## Planned Android stack
 
@@ -38,15 +38,20 @@ For the current UI-first milestone, the approved Flow ShuttleSpot document defin
 - Room contains cache/outbox support for routes, stops, geometry, timetables, selections, trip snapshots, boarding intents, announcements, persisted sessions, personal notifications, and retryable passenger mutations. Route selection and boarding intents update Room first and enqueue an idempotent outbox mutation. A network-constrained outbox worker and Supabase data-source contracts are implemented, but the worker is deliberately not scheduled in demo mode because no remote mutation transport is configured.
 - `data.remote` is the only intended home for Supabase SDK DTOs and calls. UI and ViewModels consume domain models through repositories only.
 - Supabase schema is versioned under `supabase/migrations/`; URL and anonymous-key values stay in untracked `local.properties` and are validated through `SupabaseConfig`.
+- Passenger self-signup is restricted server-side by a Supabase Before User Created Postgres hook to the exact `student.umn.ac.id` domain. A database trigger creates the matching passenger profile, while authenticated clients can read only their own profile and cannot write role-bearing profile rows directly.
+- With email confirmation enabled, Supabase returns an obfuscated user with no identities when an already-confirmed email signs up again. The auth data source maps that response to an explicit domain result; navigation returns the passenger to sign-in without waiting for an email that Supabase will not send.
+- Session restoration refreshes Room from a valid Supabase session, clears a stale cached session when Supabase definitively reports no session, and retains the cache when the remote/profile lookup fails so an offline launch does not incorrectly sign the passenger out.
 
 ## Data model (initial)
 
 | Table/entity | Important fields |
 | --- | --- |
 | `profiles` | `id`, `role` (`passenger`, `driver`, `admin`), name, contact metadata |
-| `routes` | `id`, name, direction, active |
+| `routes` | `id`, name, direction, service notice, active, timestamps |
 | `stops` | `id`, `route_id`, name, sequence, latitude, longitude |
-| `vehicles` | `id`, plate_number, capacity, active |
+| `route_geometry_points` | `route_id`, sequence, latitude, longitude; ordered MapLibre route line |
+| `route_timetable_entries` | `route_id`, sequence, period, departure time, description |
+| `vehicles` | `id`, plate number, display label, capacity, active |
 | `trips` | `id`, route, vehicle, driver, `status`, started/ended timestamps, current-stop sequence |
 | `vehicle_locations` | trip, latitude, longitude, accuracy, captured timestamp |
 | `boarding_intents` | passenger, trip, stop, status, idempotency key, timestamps |
@@ -79,4 +84,4 @@ Live location is the best effort, not a guarantee. UI must expose stale/offline 
 
 - Choose whether ETA is calculated client-side from simplified route progress for the demo, or by an Edge Function. Start with a transparent heuristic and document it.
 - Confirm UMN route/stops and access approval; otherwise ship explicit demo data.
-- Passenger demo sign-in validates a syntactically valid email whose domain is exactly `student.umn.ac.id`, then assigns the passenger role. Driver demo access checks that a normalized phone number matches a pre-registered driver profile before assigning the driver role. Neither flow verifies ownership of the submitted contact detail. Isolate both behind a role-aware auth adapter so a real identity provider can replace the demo later.
+- Driver authentication/provisioning remains a demo lookup. Decide whether production driver access uses OTP, administrator-issued credentials, or another verified identity flow before enabling driver operations.

@@ -82,9 +82,12 @@ data class CachedAnnouncementEntity(@PrimaryKey val id: String, val title: Strin
 data class OutboxEntity(
     @PrimaryKey val idempotencyKey: String,
     val operationType: String,
+    val payloadVersion: Int = 1,
     val payload: String,
     val createdAtEpochMillis: Long,
-    val retryCount: Int = 0
+    val retryCount: Int = 0,
+    val lastError: String? = null,
+    val failedPermanently: Boolean = false,
 )
 
 /** Stores the non-secret signed-in profile details needed to restore the local session. */
@@ -95,6 +98,7 @@ data class CachedSessionEntity(
     val role: String,
     val displayName: String,
     val contact: String,
+    val mustChangePassword: Boolean = false,
     val updatedAtEpochMillis: Long,
 )
 

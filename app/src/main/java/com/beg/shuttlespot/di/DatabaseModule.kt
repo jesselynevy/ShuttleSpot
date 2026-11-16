@@ -28,6 +28,8 @@ object DatabaseModule {
         Room.databaseBuilder(context, ShuttleSpotDatabase::class.java, "shuttlespot.db")
             .addMigrations(MIGRATION_1_2)
             .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_3_4)
+            .addMigrations(MIGRATION_4_5)
             .build()
 
     @Provides fun provideDao(database: ShuttleSpotDatabase): ShuttleSpotDao = database.shuttleSpotDao()
@@ -56,6 +58,22 @@ object DatabaseModule {
             database.execSQL("DROP TABLE trip_snapshots")
             database.execSQL("ALTER TABLE trip_snapshots_new RENAME TO trip_snapshots")
             database.execSQL("CREATE TABLE IF NOT EXISTS cached_boarding_intents (profileId TEXT NOT NULL, tripId TEXT NOT NULL, stopId TEXT NOT NULL, status TEXT NOT NULL, idempotencyKey TEXT NOT NULL, updatedAtEpochMillis INTEGER NOT NULL, PRIMARY KEY(profileId, tripId, stopId))")
+        }
+    }
+
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE outbox ADD COLUMN payloadVersion INTEGER NOT NULL DEFAULT 1")
+            database.execSQL("ALTER TABLE outbox ADD COLUMN lastError TEXT")
+            database.execSQL("ALTER TABLE outbox ADD COLUMN failedPermanently INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                "ALTER TABLE cached_sessions ADD COLUMN mustChangePassword INTEGER NOT NULL DEFAULT 0",
+            )
         }
     }
 }

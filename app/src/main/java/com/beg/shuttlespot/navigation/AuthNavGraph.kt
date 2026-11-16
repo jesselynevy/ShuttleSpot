@@ -13,6 +13,7 @@ import androidx.navigation.navigation
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.feature.auth.CheckEmailScreen
 import com.beg.shuttlespot.feature.auth.ForgotPasswordScreen
+import com.beg.shuttlespot.feature.auth.DriverPasswordChangeScreen
 import com.beg.shuttlespot.feature.auth.NewPasswordScreen
 import com.beg.shuttlespot.feature.auth.RoleSelectionScreen
 import com.beg.shuttlespot.feature.auth.SignInScreen
@@ -33,6 +34,7 @@ object AuthRoute {
     const val CHECK_EMAIL = "auth/check_email/{email}"
     const val FORGOT_PASSWORD = "auth/forgot_password"
     const val NEW_PASSWORD = "auth/new_password"
+    const val DRIVER_PASSWORD_CHANGE = "auth/driver_password_change"
 
     const val ARG_EMAIL = "email"
 
@@ -64,6 +66,7 @@ fun NavGraphBuilder.authNavGraph(
         composable(AuthRoute.ROLE_SELECTION) {
             RoleSelectionScreen(
                 onPassenger = { navController.navigate(AuthRoute.signIn(UserRole.PASSENGER)) },
+                onDriver = { navController.navigate(AuthRoute.signIn(UserRole.DRIVER)) },
             )
         }
 
@@ -95,7 +98,15 @@ fun NavGraphBuilder.authNavGraph(
                 accountAlreadyRegistered = entry.arguments
                     ?.getBoolean(AuthRoute.ARG_ACCOUNT_ALREADY_REGISTERED)
                     ?: false,
-                onSuccess = { onSignedIn(role) },
+                onSuccess = { session ->
+                    if (session.mustChangePassword) {
+                        navController.navigate(AuthRoute.DRIVER_PASSWORD_CHANGE) {
+                            popUpTo(AuthRoute.SIGN_IN) { inclusive = true }
+                        }
+                    } else {
+                        onSignedIn(session.role)
+                    }
+                },
                 onCreateAccount = {
                     navController.navigate(AuthRoute.SIGN_UP)
                 },
@@ -173,6 +184,12 @@ fun NavGraphBuilder.authNavGraph(
                         }
                     }
                 },
+            )
+        }
+
+        composable(AuthRoute.DRIVER_PASSWORD_CHANGE) {
+            DriverPasswordChangeScreen(
+                onPasswordUpdated = { onSignedIn(UserRole.DRIVER) },
             )
         }
     }

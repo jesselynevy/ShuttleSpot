@@ -8,14 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.DarkMode
 // Dependencies used by this file.
 import androidx.compose.material.icons.outlined.DirectionsBus
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -68,7 +64,7 @@ fun ProfileTab(
             ProfileDataBlock(
                 icon = Icons.Outlined.Person,
                 informationTitle = "Email",
-                informationData = session?.contact?.takeIf { it.isNotBlank() } ?: "angelabenedictins@gmail.com",
+                informationData = session?.contact?.takeIf { it.isNotBlank() } ?: "-",
                 showDivider = true
             )
             ProfileDataBlock(

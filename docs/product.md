@@ -28,7 +28,7 @@ Source: [`docs/source-of-truth.md`](source-of-truth.md), curated from the team's
 
 The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.com/document/d/17YCPWTSPf85NLzikkpIhXh7TjIyRhv21k0eYmK0YhJ4/edit?usp=sharing) journey, summarized in `docs/source-of-truth.md`.
 
-1. A passenger chooses `Mahasiswa`, enters a demo SSO username and password input, and continues only with the configured in-memory demo account. This remains a prototype interaction until real authentication is implemented.
+1. A passenger chooses `Mahasiswa`, then signs in or creates a Supabase Auth account using an exact `@student.umn.ac.id` address. New accounts require email confirmation. Repeating signup for an already-confirmed account returns the passenger to sign-in with a prompt to sign in or reset the password.
 2. They proceed through a notification-permission explanation that distinguishes bus-status alerts from general announcements, then optional location permission, with a manual route/stop fallback. Choosing `Aktifkan notifikasi` opens Android's native permission prompt; skipping remains available.
 3. They select a route, pickup stop, destination, and desired time; inspect the route map; review the chosen details; and see registration success.
    The current onboarding route picker has two steps: choose a directional demo route, then choose the pickup and a later destination from its ordered stops. Selecting `Pilih Rute` opens the Review screen, which summarizes the route and shows the selected pickup and destination times derived from the available demo timetable.
@@ -57,7 +57,7 @@ In the current passenger-focused build, selecting `Supir Bus` highlights the rol
 - A distinct general-announcement preview and personal notification surface.
 - Passenger P0 screens sufficient for the capture-ready MVP flow; driver UI is P1 after passenger P0.
 
-Current implementation uses deterministic demo route/trip data which seeds the Room cache. Non-secret sessions, cached route data, saved primary route selection, latest trip state, boarding intents, and the personal notification inbox persist in Room. Route selection and boarding intents queue outbox mutations, while the worker remains disabled in demo mode. Supabase, FCM delivery, real driver GPS publishing, remote sync, and real authentication remain planned integrations, not completed MVP claims.
+Current implementation uses Supabase Auth for passenger signup, email confirmation, password login, session restoration, and password reset. Route catalogue refresh can read Supabase and cache it in Room, while deterministic demo trip data remains for the unfinished live-trip integration. Non-secret sessions, cached route data, saved primary route selection, latest trip state, boarding intents, and the personal notification inbox persist in Room. Route selection and boarding intents queue outbox mutations, while their remote transport remains disabled. FCM delivery, real driver GPS publishing, Realtime trip updates, and remote passenger mutations remain planned integrations.
 
 ## Native-device requirements
 

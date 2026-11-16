@@ -31,19 +31,19 @@ The detailed authority is the approved [Flow ShuttleSpot](https://docs.google.co
 1. A passenger chooses `Mahasiswa`, then signs in or creates a Supabase Auth account using an exact `@student.umn.ac.id` address. New accounts require email confirmation. Repeating signup for an already-confirmed account returns the passenger to sign-in with a prompt to sign in or reset the password.
 2. They proceed through a notification-permission explanation that distinguishes bus-status alerts from general announcements, then optional location permission, with a manual route/stop fallback. Choosing `Aktifkan notifikasi` opens Android's native permission prompt; skipping remains available.
 3. They select a route, pickup stop, destination, and desired time; inspect the route map; review the chosen details; and see registration success.
-   The current onboarding route picker has two steps: choose a directional demo route, then choose the pickup and a later destination from its ordered stops. Selecting `Pilih Rute` opens the Review screen, which summarizes the route and shows the selected pickup and destination times derived from the available demo timetable.
+   The current onboarding route picker has two steps: choose a directional route, then choose the pickup and a later destination from its ordered stops. The catalogue contains the eight routes captured by the prototype. Only Pasar Modern BSD → UMN currently has verified coordinates/geometry; the other routes remain selectable for stops and schedules and explicitly state that map data is unavailable. Selecting `Pilih Rute` opens the Review screen, which summarizes the route and shows the selected pickup and destination times derived from the available timetable.
    Confirming the Review screen saves the route and opens the registration-completion screen with confetti; `Oke!` opens Home. Later route changes retain their separate saved-route confirmation.
 4. Home displays the signed-in passenger's display name, primary route, and pickup stop from the saved onboarding selection. Before a route is saved, those summary fields show `Belum pilih`. Home also displays boarding status, announcements, and either no-bus or active-bus status.
 5. The passenger can open a tracker and confirm boarding once. A confirmed intent disables further confirmation on Home and Live Trip and changes Home's `Hari ini naik?` status to `Naik`; Home and Tracker then show the confirmed state and handle arrived/missed-bus states.
 6. The Route tab displays the saved primary route, pickup, destination, and schedule. Without a saved route it offers `Pilih Rute`; selecting it reuses route/stop selection without onboarding progress. Reviewing a replacement uses `Tetapkan sebagai rute utama`, after which Home updates from the same saved selection.
 
 The first welcome screen introduces ShuttleSpot with the UMN shuttle visual and sends users to role selection through `Masuk`. It explains that university accounts are for students, while driver access is provisioned by an administrator.
-In the current passenger-focused build, selecting `Supir Bus` highlights the role and shows that it is not yet available; the continue button remains disabled.
+Selecting `Supir Bus` opens phone/password login for an administrator-provisioned driver account. A driver using a temporary password must replace it before opening the driver dashboard.
 
 ## Core flow: driver MVP
 
-1. The driver enters their registered phone number. The app grants demo driver access only when its normalized value matches a pre-registered driver profile, then opens the assigned trip. This lookup is not phone-number ownership verification.
-2. They start the trip; while actively driving, the app publishes location and trip status with a visible foreground-service notification.
+1. The driver signs in with an administrator-provisioned phone/password account and replaces the temporary password on first login.
+2. They load only the trip assigned to their authenticated profile and start it through validated server RPCs. Foreground location publishing remains a later integration.
 3. At each stop they confirm progress and can see the count of passenger boarding intents.
 4. They end the trip and location sharing stops.
 
@@ -57,7 +57,7 @@ In the current passenger-focused build, selecting `Supir Bus` highlights the rol
 - A distinct general-announcement preview and personal notification surface.
 - Passenger P0 screens sufficient for the capture-ready MVP flow; driver UI is P1 after passenger P0.
 
-Current implementation uses Supabase Auth for passenger signup, email confirmation, password login, session restoration, and password reset. Route catalogue refresh can read Supabase and cache it in Room, while deterministic demo trip data remains for the unfinished live-trip integration. Non-secret sessions, cached route data, saved primary route selection, latest trip state, boarding intents, and the personal notification inbox persist in Room. Route selection and boarding intents queue outbox mutations, while their remote transport remains disabled. FCM delivery, real driver GPS publishing, Realtime trip updates, and remote passenger mutations remain planned integrations.
+Current implementation uses Supabase Auth for passenger accounts. The repository now contains the pending hosted migrations and Android integration for administrator-provisioned driver credentials and authenticated trip RPCs. Drivers enter phone/password, which the auth adapter maps to a private confirmed email alias; this avoids SMS/Twilio and does not expose the alias in the UI. The driver path remains unavailable in the hosted build until those migrations are deployed. The Android driver flow exposes loading, no-assignment, active, completed, and retry states. Route catalogue refresh reads Supabase and caches it in Room, while deterministic demo data remains available only for demo builds. Non-secret sessions, cached route data, saved primary route selection, latest passenger trip state, boarding intents, and the personal notification inbox persist in Room. FCM delivery, real driver GPS publishing, and Realtime trip updates remain planned integrations.
 
 ## Native-device requirements
 

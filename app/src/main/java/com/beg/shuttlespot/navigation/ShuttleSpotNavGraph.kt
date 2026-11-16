@@ -64,7 +64,11 @@ private fun SessionGate(navController: NavHostController, viewModel: SessionView
     when (val s = state) {
         SessionUiState.Loading -> Unit
         is SessionUiState.Ready -> LaunchedEffect(Unit) {
-            val target = if (s.session != null) MainRoute.SHELL else AuthRoute.GRAPH
+            val target = when {
+                s.session == null -> AuthRoute.GRAPH
+                s.session.mustChangePassword -> AuthRoute.DRIVER_PASSWORD_CHANGE
+                else -> MainRoute.SHELL
+            }
             navController.navigate(target) { popUpTo(RootRoute.GATE) { inclusive = true } }
         }
     }

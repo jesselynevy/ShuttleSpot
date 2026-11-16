@@ -16,3 +16,4 @@ tmp/
 tools/
 gradle/gradle-daemon-jvm.properties
 google-services.json
+node_modules/

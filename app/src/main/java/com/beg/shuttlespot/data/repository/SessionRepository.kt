@@ -24,6 +24,7 @@ interface SessionRepository {
 
     suspend fun signInDriver(
         phoneNumber: String,
+        password: String,
     ): SignInResult
 
     suspend fun resendConfirmation(
@@ -35,6 +36,11 @@ interface SessionRepository {
     ): AuthActionResult
 
     suspend fun updatePassword(
+        newPassword: String,
+    ): AuthActionResult
+
+    suspend fun updateDriverPassword(
+        currentPassword: String,
         newPassword: String,
     ): AuthActionResult
 

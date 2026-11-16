@@ -3,6 +3,7 @@ package com.beg.shuttlespot.data.repository
 // Overview: Defines room passenger trip repository for the data repository area of ShuttleSpot.
 
 // Dependencies used by this file.
+import com.beg.shuttlespot.BuildConfig
 import com.beg.shuttlespot.core.model.ActiveTripSnapshot
 import com.beg.shuttlespot.core.model.BoardingIntent
 import com.beg.shuttlespot.core.model.BoardingIntentStatus
@@ -14,6 +15,7 @@ import com.beg.shuttlespot.data.local.OutboxEntity
 import com.beg.shuttlespot.data.local.OutboxOperation
 import com.beg.shuttlespot.data.local.ShuttleSpotDao
 import com.beg.shuttlespot.data.local.TripSnapshotEntity
+import com.beg.shuttlespot.data.sync.OutboxSyncTrigger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -32,6 +34,7 @@ import javax.inject.Singleton
 class RoomPassengerTripRepository @Inject constructor(
     private val dao: ShuttleSpotDao,
     private val sessions: SessionRepository,
+    private val outboxSyncTrigger: OutboxSyncTrigger = OutboxSyncTrigger {},
 ) : PassengerTripRepository {
     // Implements framework behavior for observe active trip.
     override fun observeActiveTrip(routeId: String): Flow<ActiveTripSnapshot?> =
@@ -74,6 +77,7 @@ class RoomPassengerTripRepository @Inject constructor(
                 createdAtEpochMillis = now,
             )
         )
+        if (!BuildConfig.USE_DEMO_DATA) outboxSyncTrigger.enqueue()
         return intent.toDomain()
     }
 
@@ -91,10 +95,12 @@ class RoomPassengerTripRepository @Inject constructor(
                 createdAtEpochMillis = cancelled.updatedAtEpochMillis,
             )
         )
+        if (!BuildConfig.USE_DEMO_DATA) outboxSyncTrigger.enqueue()
     }
 
     // Handles the ensure demo snapshot responsibility.
     private suspend fun ensureDemoSnapshot(routeId: String) {
+        if (!BuildConfig.USE_DEMO_DATA) return
         if (routeId != DEMO_ROUTE_ID || dao.observeTripSnapshot(routeId).first() != null) return
         val now = System.currentTimeMillis()
         dao.upsertTripSnapshot(

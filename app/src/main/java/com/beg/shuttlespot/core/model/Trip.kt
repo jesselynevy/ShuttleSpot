@@ -43,12 +43,13 @@ data class BoardingIntent(
     val idempotencyKey: String
 )
 
-// Defines the driver trip snapshot type.
+enum class TripLifecycle { NOT_STARTED, ACTIVE, COMPLETED }
+
 data class DriverTripSnapshot(
     val tripId: String,
     val routeId: String,
     val vehicleLabel: String,
-    val status: TripStatus,
+    val status: TripLifecycle,
     val currentStopName: String?,
     val nextStopName: String?,
     val currentStopSequence: Int,

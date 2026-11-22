@@ -56,3 +56,4 @@ data class DriverTripSnapshot(
     val totalStops: Int,
     val waitingPassengerCount: Int
 )
+

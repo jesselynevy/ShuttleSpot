@@ -54,10 +54,26 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             optimization {
                 enable = false
             }
+        }
+    }
+
+    flavorDimensions += "role"
+    productFlavors {
+        create("primary") {
+            dimension = "role"
+        }
+        create("secondary") {
+            dimension = "role"
+            applicationIdSuffix = ".alt"
+            versionNameSuffix = "-alt"
         }
     }
     compileOptions {

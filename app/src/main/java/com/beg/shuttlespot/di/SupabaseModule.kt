@@ -11,6 +11,7 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 import javax.inject.Singleton
 
 @Module
@@ -27,6 +28,7 @@ object SupabaseModule {
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY,
         ) {
             install(Postgrest)
+            install(Realtime)
 
             install(Auth) {
                 scheme = "shuttlespot"

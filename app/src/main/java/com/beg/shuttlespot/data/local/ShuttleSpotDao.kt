@@ -28,7 +28,7 @@ interface ShuttleSpotDao {
     @Query("DELETE FROM outbox WHERE idempotencyKey = :key") suspend fun deleteOutbox(key: String)
     @Query("UPDATE outbox SET retryCount = retryCount + 1, lastError = :error WHERE idempotencyKey = :key") suspend fun recordOutboxRetry(key: String, error: String)
     @Query("UPDATE outbox SET failedPermanently = 1, lastError = :error WHERE idempotencyKey = :key") suspend fun markOutboxFailed(key: String, error: String)
-
+    @Query("SELECT * FROM trip_snapshots WHERE routeId = :routeId ORDER BY updatedAtEpochMillis DESC LIMIT 1") suspend fun getTripSnapshot(routeId: String): TripSnapshotEntity?
     @Query("SELECT * FROM trip_snapshots WHERE routeId = :routeId ORDER BY updatedAtEpochMillis DESC LIMIT 1") fun observeTripSnapshot(routeId: String): Flow<TripSnapshotEntity?>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertTripSnapshot(snapshot: TripSnapshotEntity)
     @Query("SELECT * FROM cached_boarding_intents WHERE profileId = :profileId AND tripId = :tripId AND stopId = :stopId") fun observeBoardingIntent(profileId: String, tripId: String, stopId: String): Flow<CachedBoardingIntentEntity?>

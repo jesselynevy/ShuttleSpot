@@ -110,6 +110,22 @@ class PassengerLocationStreamer @Inject constructor(
                 }
                 row ?: return@collect
 
+                val mapped = when (row.status) {
+                    "not_started" -> com.beg.shuttlespot.core.model.TripStatus.NOT_STARTED
+                    "active" -> com.beg.shuttlespot.core.model.TripStatus.EN_ROUTE
+                    "completed" -> com.beg.shuttlespot.core.model.TripStatus.COMPLETED
+                    else -> com.beg.shuttlespot.core.model.TripStatus.NO_ACTIVE_BUS
+                }
+                val snapshot = dao.getTripSnapshot(routeId)
+                if (snapshot != null) {
+                    dao.upsertTripSnapshot(
+                        snapshot.copy(
+                            status = mapped.name,
+                            updatedAtEpochMillis = System.currentTimeMillis(),
+                        )
+                    )
+                }
+
                 if (row.status == "active") {
                     if (currentJob?.isActive != true) {
                         currentJob = scope.launch { streamLocationsForTrip(row.id, routeId, client) }

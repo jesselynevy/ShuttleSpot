@@ -7,6 +7,7 @@ import android.app.Application
 import com.beg.shuttlespot.data.location.PassengerLocationStreamer
 import dagger.hilt.android.HiltAndroidApp
 import com.beg.shuttlespot.data.sync.OutboxSyncScheduler
+import com.beg.shuttlespot.BuildConfig
 import javax.inject.Inject
 
 @HiltAndroidApp

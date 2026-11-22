@@ -4,6 +4,7 @@ package com.beg.shuttlespot
 
 // Dependencies used by this file.
 import android.app.Application
+import com.beg.shuttlespot.data.location.PassengerLocationStreamer
 import dagger.hilt.android.HiltAndroidApp
 import com.beg.shuttlespot.data.sync.OutboxSyncScheduler
 import javax.inject.Inject
@@ -12,11 +13,15 @@ import javax.inject.Inject
 // Defines the shuttle spot application type.
 class ShuttleSpotApplication : Application(){
     @Inject lateinit var outboxSyncScheduler: OutboxSyncScheduler
+    @Inject lateinit var locationStreamer: PassengerLocationStreamer
 
     // Implements framework behavior for on create.
     override fun onCreate() {
         super.onCreate()
-        if (!BuildConfig.USE_DEMO_DATA) outboxSyncScheduler.enqueue()
+        if (!BuildConfig.USE_DEMO_DATA) {
+            outboxSyncScheduler.enqueue()
+            locationStreamer.start()
+        }
     }
 }
 

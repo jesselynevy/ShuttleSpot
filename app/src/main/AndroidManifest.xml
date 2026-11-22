@@ -50,6 +50,12 @@
                     android:host="auth" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".data.location.ShuttleSpotLocationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
     </application>
 
 </manifest>

@@ -77,6 +77,10 @@
     </plurals>
     <string name="driver_advance_stop">Tiba di halte berikutnya</string>
     <string name="driver_finish_trip">Selesaikan perjalanan</string>
+    <string name="location_service_title">ShuttleSpot sedang berbagi lokasi bus</string>
+    <string name="location_service_message">Driver sedang menjalankan trip. Lokasi dikirim ke penumpang.</string>
+    <string name="location_service_channel_name">Lokasi bus</string>
+    <string name="location_service_channel_description">Notifikasi persisten saat driver berbagi lokasi</string>
     <string name="registration_complete_message">Terima kasih telah\nregistrasi di ShuttleSpot!</string>
     <string name="registration_complete_action">Oke!</string>
 </resources>

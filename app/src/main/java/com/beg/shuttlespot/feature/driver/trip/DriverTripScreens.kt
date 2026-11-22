@@ -16,6 +16,13 @@ import androidx.compose.ui.res.pluralStringResource
 import com.beg.shuttlespot.R
 import com.beg.shuttlespot.core.model.TripLifecycle
 import com.beg.shuttlespot.core.ui.components.SimpleScreenColumn
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 
 @Composable
 fun DriverHomeScreen(
@@ -24,6 +31,19 @@ fun DriverHomeScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val ready = state as? DriverTripUiState.Ready
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val fineGranted = results[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseGranted = results[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val notifGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            results[Manifest.permission.POST_NOTIFICATIONS] == true
+        } else true
+        if ((fineGranted || coarseGranted) && notifGranted) {
+            viewModel.startTrip()
+        }
+    }
 
     LaunchedEffect(ready?.trip?.status) {
         if (ready?.trip?.status == TripLifecycle.ACTIVE) onActiveTrip()
@@ -54,9 +74,31 @@ fun DriverHomeScreen(
                     ),
                 )
                 Button(
-                    onClick = viewModel::startTrip,
+                    onClick = {
+                        val fine = ContextCompat.checkSelfPermission(
+                            context, Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val notif = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.POST_NOTIFICATIONS
+                            ) == PackageManager.PERMISSION_GRANTED
+                        } else true
+
+                        if (fine && notif) {
+                            viewModel.startTrip()
+                        } else {
+                            val toAsk = buildList {
+                                add(Manifest.permission.ACCESS_FINE_LOCATION)
+                                add(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    add(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                            }.toTypedArray()
+                            permissionLauncher.launch(toAsk)
+                        }
+                    },
                     enabled = !current.actionInProgress &&
-                        trip.status == TripLifecycle.NOT_STARTED,
+                            trip.status == TripLifecycle.NOT_STARTED,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(

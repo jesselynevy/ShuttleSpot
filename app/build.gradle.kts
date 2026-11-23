@@ -69,11 +69,13 @@ android {
     productFlavors {
         create("primary") {
             dimension = "role"
+            manifestPlaceholders["appLabel"] = "ShuttleSpot1"
         }
         create("secondary") {
             dimension = "role"
             applicationIdSuffix = ".alt"
             versionNameSuffix = "-alt"
+            manifestPlaceholders["appLabel"] = "ShuttleSpot2"
         }
     }
     compileOptions {

@@ -91,17 +91,17 @@ class SupabaseDriverTripRepository @Inject constructor(
         capturedAtEpochMillis: Long,
     ) {
         try {
-            clientProvider.get().postgrest["vehicle_locations"].insert(
-                buildJsonObject {
-                    put("trip_id", tripId)
-                    put("latitude", latitude)
-                    put("longitude", longitude)
-                    if (accuracyMeters != null) put("accuracy_meters", accuracyMeters)
-                    put("captured_at", Instant.ofEpochMilli(capturedAtEpochMillis).toString())
-                }
+            clientProvider.get().postgrest.rpc(
+                function = "publish_vehicle_location",
+                parameters = buildJsonObject {
+                    put("p_trip_id", tripId)
+                    put("p_latitude", latitude)
+                    put("p_longitude", longitude)
+                    put("p_accuracy_meters", accuracyMeters)
+                    put("p_captured_at", Instant.ofEpochMilli(capturedAtEpochMillis).toString())
+                },
             )
         } catch (error: Exception) {
-            // satu sampel gagal jangan membuat service crash, sampel akan datang lagi dalam detik-detik yang ditentukan
             android.util.Log.w("DriverTrip", "publishLocation failed: ${error.message}")
         }
     }

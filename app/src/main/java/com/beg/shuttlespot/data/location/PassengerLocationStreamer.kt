@@ -1,5 +1,6 @@
 package com.beg.shuttlespot.data.location
 
+import com.beg.shuttlespot.core.model.BoardingIntentStatus
 import com.beg.shuttlespot.core.model.UserRole
 import com.beg.shuttlespot.data.local.ShuttleSpotDao
 import com.beg.shuttlespot.data.local.TripSnapshotEntity
@@ -26,7 +27,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
+import com.beg.shuttlespot.core.model.GeoPoint
+import com.beg.shuttlespot.core.model.RouteSelection
+import com.beg.shuttlespot.core.model.TripStatus
+import com.beg.shuttlespot.data.repository.PassengerStatusDeriver
+import kotlinx.coroutines.flow.first
+import com.beg.shuttlespot.data.repository.RoutePaths
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
@@ -44,6 +50,23 @@ class PassengerLocationStreamer @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var activeJob: Job? = null
+    private val deriver = PassengerStatusDeriver()
+    @Volatile private var currentSelection: RouteSelection? = null
+
+    private fun blankEntity(row: RemoteVehicleLocationDto, routeId: String) = TripSnapshotEntity(
+        tripId = row.tripId,
+        routeId = routeId,
+        vehicleLabel = "Unknown",
+        status = TripStatus.EN_ROUTE.name,
+        progress = 0f,
+        previousStopName = null,
+        nextStopName = null,
+        etaMinutes = null,
+        latitude = row.latitude,
+        longitude = row.longitude,
+        capturedAtEpochMillis = System.currentTimeMillis(),
+        updatedAtEpochMillis = System.currentTimeMillis(),
+    )
 
     // dipanggil sekali saat Application.onCreate()
     fun start() {
@@ -73,6 +96,7 @@ class PassengerLocationStreamer @Inject constructor(
                 .distinctUntilChanged { a, b -> a?.routeId == b?.routeId }
                 .collectLatest { selection ->
                     android.util.Log.d("Streamer", "selection changed: routeId=${selection?.routeId}")
+                    currentSelection = selection
 
                     // collectLatest otomatis batalin blok sebelumnya kalau upstream emit
                     // nilai baru -- jadi subscription lama auto-close saat ganti route.
@@ -137,29 +161,27 @@ class PassengerLocationStreamer @Inject constructor(
                 row ?: return@collect
 
                 val mapped = when (row.status) {
-                    "not_started" -> com.beg.shuttlespot.core.model.TripStatus.NOT_STARTED
-                    "active" -> com.beg.shuttlespot.core.model.TripStatus.EN_ROUTE
-                    "completed" -> com.beg.shuttlespot.core.model.TripStatus.COMPLETED
-                    else -> com.beg.shuttlespot.core.model.TripStatus.NO_ACTIVE_BUS
-                }
-                val snapshot = dao.getTripSnapshot(routeId)
-                if (snapshot != null) {
-                    dao.upsertTripSnapshot(
-                        snapshot.copy(
-                            status = mapped.name,
-                            updatedAtEpochMillis = System.currentTimeMillis(),
-                        )
-                    )
+                    "not_started" -> TripStatus.NOT_STARTED
+                    "active" -> TripStatus.EN_ROUTE
+                    "completed" -> TripStatus.COMPLETED
+                    else -> TripStatus.NO_ACTIVE_BUS
                 }
 
-                if (row.status == "active") {
-                    if (currentJob?.isActive != true) {
+                when (row.status) {
+                    // memeriksa apakah ada job yang sudah jalan pada rute aktif supaya menhindari
+                    // double streaming
+                    "active" -> if (currentJob?.isActive != true) {
                         currentJob = scope.launch { streamLocationsForTrip(row.id, routeId, client) }
                     }
-                } else {
-                    // completed / not_started lagi -> stop streaming
-                    currentJob?.cancel()
-                    currentJob = null
+                    // ketika status tidak aktif, bersihkan sticky status ( riding, terlewati )
+                    else -> {
+                        deriver.reset()
+                        dao.getTripSnapshot(routeId)?.let {
+                            dao.upsertTripSnapshot(it.copy(status = mapped.name, updatedAtEpochMillis = System.currentTimeMillis()))
+                        }
+                        currentJob?.cancel()
+                        currentJob = null
+                    }
                 }
             }
         } catch (e: Throwable) {
@@ -180,6 +202,10 @@ class PassengerLocationStreamer @Inject constructor(
         routeId: String,
         client: SupabaseClient,
     ) {
+        val stops = routes.observeRouteDetails(routeId).first()?.stops.orEmpty()
+            .map { PassengerStatusDeriver.ResolvedStop(it.id, it.name, it.point, RoutePaths.bsdUmnProgressNear(it.point)) }
+            .sortedBy { it.routeProgress }
+
         android.util.Log.d("Streamer", "streamLocationsForTrip START trip=$tripId")
         val channel = client.channel("passenger-location:$tripId")
         val flow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
@@ -193,7 +219,7 @@ class PassengerLocationStreamer @Inject constructor(
             flow.collect { action ->
                 android.util.Log.d("Streamer", "LOCATION event: ${action.record}")
                 val row = action.decodeRecord<RemoteVehicleLocationDto>()
-                writeToRoom(row, routeId)
+                writeToRoom(row, routeId, stops)
                 android.util.Log.d("Streamer", "wrote location to Room: lat=${row.latitude} lng=${row.longitude}")
             }
         } catch (e: Throwable) {
@@ -206,34 +232,38 @@ class PassengerLocationStreamer @Inject constructor(
         }
     }
 
-    // update kolom location di TripSnapshotEntity.
-    // kalau snapshot belum ada, dibuatlah baris placeholder terlebih dahulu
-    // yang kemudian diisi lebih lengkap oleh sinkronisasi lain
-    private suspend fun writeToRoom(row: RemoteVehicleLocationDto, routeId: String) {
+    private suspend fun writeToRoom(
+        row: RemoteVehicleLocationDto, routeId: String, stops: List<PassengerStatusDeriver.ResolvedStop>,
+    ) {
         val capturedAtMillis = runCatching { Instant.parse(row.capturedAt).toEpochMilli() }
             .getOrDefault(System.currentTimeMillis())
+        val now = System.currentTimeMillis()
 
-        val snapshot = dao.getTripSnapshot(routeId)
-
-        val entity = snapshot?.copy(
-            latitude = row.latitude,
-            longitude = row.longitude,
-            capturedAtEpochMillis = capturedAtMillis,
-            updatedAtEpochMillis = System.currentTimeMillis(),
-        ) ?: TripSnapshotEntity(
-            tripId = row.tripId,
-            routeId = routeId,
-            vehicleLabel = "Unknown",
-            status = com.beg.shuttlespot.core.model.TripStatus.EN_ROUTE.name,
-            progress = 0f,
-            previousStopName = null,
-            nextStopName = null,
-            etaMinutes = null,
-            latitude = row.latitude,
-            longitude = row.longitude,
-            capturedAtEpochMillis = capturedAtMillis,
-            updatedAtEpochMillis = System.currentTimeMillis(),
+        val selection = currentSelection?.takeIf { it.routeId == routeId }
+        val confirmed = isBoardingConfirmed(row.tripId, selection?.pickupStopId)
+        val derived = deriver.deriveFromPoint(
+            GeoPoint(row.latitude, row.longitude),
+            stops,
+            selection?.pickupStopId,
+            confirmed,
         )
-        dao.upsertTripSnapshot(entity)
+
+        val base = dao.getTripSnapshot(routeId)
+        dao.upsertTripSnapshot((base ?: blankEntity(row, routeId)).copy(
+            status = derived.status.name,
+            progress = derived.progress,
+            previousStopName = derived.previousStopName,
+            nextStopName = derived.nextStopName,
+            etaMinutes = derived.etaMinutes,
+            latitude = row.latitude, longitude = row.longitude,
+            capturedAtEpochMillis = capturedAtMillis, updatedAtEpochMillis = now,
+        ))
+    }
+
+    private suspend fun isBoardingConfirmed(tripId: String, pickupStopId: String?): Boolean {
+        pickupStopId ?: return false
+        val profileId = sessions.observeSession().first()?.profileId ?: return false
+        val intent = dao.getBoardingIntent(profileId, tripId, pickupStopId) ?: return false
+        return intent.status == BoardingIntentStatus.CONFIRMED.name
     }
 }

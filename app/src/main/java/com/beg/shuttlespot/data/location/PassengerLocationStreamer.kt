@@ -48,6 +48,19 @@ class PassengerLocationStreamer @Inject constructor(
     // dipanggil sekali saat Application.onCreate()
     fun start() {
         if (activeJob?.isActive == true) return
+        // log untuk kelihatan apakah WebSocket beneran CONNECTED atau stuck.
+        scope.launch {
+            val client = clientProvider.get()
+            runCatching {
+                android.util.Log.d("Streamer", "calling realtime.connect()...")
+                client.realtime.connect()
+                android.util.Log.d("Streamer", "realtime.connect() returned, status=${client.realtime.status.value}")
+            }.onFailure { android.util.Log.e("Streamer", "realtime.connect() FAILED", it) }
+            client.realtime.status.collect { status ->
+                android.util.Log.d("Streamer", "REALTIME STATUS -> $status")
+            }
+        }
+
         activeJob = scope.launch {
             sessions.observeSession()
                 .flatMapLatest { session ->
@@ -59,6 +72,8 @@ class PassengerLocationStreamer @Inject constructor(
                 }
                 .distinctUntilChanged { a, b -> a?.routeId == b?.routeId }
                 .collectLatest { selection ->
+                    android.util.Log.d("Streamer", "selection changed: routeId=${selection?.routeId}")
+
                     // collectLatest otomatis batalin blok sebelumnya kalau upstream emit
                     // nilai baru -- jadi subscription lama auto-close saat ganti route.
                     val routeId = selection?.routeId ?: return@collectLatest
@@ -72,13 +87,21 @@ class PassengerLocationStreamer @Inject constructor(
     // flow dalam : GPS events `vehicle_locations` untuk trip yang sedang aktif.
     private suspend fun streamForRoute(routeId: String) {
         val client = clientProvider.get()
+        android.util.Log.d("Streamer", "streamForRoute START route=$routeId, realtime.status=${client.realtime.status.value}")
+
+        // Pastikan socket realtime nyambung dulu sebelum subscribe channel.
+        runCatching { client.realtime.connect() }
+            .onFailure { android.util.Log.e("Streamer", "realtime.connect() in streamForRoute FAILED", it) }
+        android.util.Log.d("Streamer", "after connect() in streamForRoute, status=${client.realtime.status.value}")
 
         val tripsChannel: RealtimeChannel = client.channel("passenger-trips:$routeId")
         val tripFlow = tripsChannel.postgresChangeFlow<PostgresAction>(schema = "public") {
             table = "trips"
             filter("route_id", FilterOperator.EQ, routeId)
         }
+        android.util.Log.d("Streamer", "subscribing to trips channel...")
         tripsChannel.subscribe()
+        android.util.Log.d("Streamer", "trips channel subscribed OK. realtime.status=${client.realtime.status.value}")
 
         // lookup awal, untuk scenario trip sudah active ketika aplikasi dibuka
         // ketika itu terjadi, kita tidak dapat event INSERT/UPDATE untuk itu
@@ -94,7 +117,9 @@ class PassengerLocationStreamer @Inject constructor(
                 }
                 .decodeList<RemoteTripStatusDto>()
                 .firstOrNull()?.id
-        }.getOrNull()
+        }.onFailure { android.util.Log.e("Streamer", "initial trips query FAILED", it) }
+            .getOrNull()
+        android.util.Log.d("Streamer", "initial active trip lookup: tripId=$currentActiveTripId")
 
         var currentJob: Job? = currentActiveTripId?.let { tripId ->
             scope.launch { streamLocationsForTrip(tripId, routeId, client) }
@@ -103,6 +128,7 @@ class PassengerLocationStreamer @Inject constructor(
         // Dengar event trips di masa depan
         try {
             tripFlow.collect { action ->
+                android.util.Log.d("Streamer", "trips event: ${action::class.simpleName}")
                 val row = when (action) {
                     is PostgresAction.Insert -> action.decodeRecord<RemoteTripStatusDto>()
                     is PostgresAction.Update -> action.decodeRecord<RemoteTripStatusDto>()
@@ -136,7 +162,11 @@ class PassengerLocationStreamer @Inject constructor(
                     currentJob = null
                 }
             }
+        } catch (e: Throwable) {
+            android.util.Log.e("Streamer", "streamForRoute trips.collect error", e)
+            throw e
         } finally {
+            android.util.Log.d("Streamer", "streamForRoute CLEANUP route=$routeId")
             currentJob?.cancel()
             tripsChannel.unsubscribe()
             client.realtime.removeChannel(tripsChannel)
@@ -150,19 +180,27 @@ class PassengerLocationStreamer @Inject constructor(
         routeId: String,
         client: SupabaseClient,
     ) {
+        android.util.Log.d("Streamer", "streamLocationsForTrip START trip=$tripId")
         val channel = client.channel("passenger-location:$tripId")
         val flow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
             table = "vehicle_locations"
             filter(FilterOperation("trip_id", FilterOperator.EQ, tripId))
         }
         channel.subscribe()
+        android.util.Log.d("Streamer", "vehicle_locations channel subscribed OK trip=$tripId")
 
         try {
             flow.collect { action ->
+                android.util.Log.d("Streamer", "LOCATION event: ${action.record}")
                 val row = action.decodeRecord<RemoteVehicleLocationDto>()
                 writeToRoom(row, routeId)
+                android.util.Log.d("Streamer", "wrote location to Room: lat=${row.latitude} lng=${row.longitude}")
             }
+        } catch (e: Throwable) {
+            android.util.Log.e("Streamer", "streamLocationsForTrip error trip=$tripId", e)
+            throw e
         } finally {
+            android.util.Log.d("Streamer", "streamLocationsForTrip CLEANUP trip=$tripId")
             channel.unsubscribe()
             client.realtime.removeChannel(channel)
         }

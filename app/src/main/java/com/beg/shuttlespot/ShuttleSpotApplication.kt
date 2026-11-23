@@ -21,6 +21,7 @@ class ShuttleSpotApplication : Application(){
         super.onCreate()
         if (!BuildConfig.USE_DEMO_DATA) {
             outboxSyncScheduler.enqueue()
+            android.util.Log.d("Streamer", "starting location streamer")
             locationStreamer.start()
         }
     }

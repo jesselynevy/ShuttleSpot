@@ -41,9 +41,9 @@ class PassengerStatusDeriver {
         confirmed: Boolean,
     ): DerivedTrip {
         val routeProgress = RoutePaths.bsdUmnProgressNear(busPoint)
-        val nearest = stops.withIndex().minByOrNull { RoutePaths.metersBetween(busPoint, it.value.point) }
+        val nearest = stops.withIndex().minByOrNull { RoutePaths.haversineMeters(busPoint, it.value.point) }
         val isAtStop = nearest != null &&
-            RoutePaths.metersBetween(busPoint, nearest.value.point) <= STOP_RADIUS_METERS
+            RoutePaths.haversineMeters(busPoint, nearest.value.point) <= STOP_RADIUS_METERS
         val arrivedStopIndex = if (isAtStop) nearest!!.index else null
         return derive(routeProgress, isAtStop, arrivedStopIndex, stops, pickupStopId, confirmed)
     }

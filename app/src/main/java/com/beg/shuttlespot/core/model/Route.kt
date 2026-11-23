@@ -16,7 +16,6 @@ data class Stop(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val scheduledTime: String? = null,
-    val point: GeoPoint
 ) 
 
 // Defines the timetable entry type.

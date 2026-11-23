@@ -10,7 +10,7 @@ import com.beg.shuttlespot.core.model.EtaEstimate
 import com.beg.shuttlespot.core.model.GeoPoint
 import com.beg.shuttlespot.core.model.LiveLocation
 import com.beg.shuttlespot.core.model.RouteSelection
-import com.beg.shuttlespot.core.model.TripStatus
+import com.beg.shuttlespot.data.repository.PassengerStatusDeriver.ResolvedStop
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,19 +38,16 @@ class InMemoryPassengerTripRepository @Inject constructor(
 ) : PassengerTripRepository {
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    // Logika derivasi status + progress + sticky dipisah ke kelas murni yang dibagi dengan
+    // streamer realtime (PassengerLocationStreamer). Instansi sendiri -> sticky demo terpisah.
+    private val deriver = PassengerStatusDeriver()
+
     /**
      * Satu halte yang sudah "siap-pakai" untuk animasi: id/name/koordinat dari
-     * [RouteRepository]-nya, plus [routeProgress]-nya di polyline sudah dihitung sekali
-     * via [RoutePaths.bsdUmnProgressNear] supaya [busTickFlow] bisa langsung mendeteksi
+     * [RouteRepository]-nya, plus [ResolvedStop.routeProgress]-nya di polyline sudah dihitung
+     * sekali via [RoutePaths.bsdUmnProgressNear] supaya [busTickFlow] bisa langsung mendeteksi
      * "crossing a stop" tanpa menghitung ulang setiap tick.
      */
-    // Defines the resolved stop type.
-    private data class ResolvedStop(
-        val id: String,
-        val name: String,
-        val point: GeoPoint,
-        val routeProgress: Float,
-    )
     private val stopsFlow: Flow<List<ResolvedStop>> =
         routeRepository.observeRouteDetails(ROUTE_ID)
             .map { details ->
@@ -117,21 +114,11 @@ class InMemoryPassengerTripRepository @Inject constructor(
 
     private val intent = MutableStateFlow<BoardingIntent?>(null)
 
-    // Status yang sudah "final" untuk user ini (MISSED/RIDING) tidak boleh berubah lagi walau
-    // bus/konfirmasi terus berubah setelahnya -- lihat snapshotFor(). Direset kalau user ganti
-    // halte pilihannya (pickupStopId berbeda dari sebelumnya), supaya tidak nyangkut salah konteks.
-    @Volatile private var stickyStatus: TripStatus? = null
-    @Volatile private var stickyForPickupStopId: String? = null
-
     /**
      * Flow utama. `flatMapLatest` di luar: setiap kali daftar halte berubah (biasanya
      * cuma sekali di awal), restart `busTickFlow` dengan daftar baru -- jadi tidak ada
      * tick yang pakai daftar halte stale. `combine` di dalam: setiap bus tick, perubahan
      * halte pilihan user, atau perubahan boarding intent memicu `snapshotFor()` baru.
-     * `initialValue = null` karena nilai pertama butuh menunggu `stops` dari
-     * [routeRepository] emit (yang di `InMemoryRouteRepository` sinkron, jadi dalam
-     * praktek emisi pertama datang dalam ms, tapi tetap bukan sinkron secara formal --
-     * sebelumnya ada `snapshotAt(0f)` sinkron karena stops hardcoded, sekarang tidak).
      */
     private val activeTrip: StateFlow<ActiveTripSnapshot?> =
         stopsFlow.flatMapLatest { stops ->
@@ -142,19 +129,9 @@ class InMemoryPassengerTripRepository @Inject constructor(
         }.stateIn(repositoryScope, SharingStarted.Eagerly, null)
 
     /**
-     * Menentukan [ActiveTripSnapshot.status] untuk user INI (bukan status bus secara generik),
-     * berdasarkan posisi bus ([tick]), daftar halte rute ([stops]), halte pilihan user
-     * ([selection]?.pickupStopId), dan apakah user sudah konfirmasi naik di halte itu
-     * ([boardingIntent]):
-     *
-     * - Belum ada halte dipilih -> fallback generik: AT_PICKUP selagi bus berhenti di halte
-     *   manapun, EN_ROUTE selama bergerak (perilaku lama, sebelum ada konsep "halte milik user").
-     * - Bus berhenti PAS di halte pilihan user -> AT_PICKUP, atau RIDING kalau user sudah
-     *   konfirmasi SEBELUM/SELAMA bus berhenti di situ.
-     * - Bus berhenti di halte LAIN (bukan punya user) -> WAITING_AT_OTHERSTOP.
-     * - Bus sudah betul-betul meninggalkan halte pilihan user (bukan cuma baru tiba) tanpa
-     *   user konfirmasi -> MISSED, dan status ini "nempel" (sticky) seterusnya.
-     * - Bus sudah lewat halte user DAN user sudah konfirmasi -> RIDING, juga sticky seterusnya.
+     * Menyusun [ActiveTripSnapshot] untuk user demo: hitung apakah user sudah konfirmasi naik,
+     * lalu delegasikan derivasi status/progress/ETA ke [PassengerStatusDeriver] (dibagi dengan
+     * streamer realtime), dan bungkus hasilnya dengan identitas bus demo (tripId/vehicleLabel).
      */
     // Handles the snapshot for responsibility.
     private fun snapshotFor(
@@ -163,78 +140,31 @@ class InMemoryPassengerTripRepository @Inject constructor(
         selection: RouteSelection?,
         boardingIntent: BoardingIntent?,
     ): ActiveTripSnapshot {
-        if (selection?.pickupStopId != stickyForPickupStopId) {
-            // Ganti halte pilihan (atau baru pertama kali punya pilihan) -> status lama tidak relevan lagi.
-            stickyStatus = null
-            stickyForPickupStopId = selection?.pickupStopId
-        }
-
-        val pickupIndex = selection?.pickupStopId
-            ?.let { id -> stops.indexOfFirst { it.id == id } }
-            ?.takeIf { it >= 0 }
         val confirmed = selection != null &&
             boardingIntent?.tripId == TRIP_ID &&
             boardingIntent.stopId == selection.pickupStopId &&
             boardingIntent.status == BoardingIntentStatus.CONFIRMED
 
-        val legIndex = currentLegIndex(tick.routeProgress, stops)
+        val derived = deriver.derive(
+            routeProgress = tick.routeProgress,
+            isAtStop = tick.isAtStop,
+            arrivedStopIndex = tick.arrivedStopIndex,
+            stops = stops,
+            pickupStopId = selection?.pickupStopId,
+            confirmed = confirmed,
+        )
 
-        val status = when {
-            stickyStatus != null -> stickyStatus!!
-            pickupIndex == null -> if (tick.isAtStop) TripStatus.AT_PICKUP else TripStatus.EN_ROUTE
-            tick.isAtStop && tick.arrivedStopIndex == pickupIndex ->
-                if (confirmed) TripStatus.RIDING.also { stickyStatus = it } else TripStatus.AT_PICKUP
-            tick.isAtStop -> TripStatus.WAITING_AT_OTHERSTOP
-            tick.routeProgress <= stops.first().routeProgress -> TripStatus.EN_ROUTE
-            legIndex >= pickupIndex ->
-                (if (confirmed) TripStatus.RIDING else TripStatus.MISSED).also { stickyStatus = it }
-            else -> TripStatus.EN_ROUTE
-        }
-
-        return buildSnapshot(tick.routeProgress, legIndex, stops, status)
-    }
-
-    /**
-     * [legProgress] (0f..1f) dihitung lewat [currentLegIndex] -- posisi bus DI RUAS SEKARANG
-     * SAJA (0f = baru berangkat dari halte sebelumnya, 1f = baru sampai di halte berikutnya) --
-     * dipakai langsung sebagai [ActiveTripSnapshot.progress] karena itu yang dibaca
-     * [com.beg.shuttlespot.core.ui.components.BusRouteProgress]. Untuk posisi di peta,
-     * [routeProgress] (fraksi SEPANJANG SELURUH RUTE, bukan cuma satu ruas) dicari langsung
-     * titik jalannya lewat [RoutePaths.bsdUmnPointAt].
-     */
-    // Prepares or returns build snapshot.
-    private fun buildSnapshot(
-        routeProgress: Float,
-        legIndex: Int,
-        stops: List<ResolvedStop>,
-        status: TripStatus,
-    ): ActiveTripSnapshot {
         val now = System.currentTimeMillis()
-        val point = RoutePaths.bsdUmnPointAt(routeProgress)
-
-        val legStart = stops[legIndex].routeProgress
-        val legEnd = stops[legIndex + 1].routeProgress
-        val legProgress = if (legEnd > legStart)
-            ((routeProgress - legStart) / (legEnd - legStart)).coerceIn(0f, 1f) else 0f
-
         return ActiveTripSnapshot(
             tripId = TRIP_ID, routeId = ROUTE_ID, vehicleLabel = "D 8801 VBN",
-            status = status,
-            progress = legProgress,
-            previousStopName = stops[legIndex].name,
-            nextStopName = stops[legIndex + 1].name,
-            eta = EtaEstimate(minutes = ((1 - legProgress) * DEMO_LEG_ETA_MINUTES).toInt().coerceAtLeast(1)),
+            status = derived.status,
+            progress = derived.progress,
+            previousStopName = derived.previousStopName,
+            nextStopName = derived.nextStopName,
+            eta = EtaEstimate(minutes = derived.etaMinutes),
             lastUpdatedEpochMillis = now,
-            location = LiveLocation(point.latitude, point.longitude, now),
+            location = LiveLocation(derived.point.latitude, derived.point.longitude, now),
         )
-    }
-
-    // Handles the current leg index responsibility.
-    private fun currentLegIndex(routeProgress: Float, stops: List<ResolvedStop>): Int {
-        for (i in 0 until stops.lastIndex) {
-            if (routeProgress <= stops[i + 1].routeProgress) return i
-        }
-        return (stops.lastIndex - 1).coerceAtLeast(0)
     }
 
     // Implements framework behavior for observe active trip.
@@ -273,7 +203,5 @@ class InMemoryPassengerTripRepository @Inject constructor(
         const val DEMO_STOP_DWELL_MILLIS = 2_000L
         /** Lama bus tampak menuju halte pertama sebelum tiba, untuk membuka demo. */
         const val DEMO_INITIAL_APPROACH_MILLIS = 8_000L
-        /** ETA kosmetik dalam ruas yang sedang dilalui (legProgress = 0 -> nilai ini, 1 -> 1 menit). */
-        const val DEMO_LEG_ETA_MINUTES = 3
     }
 }

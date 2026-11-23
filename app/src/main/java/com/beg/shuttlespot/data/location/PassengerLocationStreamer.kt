@@ -203,7 +203,13 @@ class PassengerLocationStreamer @Inject constructor(
         client: SupabaseClient,
     ) {
         val stops = routes.observeRouteDetails(routeId).first()?.stops.orEmpty()
-            .map { PassengerStatusDeriver.ResolvedStop(it.id, it.name, it.point, RoutePaths.bsdUmnProgressNear(it.point)) }
+            .sortedBy { it.sequence }
+            .mapNotNull { stop ->
+                val lat = stop.latitude ?: return@mapNotNull null
+                val lng = stop.longitude ?: return@mapNotNull null
+                val point = GeoPoint(lat, lng)
+                PassengerStatusDeriver.ResolvedStop(stop.id, stop.name, point, RoutePaths.bsdUmnProgressNear(point))
+            }
             .sortedBy { it.routeProgress }
 
         android.util.Log.d("Streamer", "streamLocationsForTrip START trip=$tripId")

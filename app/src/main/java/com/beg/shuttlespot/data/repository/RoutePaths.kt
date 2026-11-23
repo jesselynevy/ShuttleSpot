@@ -27,7 +27,9 @@ internal object RoutePaths {
     // Handles the bsd umn point at responsibility.
     fun bsdUmnPointAt(progress: Float): GeoPoint = pointAt(BSD_UMN, BSD_UMN_CUMULATIVE_METERS, progress)
 
-    /** Jarak Haversine (meter) antar dua titik. */
+    // jarak harvesine antara 2 titik
+    internal fun metersBetween(a: GeoPoint, b: GeoPoint): Double = haversineMeters(a, b)
+
     private fun haversineMeters(a: GeoPoint, b: GeoPoint): Double {
         val r = 6_371_000.0
         val dLat = Math.toRadians(b.latitude - a.latitude)

@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.beg.shuttlespot.core.model.TripLifecycle
 import com.beg.shuttlespot.core.model.TripStatus
 import com.beg.shuttlespot.core.ui.theme.CircularShape
 import com.beg.shuttlespot.core.ui.theme.LocalExtendedColors
@@ -56,13 +57,15 @@ data class DriverStopUi(
 @Composable
 // Renders the driver bus status card UI section.
 fun DriverBusStatusCard(
-    status: TripStatus,
+    status: TripLifecycle,
     stops: List<DriverStopUi>,
     modifier: Modifier = Modifier,
     nextStopName: String? = null,
     eta: String? = null,
     collapsedVisibleCount: Int = 2,
     initiallyExpanded: Boolean = false,
+    startEnabled: Boolean = true,
+    startLabel: String = "Mulai Perjalanan",
     onStartTrip: () -> Unit = {},
     onLiveTrip: () -> Unit = {},
 ) {
@@ -86,7 +89,7 @@ fun DriverBusStatusCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             when (status) {
-                TripStatus.NOT_STARTED -> {
+                TripLifecycle.NOT_STARTED -> {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         BusIconWithStatus()
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -99,12 +102,13 @@ fun DriverBusStatusCard(
                         }
                     }
                     AppButton(
-                        text = "Mulai Perjalanan",
+                        text = startLabel,
+                        enabled = startEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         onClick = onStartTrip,
                     )
                 }
-                TripStatus.COMPLETED -> {
+                TripLifecycle.COMPLETED -> {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         BusIconWithStatus()
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -268,14 +272,14 @@ private val previewStops = listOf(
 // Interactive preview: tap "Mulai Perjalanan" to start, tap the bottom chevron to lengthen/shorten the list.
 fun DriverBusStatusCardPreview() {
     ShuttleSpotTheme {
-        var status by remember { mutableStateOf(TripStatus.NOT_STARTED) }
+        var status by remember { mutableStateOf(TripLifecycle.NOT_STARTED) }
         Column(modifier = Modifier.padding(16.dp)) {
             DriverBusStatusCard(
                 status = status,
                 stops = previewStops,
                 nextStopName = "Halte Jababeka II",
                 eta = "3 menit",
-                onStartTrip = { status = TripStatus.EN_ROUTE },
+                onStartTrip = { status = TripLifecycle.ACTIVE },
                 onLiveTrip = {},
             )
         }
@@ -289,7 +293,7 @@ fun DriverBusStatusCardActivePreview() {
     ShuttleSpotTheme {
         Column(modifier = Modifier.padding(16.dp)) {
             DriverBusStatusCard(
-                status = TripStatus.EN_ROUTE,
+                status = TripLifecycle.ACTIVE,
                 stops = previewStops,
                 nextStopName = "Halte Jababeka II",
                 eta = "3 menit",

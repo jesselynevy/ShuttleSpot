@@ -28,7 +28,7 @@ fun HomeTab(role: UserRole, tabNav: NavController, rootNav: NavController) {
             onProfile = { tabNav.navigateToTab(MainRoute.PROFILE) },
         )
         UserRole.DRIVER -> DriverHomeScreen(
-            onActiveTrip = { rootNav.navigate(DriverFlowRoute.ACTIVE_TRIP) },
+            onLiveTrip = { rootNav.navigate(DriverFlowRoute.ACTIVE_TRIP) },
         )
     }
 }

@@ -54,10 +54,28 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             optimization {
                 enable = false
             }
+        }
+    }
+
+    flavorDimensions += "role"
+    productFlavors {
+        create("primary") {
+            dimension = "role"
+            manifestPlaceholders["appLabel"] = "ShuttleSpot1"
+        }
+        create("secondary") {
+            dimension = "role"
+            applicationIdSuffix = ".alt"
+            versionNameSuffix = "-alt"
+            manifestPlaceholders["appLabel"] = "ShuttleSpot2"
         }
     }
     compileOptions {
@@ -91,7 +109,7 @@ dependencies {
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
-    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.okhttp)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -109,4 +127,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.play.services.location)
+    implementation(libs.supabase.realtime)
 }

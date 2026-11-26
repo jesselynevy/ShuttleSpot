@@ -42,6 +42,7 @@ import com.beg.shuttlespot.data.remote.SupabaseDriverTripRepository
 import com.beg.shuttlespot.data.sync.RemoteMutationSink
 import com.beg.shuttlespot.data.sync.OutboxSyncScheduler
 import com.beg.shuttlespot.data.sync.OutboxSyncTrigger
+import com.beg.shuttlespot.data.location.FusedLocationPublisher
 
 @Module // marks this class as a Hilt configuration file.
 @InstallIn(SingletonComponent::class) //Installs its bindings in the app-wide Hilt container.
@@ -68,9 +69,6 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindNotificationRepository(implementation: RoomNotificationRepository): NotificationRepository
-
-    @Binds @Singleton
-    abstract fun bindLocationPublisher(implementation: NoOpLocationPublisher): LocationPublisher
 
     @Binds @Singleton
     abstract fun bindThemeRepository(implementation: AppThemeRepository): ThemeRepository
@@ -103,5 +101,12 @@ abstract class RepositoryModule {
             demo: InMemoryDriverTripRepository,
             remote: SupabaseDriverTripRepository,
         ): DriverTripRepository = if (BuildConfig.USE_DEMO_DATA) demo else remote
+
+        @Provides
+        @Singleton
+        fun provideLocationPublisher(
+            demo: NoOpLocationPublisher,
+            real: FusedLocationPublisher,
+        ): LocationPublisher = if (BuildConfig.USE_DEMO_DATA) demo else real
     }
 }

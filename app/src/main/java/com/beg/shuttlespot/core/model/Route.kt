@@ -15,8 +15,8 @@ data class Stop(
     val sequence: Int,
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val scheduledTime: String? = null
-)
+    val scheduledTime: String? = null,
+) 
 
 // Defines the timetable entry type.
 data class TimetableEntry(

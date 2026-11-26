@@ -21,7 +21,7 @@
         android:enableOnBackInvokedCallback="false"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/shuttle_spot_icon"
-        android:label="@string/app_name"
+        android:label="${appLabel}"
         android:roundIcon="@mipmap/shuttle_spot_icon_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ShuttleSpot"
@@ -50,6 +50,12 @@
                     android:host="auth" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".data.location.ShuttleSpotLocationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
     </application>
 
 </manifest>

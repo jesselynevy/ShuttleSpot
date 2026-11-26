@@ -20,6 +20,7 @@ confettiKit = "0.7.0"
 maplibre = "11.11.0"
 supabase = "3.5.0"
 ktor = "3.0.3"
+playServicesLocation = "21.3.0"
 
 [libraries]
 confettikit = { module = "io.github.vinceglb:confettikit", version.ref = "confettiKit" }
@@ -54,7 +55,9 @@ maplibre-android-sdk = { module = "org.maplibre.gl:android-sdk", version.ref = "
 supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt" }
-ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

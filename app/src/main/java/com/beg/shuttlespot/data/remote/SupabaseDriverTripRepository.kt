@@ -13,6 +13,9 @@ import kotlinx.serialization.json.put
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.buildJsonObject
+import java.time.Instant
 
 @Serializable
 internal data class RemoteDriverTripDto(
@@ -78,6 +81,29 @@ class SupabaseDriverTripRepository @Inject constructor(
         block()
     } catch (error: Exception) {
         throw DriverTripException(error.toDriverTripMessage())
+    }
+
+    override suspend fun publishLocation(
+        tripId: String,
+        latitude: Double,
+        longitude: Double,
+        accuracyMeters: Float?,
+        capturedAtEpochMillis: Long,
+    ) {
+        try {
+            clientProvider.get().postgrest.rpc(
+                function = "publish_vehicle_location",
+                parameters = buildJsonObject {
+                    put("p_trip_id", tripId)
+                    put("p_latitude", latitude)
+                    put("p_longitude", longitude)
+                    put("p_accuracy_meters", accuracyMeters)
+                    put("p_captured_at", Instant.ofEpochMilli(capturedAtEpochMillis).toString())
+                },
+            )
+        } catch (error: Exception) {
+            android.util.Log.w("DriverTrip", "publishLocation failed: ${error.message}")
+        }
     }
 }
 

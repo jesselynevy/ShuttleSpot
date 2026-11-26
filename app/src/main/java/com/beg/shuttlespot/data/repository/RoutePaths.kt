@@ -28,7 +28,7 @@ internal object RoutePaths {
     fun bsdUmnPointAt(progress: Float): GeoPoint = pointAt(BSD_UMN, BSD_UMN_CUMULATIVE_METERS, progress)
 
     /** Jarak Haversine (meter) antar dua titik. */
-    private fun haversineMeters(a: GeoPoint, b: GeoPoint): Double {
+    internal fun haversineMeters(a: GeoPoint, b: GeoPoint): Double {
         val r = 6_371_000.0
         val dLat = Math.toRadians(b.latitude - a.latitude)
         val dLng = Math.toRadians(b.longitude - a.longitude)

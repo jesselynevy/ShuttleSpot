@@ -54,4 +54,13 @@ class InMemoryDriverTripRepository @Inject constructor() : DriverTripRepository 
         trip = updated
         return updated
     }
+    override suspend fun publishLocation(
+        tripId: String,
+        latitude: Double,
+        longitude: Double,
+        accuracyMeters: Float?,
+        capturedAtEpochMillis: Long,
+    ) {
+        android.util.Log.d("DriverTrip", "publishLocation(demo) trip=$tripId lat=$latitude lng=$longitude")
+    }
 }
